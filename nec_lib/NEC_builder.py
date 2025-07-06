@@ -1,10 +1,10 @@
 from . import NEC_runner as NEC
 from . import Geometries as GEOMS
 
-global GN_CARD, GE_CARD, LOADS, FR_CARD, RP_CARD, GM_CARD_Origin_Height_AGL, comments
+global GN_CARD, GE_CARD, LOADS, FR_CARD, RP_CARD, EX_CARD, GM_CARD_Origin_Height_AGL, comments
+
 
 comments ="CM No comments specified\n"
-EX_TAG = 999
 
 def set_wire_conductivity(sigma):
     global LOADS
@@ -36,10 +36,13 @@ def start_model(comments = "No comments specified"):
     LOADS = []
     GEOMS.init()
 
+def CommitToModel(geomObj):
+    global model
+    for w in geomObj.get_wires():    
+        model += f"GW {w['nTag']} {w['nS']} {w['x1']} {w['y1']} {w['z1']} {w['x2']} {w['y2']} {w['z2']} {w['wr']}\n"
+
 def write_model():
     global model
-    for w in GEOMS.wires:
-        model += f"GW {w['nTag']} {w['nS']} {w['x1']} {w['y1']} {w['z1']} {w['x2']} {w['y2']} {w['z2']} {w['wr']}\n"
     model += GM_CARD_Origin_Height_AGL
     model += GE_CARD
     model += GN_CARD

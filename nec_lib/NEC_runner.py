@@ -2,7 +2,7 @@ import subprocess
 #import os
 
 global nec_bat, nec_in, nec_out, verbose
-verbose = False
+verbose = True
 
 def init():
     global nec_bat, nec_in, nec_out
@@ -34,9 +34,9 @@ def extract_gain():
         if(verbose):
           print("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
           print(l)
-        v_gain = float(l[20:28])
+        v_gain = float(l[21:29])
         h_gain = float(l[29:37])
-        total = float(l[38:46])
+        total = float(l[37:45])
         return {"v_gain": v_gain, "h_gain": h_gain, "total": total}
 
 def extract_input_impedance():
@@ -52,7 +52,7 @@ def extract_input_impedance():
           print("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789")
           print(l)
         r = float(l[60:72])
-        x = float(l[73:85])
+        x = float(l[72:84])
         return complex(r, x)
 
 
