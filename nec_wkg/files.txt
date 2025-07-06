@@ -1,0 +1,2 @@
+C:\Users\drala\Documents\GitHub\Python_nec\nec_wkg\model.nec
+C:\Users\drala\Documents\GitHub\Python_nec\nec_wkg\model.out

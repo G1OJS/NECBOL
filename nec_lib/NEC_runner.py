@@ -6,7 +6,7 @@ verbose = False
 
 def init():
     global nec_bat, nec_in, nec_out
-    wd = "C:\\Users\\drala\\Documents\\Projects\\Antennas\\Python_nec\\nec_wkg\\"
+    wd = "C:\\Users\\drala\\Documents\\GitHub\\Python_nec\\nec_wkg\\"
     nec_exe = "C:\\4nec2\\exe\\nec2dxs11k.exe"
     nec_bat = wd+"nec.bat"
     nec_in=wd + "model.nec"
