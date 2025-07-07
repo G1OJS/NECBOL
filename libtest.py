@@ -4,13 +4,15 @@ from nec_lib import rf_utils
 
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
     global model
-    feed_rod = geometry_builder.wire_with_feedpoint(length_m = w_m,
+
+    
+    feed_rod = antenna_components.wire_with_feedpoint(length_m = w_m,
                                            wire_diameter_mm = wd_mm,
                                            feedpoint_alpha = 0.5)
     feed_rod.Rotate_ZtoX()
     feed_rod.Translate(0, 0, fp_m - h_m/2)
     
-    outer_loop = geometry_builder.rect_loop(length_m = h_m,
+    outer_loop = antenna_components.rect_loop(length_m = h_m,
                                    width_m = w_m,
                                    wire_diameter_mm = wd_mm)
     
@@ -27,8 +29,8 @@ model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
-# having to do the line below seems like an indication of poor structure
-geometry_builder.set_params(starting_tag_nr = 0,
+
+antenna_components = geometry_builder.components(starting_tag_nr = 0,
                             segment_length_m = model.segLength_m,
                             ex_tag = model.EX_TAG)
 

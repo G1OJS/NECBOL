@@ -11,7 +11,38 @@
 
 import numpy as np
 
-global object_counter, segLen_m, EX_TAG
+class components:
+    def __init__(self, starting_tag_nr, segment_length_m, ex_tag):
+        self.object_counter = starting_tag_nr
+        self.segLen_m = segment_length_m
+        self.EX_TAG = ex_tag
+        
+    def wire_with_feedpoint(self, length_m = 1, wire_diameter_mm = 1.0, feedpoint_alpha = 0.5): 
+        self.object_counter += 1
+        nTag = self.object_counter
+        obj = GeometryObject([])
+        z1 = -length_m/2
+        zf1 = z1 + length_m * feedpoint_alpha - self.segLen_m / 2   
+        zf2 = zf1 + self.segLen_m
+        z2 = length_m/2
+        nS = int( (zf1 - z1) / self.segLen_m)
+        obj.add_wire(nTag,    nS, 0, 0, z1, 0, 0, zf1, wire_diameter_mm/2000)
+        obj.add_wire(self.EX_TAG, 1, 0, 0, zf1, 0, 0, zf2, wire_diameter_mm/2000)
+        nS = int((z2 - zf2) / self.segLen_m)
+        obj.add_wire(nTag,    nS, 0, 0, zf2, 0, 0, z2, wire_diameter_mm/2000)
+        return obj
+    
+    def rect_loop(self, length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0):
+        self.object_counter += 1
+        nTag = self.object_counter
+        obj = GeometryObject([])
+        nS = int((length_m) / self.segLen_m)
+        obj.add_wire(nTag,    nS, -width_m/2, 0, -length_m/2, -width_m/2, 0, length_m/2, wire_diameter_mm/2000)
+        obj.add_wire(nTag, nS,  width_m/2, 0, -length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
+        nS = int((width_m) / self.segLen_m)
+        obj.add_wire(nTag, nS, -width_m/2, 0, -length_m/2,  width_m/2, 0,-length_m/2, wire_diameter_mm/2000)
+        obj.add_wire(nTag, nS, -width_m/2, 0,  length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
+        return obj
 
 class GeometryObject:
     def __init__(self, wires):
@@ -63,11 +94,6 @@ class GeometryObject:
         for params in wires_to_add:
             self.add_wire(*params)
 
-def set_params(starting_tag_nr, segment_length_m, ex_tag):
-    global object_counter, segLen_m, EX_TAG
-    object_counter = starting_tag_nr
-    segLen_m = segment_length_m
-    EX_TAG = ex_tag
 
 # =============
 # these will go in the wire class eventually
@@ -102,33 +128,6 @@ def ends(wire):
 #===========
 
 
-def wire_with_feedpoint(length_m = 1, wire_diameter_mm = 1.0, feedpoint_alpha = 0.5): 
-    global object_counter
-    object_counter += 1
-    nTag = object_counter
-    obj = GeometryObject([])
-    z1 = -length_m/2
-    zf1 = z1 + length_m * feedpoint_alpha - segLen_m / 2   
-    zf2 = zf1 + segLen_m
-    z2 = length_m/2
-    nS = int( (zf1 - z1) / segLen_m)
-    obj.add_wire(nTag,    nS, 0, 0, z1, 0, 0, zf1, wire_diameter_mm/2000)
-    obj.add_wire(EX_TAG, 1, 0, 0, zf1, 0, 0, zf2, wire_diameter_mm/2000)
-    nS = int((z2 - zf2) / segLen_m)
-    obj.add_wire(nTag,    nS, 0, 0, zf2, 0, 0, z2, wire_diameter_mm/2000)
-    return obj
-    
-def rect_loop(length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0):
-    global object_counter
-    object_counter += 1
-    nTag = object_counter
-    obj = GeometryObject([])
-    nS = int((length_m) / segLen_m)
-    obj.add_wire(nTag,    nS, -width_m/2, 0, -length_m/2, -width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-    obj.add_wire(nTag, nS,  width_m/2, 0, -length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-    nS = int((width_m) / segLen_m)
-    obj.add_wire(nTag, nS, -width_m/2, 0, -length_m/2,  width_m/2, 0,-length_m/2, wire_diameter_mm/2000)
-    obj.add_wire(nTag, nS, -width_m/2, 0,  length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-    return obj
+
 
 
