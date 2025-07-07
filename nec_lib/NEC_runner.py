@@ -2,7 +2,7 @@ import subprocess
 #import os
 
 global nec_bat, nec_in, nec_out, verbose
-verbose = True
+verbose = False
 
 def init():
     global nec_bat, nec_in, nec_out

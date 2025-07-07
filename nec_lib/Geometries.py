@@ -16,6 +16,17 @@ class GeometryObject:
     def __init__(self, wires):
         self.wires = wires  # list of wire dicts with nTag, nS, x1, y1, ...
 
+    def add_wire(self, nTag, nS, x1, y1, z1, x2, y2, z2, wr):
+        self.wires.append({"nTag":nTag, "nS":nS, "a":(x1, y1, z1), "b":(x2, y2, z2), "wr":wr})
+
+    def get_wires(self):
+        return self.wires
+
+    def Translate(self, dx, dy, dz):
+        for w in self.wires:
+            w['a'] = tuple(map(float,np.array(w['a']) + np.array([dx, dy, dz])))
+            w['b'] = tuple(map(float,np.array(w['b']) + np.array([dx, dy, dz])))
+
     def Rotate_ZtoY(self):
         R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
         return self.rotate(R)
@@ -26,24 +37,30 @@ class GeometryObject:
 
     def rotate(self, R):
         for w in self.wires:
-            p1 = np.array([w['x1'], w['y1'], w['z1']])
-            p2 = np.array([w['x2'], w['y2'], w['z2']])
-            p1 = R @ p1
-            p2 = R @ p2
-            w['x1'], w['y1'], w['z1'] = p1
-            w['x2'], w['y2'], w['z2'] = p2
+            a = np.array(w['a'])
+            b = np.array(w['b'])
+            w['a'] = tuple(map(float, R @ a))
+            w['b'] = tuple(map(float, R @ b))
 
-    def Translate(self, dx, dy, dz):
-        d = np.array([dx, dy, dz])
-        for w in self.wires:
-            w['x1'] += d[0]; w['y1'] += d[1]; w['z1'] += d[2]
-            w['x2'] += d[0]; w['y2'] += d[1]; w['z2'] += d[2]
-
-    def add_wire(self, nTag, nS, x1, y1, z1, x2, y2, z2, wr):
-        self.wires.append({"nTag":nTag, "nS":nS, "x1":x1, "y1":y1, "z1":z1, "x2":x2, "y2":y2, "z2":z2, "wr":wr})
-
-    def get_wires(self):
-        return self.wires
+    def connect_ends(self, other):
+        wires_to_add=[]
+        for ws in self.wires:
+            for es in ends(ws):
+                for wo in other.wires:
+                    if (touches(es,wo)):
+                        a = np.array(wo['a'])
+                        b = np.array(wo['b'])
+                        p = np.array(es)
+                        ab = np.linalg.norm(b - a)
+                        ap = np.linalg.norm(p - a)
+                        s1 = max(1,round(wo['nS']*(ap/ab)) )
+                        s2 = wo['nS'] - s1
+                        wo['b']=tuple(es)
+                        wo['nS'] = s1
+                        wires_to_add.append( (wo['nTag']+1, s2, *es, *b, wo['wr']) )
+                        break #(for efficiency only)
+        for params in wires_to_add:
+            self.add_wire(*params)
 
 
 global lambda_mg, object_counter, nSegs_per_wavelength, segLength_m, object_counter, EX_TAG
@@ -58,6 +75,42 @@ def init():
     global object_counter, wires, EX_TAG
     object_counter = 0
     EX_TAG = 999
+
+
+# =============
+# these will go in the wire class eventually
+
+
+def touches(end, wire, tol=1e-6):
+    return _point_on_segment(end, wire['a'], wire['b'], tol)
+
+def _point_on_segment(P, A, B, tol=1e-6):
+    P = np.array(P, dtype=float)
+    A = np.array(A, dtype=float)
+    B = np.array(B, dtype=float)
+
+    AB = B - A
+    AP = P - A
+    AB_len = np.linalg.norm(AB)
+
+    if AB_len == 0:
+        # Degenerate wire, treat as a point
+        return np.linalg.norm(P - A) < tol
+
+    # 1. Check perpendicular distance
+    perp_dist = np.linalg.norm(np.cross(AP, AB)) / AB_len
+    if perp_dist > tol:
+        return False
+
+    # 2. Check scalar projection is within segment
+    t = np.dot(AP, AB) / (AB_len ** 2)
+    return 0 <= t <= 1
+
+
+def ends(wire):
+    return [wire["a"], wire["b"]]
+
+#===========
 
 def _nSegments(nSegs, length_m):
    return int(nSegs_per_wavelength*length_m/lambda_m) if (nSegs == 0) else nSegs

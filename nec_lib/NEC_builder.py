@@ -1,14 +1,11 @@
 from . import NEC_runner as NEC
 from . import Geometries as GEOMS
 
-global GN_CARD, GE_CARD, LOADS, FR_CARD, RP_CARD, EX_CARD, GM_CARD_Origin_Height_AGL, comments
-
-
-comments ="CM No comments specified\n"
+global GN_CARD, GE_CARD, LOADS, FR_CARD, RP_CARD, EX_CARD, GM_CARD_Origin_Height_AGL, comments, LD_WIRECOND
 
 def set_wire_conductivity(sigma):
-    global LOADS
-    LOADS.append(f"LD 5 0 0 0 {sigma:.6f} \n")
+    global LD_WIRECOND
+    LD_WIRECOND=f"LD 5 0 0 0 {sigma:.6f} \n"
 
 def set_frequency(MHz):
     global FR_CARD
@@ -38,16 +35,17 @@ def start_model(comments = "No comments specified"):
 
 def CommitToModel(geomObj):
     global model
-    for w in geomObj.get_wires():    
-        model += f"GW {w['nTag']} {w['nS']} {w['x1']} {w['y1']} {w['z1']} {w['x2']} {w['y2']} {w['z2']} {w['wr']}\n"
+    for w in geomObj.get_wires():
+        x1, y1, z1 = w['a']
+        x2, y2, z2 = w['b']
+        model += f"GW {w['nTag']} {w['nS']} {x1:.3f} {y1:.3f} {z1:.3f} {x2:.3f} {y2:.3f} {z2:.3f} {w['wr']:.3f}\n"
 
 def write_model():
     global model
     model += GM_CARD_Origin_Height_AGL
     model += GE_CARD
     model += GN_CARD
-    for load_card in LOADS:
-        model += (load_card)
+    model += LD_WIRECOND
     EX_CARD = f"EX 0 {GEOMS.EX_TAG} 1 0 1 0\n"
     model += EX_CARD
     model += FR_CARD
