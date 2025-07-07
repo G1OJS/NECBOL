@@ -1,13 +1,18 @@
 #Component	Description	Key Params / Conventions
-#Dipole	Straight wire element	length, wire diameter, axis_az/el, center anchor
-#Rectangular Loop	Four-wire rectangle in a plane	width, height, wire diameter, nTagrmal_az/el, center anchor
 #Circular Loop	Circular wire loop	radius, wire diameter, nTagrmal_az/el, center anchor
 #Folded Dipole	Parallel wire folded structure	base dipole params + fold spacing, fold wire diameter
-#MonTagpole	Dipole over ground plane	length, wire diameter, axis, center at feedpoint (ground)
-#Helix	Helical wire antenna	diameter, pitch, number of turns, wire diameter, axis, center
-#Stub / Matching Section	Short wire segment for impedance matching	length, wire diameter, axis, center
 #Wire Array	Array of wires with specified spacing and phasing	component type + array geometry
 #Patch / Panel	Flat conducting surface (for reflectors, ground planes)	dimensions, thickness, nTagrmal_a
+
+# make at least this file self-documenting
+#Helix	Helical wire antenna	diameter, pitch, number of turns, wire diameter, axis, center
+# split to accomodate Helix_with_feed?
+
+#Feedlines (for common mode)
+#Stub / Matching Section	Short wire segment for impedance matching	length, wire diameter, axis, center
+# - TL from EX_TAG to another TAG plus a stub
+
+#Replicator to stack & bay?
 
 import numpy as np
 
@@ -15,13 +20,15 @@ class components:
     def __init__(self, starting_tag_nr, segment_length_m, ex_tag):
         self.object_counter = starting_tag_nr
         self.segLen_m = segment_length_m
-        self.EX_TAG = ex_tag       
-        
-    def wire_Z(self, length_m = 1, wire_diameter_mm = 1.0, Origin_Z = 0):
-        # can the first three lines go in a helper nTag, obj = newGeomObj(self.object_counter)?
+        self.EX_TAG = ex_tag
+
+    def new_geometry_object(self):
         self.object_counter += 1
         nTag = self.object_counter
-        obj = GeometryObject([])
+        return nTag, GeometryObject([])
+        
+    def wire_Z(self, length_m = 1, wire_diameter_mm = 1.0, Origin_Z = 0):
+        nTag, obj = self.new_geometry_object()
         z1 = -length_m/2
         z2 = length_m/2
         nS = int( (z2 - z1) / self.segLen_m)
@@ -30,9 +37,7 @@ class components:
         return obj
 
     def wire_Z_with_feedpoint(self, length_m = 1, wire_diameter_mm = 1.0, feedpoint_alpha = 0.5, Origin_Z = 0): 
-        self.object_counter += 1
-        nTag = self.object_counter
-        obj = GeometryObject([])
+        nTag, obj = self.new_geometry_object()
         z1 = -length_m/2
         zf1 = z1 + length_m * feedpoint_alpha - self.segLen_m / 2   
         zf2 = zf1 + self.segLen_m
@@ -46,9 +51,7 @@ class components:
         return obj
     
     def rect_loop_XZ(self, length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0, Origin_X = 0, Origin_Z = 0):
-        self.object_counter += 1
-        nTag = self.object_counter
-        obj = GeometryObject([])
+        nTag, obj = self.new_geometry_object()
         nS = int((length_m) / self.segLen_m)
         obj.add_wire(nTag,    nS, -width_m/2, 0, -length_m/2, -width_m/2, 0, length_m/2, wire_diameter_mm/2000)
         obj.add_wire(nTag, nS,  width_m/2, 0, -length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
@@ -59,9 +62,7 @@ class components:
         return obj
 
     def connector(self, fromObject, fromParam, toObject, toParam, wire_diameter_mm = 1.0):
-        self.object_counter += 1
-        nTag = self.object_counter
-        obj = GeometryObject([])
+        nTag, obj = self.new_geometry_object()
         from_point = parametricPoint(fromObject, fromParam)
         to_point = parametricPoint(toObject, toParam)
         l = distance(from_point, to_point)
