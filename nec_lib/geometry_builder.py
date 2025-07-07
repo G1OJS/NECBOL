@@ -15,9 +15,21 @@ class components:
     def __init__(self, starting_tag_nr, segment_length_m, ex_tag):
         self.object_counter = starting_tag_nr
         self.segLen_m = segment_length_m
-        self.EX_TAG = ex_tag
+        self.EX_TAG = ex_tag       
         
-    def wire_with_feedpoint(self, length_m = 1, wire_diameter_mm = 1.0, feedpoint_alpha = 0.5): 
+    def wire_Z(self, length_m = 1, wire_diameter_mm = 1.0, Origin_Z = 0):
+        # can the first three lines go in a helper nTag, obj = newGeomObj(self.object_counter)?
+        self.object_counter += 1
+        nTag = self.object_counter
+        obj = GeometryObject([])
+        z1 = -length_m/2
+        z2 = length_m/2
+        nS = int( (z2 - z1) / self.segLen_m)
+        obj.add_wire(nTag,    nS, 0, 0, z1, 0, 0, z2, wire_diameter_mm/2000)
+        obj.translate(0, 0, -Origin_Z)
+        return obj
+
+    def wire_Z_with_feedpoint(self, length_m = 1, wire_diameter_mm = 1.0, feedpoint_alpha = 0.5, Origin_Z = 0): 
         self.object_counter += 1
         nTag = self.object_counter
         obj = GeometryObject([])
@@ -30,9 +42,10 @@ class components:
         obj.add_wire(self.EX_TAG, 1, 0, 0, zf1, 0, 0, zf2, wire_diameter_mm/2000)
         nS = int((z2 - zf2) / self.segLen_m)
         obj.add_wire(nTag,    nS, 0, 0, zf2, 0, 0, z2, wire_diameter_mm/2000)
+        obj.translate(0, 0, -Origin_Z)
         return obj
     
-    def rect_loop(self, length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0):
+    def rect_loop_XZ(self, length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0, Origin_X = 0, Origin_Z = 0):
         self.object_counter += 1
         nTag = self.object_counter
         obj = GeometryObject([])
@@ -42,6 +55,16 @@ class components:
         nS = int((width_m) / self.segLen_m)
         obj.add_wire(nTag, nS, -width_m/2, 0, -length_m/2,  width_m/2, 0,-length_m/2, wire_diameter_mm/2000)
         obj.add_wire(nTag, nS, -width_m/2, 0,  length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
+        obj.translate(-Origin_X, 0, -Origin_Z)
+        return obj
+
+    def connector(self, fromObject, fromParam, toObject, toParam, wire_diameter_mm = 1.0):
+        self.object_counter += 1
+        nTag = self.object_counter
+        obj = GeometryObject([])
+        from_point = parametricPoint(fromObject, fromParam)
+        to_point = parametricPoint(toObject, toParam)
+        obj.add_wire(nTag, 1, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
 class GeometryObject:
@@ -54,16 +77,16 @@ class GeometryObject:
     def get_wires(self):
         return self.wires
 
-    def Translate(self, dx, dy, dz):
+    def translate(self, dx, dy, dz):
         for w in self.wires:
             w['a'] = tuple(map(float,np.array(w['a']) + np.array([dx, dy, dz])))
             w['b'] = tuple(map(float,np.array(w['b']) + np.array([dx, dy, dz])))
 
-    def Rotate_ZtoY(self):
+    def rotate_ZtoY(self):
         R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
         return self.rotate(R)
     
-    def Rotate_ZtoX(self):
+    def rotate_ZtoX(self):
         R = np.array([[0, 0, -1],[0,  1, 0],[1,  0, 0]])
         return self.rotate(R)
 
@@ -80,27 +103,18 @@ class GeometryObject:
             for es in ends(ws):
                 for wo in other.wires:
                     if (touches(es,wo)):
-                        a = np.array(wo['a'])
-                        b = np.array(wo['b'])
-                        p = np.array(es)
-                        ab = np.linalg.norm(b - a)
-                        ap = np.linalg.norm(p - a)
-                        s1 = max(1,round(wo['nS']*(ap/ab)) )
-                        s2 = wo['nS'] - s1
-                        wo['b']=tuple(es)
-                        wo['nS'] = s1
-                        wires_to_add.append( (wo['nTag']+1, s2, *es, *b, wo['wr']) )
+                        _split_wire_at(wo, es, wires_to_add)
                         break #(for efficiency only)
         for params in wires_to_add:
-            self.add_wire(*params)
-
+            other.add_wire(*params)
+        
 
 # =============
 # these will go in the wire class eventually
 def touches(end, wire, tol=1e-6):
-    return _point_on_segment(end, wire['a'], wire['b'], tol)
+    return _point_lies_on_line(end, wire['a'], wire['b'], tol)
 
-def _point_on_segment(P, A, B, tol=1e-6):
+def _point_lies_on_line(P, A, B, tol=1e-6):
     P = np.array(P, dtype=float)
     A = np.array(A, dtype=float)
     B = np.array(B, dtype=float)
@@ -122,9 +136,30 @@ def _point_on_segment(P, A, B, tol=1e-6):
     t = np.dot(AP, AB) / (AB_len ** 2)
     return 0 <= t <= 1
 
+def _split_wire_at(wo, es, wires_to_add):
+    a = np.array(wo['a'])
+    b = np.array(wo['b'])
+    p = np.array(es)
+    ab = np.linalg.norm(b - a)
+    ap = np.linalg.norm(p - a)
+    s1 = max(1,round(wo['nS']*(ap/ab)) )
+    s2 = wo['nS'] - s1
+    wo['b']=tuple(es)
+    wo['nS'] = s1
+    wires_to_add.append( (wo['nTag'], s2, *es, *b, wo['wr']) )
 
 def ends(wire):
     return [wire["a"], wire["b"]]
+
+def parametricPoint(geom_object, wire_index_plus_alpha):
+    wire_index = int(wire_index_plus_alpha)
+    alpha = wire_index_plus_alpha - wire_index
+    w = geom_object.wires[wire_index]
+    A = np.array(w["a"], dtype=float)
+    B = np.array(w["b"], dtype=float)
+    P = A + alpha * (B-A)
+    return P
+
 #===========
 
 
