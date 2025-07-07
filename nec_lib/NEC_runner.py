@@ -2,10 +2,8 @@ import subprocess
 global nec_bat, nec_in, nec_out, verbose
 verbose = False
 
-def write_runner_files():
+def write_runner_files(nec_exe, wd):
     global nec_bat, nec_in, nec_out
-    wd = "C:\\Users\\drala\\Documents\\GitHub\\Python_nec\\nec_wkg\\"
-    nec_exe = "C:\\4nec2\\exe\\nec2dxs11k.exe"
     nec_bat = wd+"nec.bat"
     nec_in=wd + "model.nec"
     nec_out=wd + "model.out"
@@ -16,7 +14,9 @@ def write_runner_files():
         f.write(nec_in+"\n")
         f.write(nec_out+"\n")
 
-def run():
+def run(model):
+    with open(nec_in, "w") as f:
+        f.write(model)
     proc = subprocess.run([nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
 def extract_gain():

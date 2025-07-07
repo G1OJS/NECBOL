@@ -63,13 +63,17 @@ class GeometryObject:
         for params in wires_to_add:
             self.add_wire(*params)
 
-def init(lambda_m1, nSegs_per_wavelength1=40, SET_EX_TAG=999):
-    global lambda_m, segLength_m, nSegs_per_wavelength, object_counter, EX_TAG
-    lambda_m = lambda_m1
-    nSegs_per_wavelength = nSegs_per_wavelength1
+def init(set_lambda_m, set_nSegs_per_wavelength=40, set_EX_TAG=999):
+    global lambda_m, segLength_m, nSegs_per_wavelength, EX_TAG
+    lambda_m = set_lambda_m
+    nSegs_per_wavelength = set_nSegs_per_wavelength
     segLength_m = lambda_m / nSegs_per_wavelength
+    
+    EX_TAG = set_EX_TAG
+
+def new():
+    global object_counter
     object_counter = 0
-    EX_TAG = SET_EX_TAG
 
 # =============
 # these will go in the wire class eventually

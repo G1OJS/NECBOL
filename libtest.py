@@ -1,15 +1,18 @@
 from nec_lib import NEC_runner as NEC
-from nec_lib import NEC_input_writer as INPUT
+from nec_lib import NEC_input_writer as nec_writer
 from nec_lib import Geometries as GEOMDEF
 from nec_lib import RF_utils as RF
 
 def set_environment():
-    INPUT.set_wire_conductivity(sigma = 58000000)
-    INPUT.set_frequency(MHz = 144.2)
-    INPUT.set_gain_point(azimuth = 90, elevation = 5)
-    INPUT.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+    freq_MHz = 144.2
+    nec_writer.set_wire_conductivity(sigma = 58000000)
+    nec_writer.set_frequency(MHz = freq_MHz)
+    GEOMDEF.init(300/freq_MHz)
+    nec_writer.set_gain_point(azimuth = 90, elevation = 5)
+    nec_writer.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
+    GEOMDEF.new()
     feed_rod = GEOMDEF.wire_with_feedpoint(length_m = w_m,
                                            wire_diameter_mm = wd_mm,
                                            feedpoint_alpha = 0.5)
@@ -22,20 +25,21 @@ def build_hentenna(h_m, w_m, fp_m, wd_mm):
     
     feed_rod.connect_ends(outer_loop)
     
-    INPUT.add(feed_rod)
-    INPUT.add(outer_loop)
+    nec_writer.add(feed_rod)
+    nec_writer.add(outer_loop)
     
 def tabulate(length):
-    INPUT.start()
+    nec_writer.start()
     build_hentenna(length, 0.28, 0.12, 5)
-    INPUT.write()
-    NEC.run()
+    model = nec_writer.finalise()
+    NEC.run(model)
     gain = NEC.extract_gain()
     z = NEC.extract_input_impedance()
     vswr = RF.vswr_from_z(z)
     print(f"Length {length:.3f}", gain, f"vswr:{vswr:.2f}")
 
-NEC.write_runner_files()
+NEC.write_runner_files(nec_exe = "C:\\4nec2\\exe\\nec2dxs11k.exe",
+                       wd      = "C:\\Users\\drala\\Documents\\GitHub\\Python_nec\\nec_wkg\\")
 set_environment()
 for i in range(5):
     l = 0.97+0.01*i

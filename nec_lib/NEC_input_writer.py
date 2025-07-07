@@ -1,6 +1,3 @@
-from .Geometries import init as GEOMS_init
-from . import NEC_runner
-
 global GN_CARD, GE_CARD, LOADS, FR_CARD, RP_CARD, GM_CARD_Origin_Height_AGL, comments, LD_WIRECOND
 
 def set_wire_conductivity(sigma):
@@ -10,7 +7,6 @@ def set_wire_conductivity(sigma):
 def set_frequency(MHz):
     global FR_CARD
     FR_CARD = f"FR 0 1 0 0 {MHz:.3f} 0\n"
-    GEOMS_init(300/MHz, SET_EX_TAG=999)
     
 def set_gain_point(azimuth, elevation):
     global RP_CARD
@@ -39,7 +35,7 @@ def add(geomObj):
         x2, y2, z2 = w['b']
         model += f"GW {w['nTag']} {w['nS']} {x1:.3f} {y1:.3f} {z1:.3f} {x2:.3f} {y2:.3f} {z2:.3f} {w['wr']:.3f}\n"
 
-def write():
+def finalise():
     global model
     model += GM_CARD_Origin_Height_AGL
     model += GE_CARD
@@ -50,6 +46,5 @@ def write():
     model += FR_CARD
     model += RP_CARD
     model += "EN"
-    with open(NEC_runner.nec_in, "w") as f:
-        f.write(model)
-    f.close()
+    return model
+
