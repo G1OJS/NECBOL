@@ -5,4 +5,4 @@ This is a new work in progress, but already provides:
 * Easy setting of frequency, ground, azimuth and elevation of pattern point
 * Extendable to sweep and optimise, tabulate and plot
 
-![Capture](https://github.com/user-attachments/assets/5c57fb85-8e29-44da-b1ab-8f62b4717002)
+![Capture](https://github.com/user-attachments/assets/7f6b909d-d614-4128-a632-4cf4ec062234)
