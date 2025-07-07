@@ -5,3 +5,19 @@ This is a new work in progress, but already provides:
 * Easy setting of frequency, ground, azimuth and elevation of pattern point
 * Extendable to sweep and optimise, tabulate and plot
 ![Capture](https://github.com/user-attachments/assets/de95948a-58b6-4bb3-8367-dc35639638fe)
+
+Next steps / future plans
+- add more geometry elements
+- look at adding a wires class
+- optimiser
+    - gain in a certain direction
+    - vswr
+    - polarisation purity
+    - current on a certain segment
+    - feedline current (needs a feedline object tagged)
+- Clutter / environment objects
+    - dielectric slab (for brick walls, GRP panels etc)
+    - other antennas
+- Automated A/B compares
+    - Over ground vs free space
+    - With / without specified feature
