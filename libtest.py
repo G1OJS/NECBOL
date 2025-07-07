@@ -1,15 +1,14 @@
 from nec_lib import NEC_runner as NEC
-from nec_lib import NEC_input_writer as nec_writer
 from nec_lib import Geometries as GEOMDEF
 from nec_lib import RF_utils as RF
 
 def set_environment():
     freq_MHz = 144.2
-    nec_writer.set_wire_conductivity(sigma = 58000000)
-    nec_writer.set_frequency(MHz = freq_MHz)
+    NEC.model.set_wire_conductivity(sigma = 58000000)
+    NEC.model.set_frequency(MHz = freq_MHz)
     GEOMDEF.init(300/freq_MHz)
-    nec_writer.set_gain_point(azimuth = 90, elevation = 5)
-    nec_writer.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+    NEC.model.set_gain_point(azimuth = 90, elevation = 5)
+    NEC.model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
     GEOMDEF.new()
@@ -25,14 +24,13 @@ def build_hentenna(h_m, w_m, fp_m, wd_mm):
     
     feed_rod.connect_ends(outer_loop)
     
-    nec_writer.add(feed_rod)
-    nec_writer.add(outer_loop)
+    NEC.model.add(feed_rod)
+    NEC.model.add(outer_loop)
     
 def tabulate(length):
-    nec_writer.start()
+    NEC.model.start()
     build_hentenna(length, 0.28, 0.12, 5)
-    model = nec_writer.finalise()
-    NEC.run(model)
+    NEC.run()
     gain = NEC.extract_gain()
     z = NEC.extract_input_impedance()
     vswr = RF.vswr_from_z(z)
