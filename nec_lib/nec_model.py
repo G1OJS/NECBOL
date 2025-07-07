@@ -72,11 +72,11 @@ class NECModel:
         self.model_text += self.FR_CARD
         self.model_text += self.RP_CARD
         self.model_text += "EN"
-        return self.model_text
 
     def run(self):
+        self.finalise()
         with open(self.nec_in, "w") as f:
-            f.write(self.finalise())
+            f.write(self.model_text)
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
     def extract_gain(self):
