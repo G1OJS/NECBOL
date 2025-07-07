@@ -11,7 +11,7 @@
 
 import numpy as np
 
-global lambda_mg, object_counter, nSegs_per_wavelength, segLength_m, object_counter, EX_TAG
+global object_counter, segLen_m, EX_TAG
 
 class GeometryObject:
     def __init__(self, wires):
@@ -63,22 +63,14 @@ class GeometryObject:
         for params in wires_to_add:
             self.add_wire(*params)
 
-def init(set_lambda_m, set_nSegs_per_wavelength=40, set_EX_TAG=999):
-    global lambda_m, segLength_m, nSegs_per_wavelength, EX_TAG
-    lambda_m = set_lambda_m
-    nSegs_per_wavelength = set_nSegs_per_wavelength
-    segLength_m = lambda_m / nSegs_per_wavelength
-    
-    EX_TAG = set_EX_TAG
-
-def new():
-    global object_counter
-    object_counter = 0
+def set_params(starting_tag_nr, segment_length_m, ex_tag):
+    global object_counter, segLen_m, EX_TAG
+    object_counter = starting_tag_nr
+    segLen_m = segment_length_m
+    EX_TAG = ex_tag
 
 # =============
 # these will go in the wire class eventually
-
-
 def touches(end, wire, tol=1e-6):
     return _point_on_segment(end, wire['a'], wire['b'], tol)
 
@@ -107,39 +99,34 @@ def _point_on_segment(P, A, B, tol=1e-6):
 
 def ends(wire):
     return [wire["a"], wire["b"]]
-
 #===========
 
-def _nSegments(nSegs, length_m):
-   return int(nSegs_per_wavelength*length_m/lambda_m) if (nSegs == 0) else nSegs
 
-def wire_with_feedpoint(length_m = 1, wire_diameter_mm = 1, feedpoint_alpha = 0.5, nSegsIgnTagred = 0):
-    # trying to allow choice of auto/specified segmentation but complicated with multi-wire objects 
+def wire_with_feedpoint(length_m = 1, wire_diameter_mm = 1.0, feedpoint_alpha = 0.5): 
     global object_counter
     object_counter += 1
     nTag = object_counter
     obj = GeometryObject([])
     z1 = -length_m/2
-    zf1 = z1 + length_m * feedpoint_alpha - segLength_m / 2   
-    zf2 = zf1 + segLength_m
+    zf1 = z1 + length_m * feedpoint_alpha - segLen_m / 2   
+    zf2 = zf1 + segLen_m
     z2 = length_m/2
-    nS = _nSegments(0, zf1 - z1)
+    nS = int( (zf1 - z1) / segLen_m)
     obj.add_wire(nTag,    nS, 0, 0, z1, 0, 0, zf1, wire_diameter_mm/2000)
     obj.add_wire(EX_TAG, 1, 0, 0, zf1, 0, 0, zf2, wire_diameter_mm/2000)
-    nS = _nSegments(0, z2 - zf2)
+    nS = int((z2 - zf2) / segLen_m)
     obj.add_wire(nTag,    nS, 0, 0, zf2, 0, 0, z2, wire_diameter_mm/2000)
     return obj
     
-def rect_loop(length_m = 1, width_m = 0.2, wire_diameter_mm = 1, nSegsIgnTagred = 0):
-    # trying to allow choice of auto/specified segmentation but complicated with multi-wire objects 
+def rect_loop(length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0):
     global object_counter
     object_counter += 1
     nTag = object_counter
     obj = GeometryObject([])
-    nS = _nSegments(0, length_m)
+    nS = int((length_m) / segLen_m)
     obj.add_wire(nTag,    nS, -width_m/2, 0, -length_m/2, -width_m/2, 0, length_m/2, wire_diameter_mm/2000)
     obj.add_wire(nTag, nS,  width_m/2, 0, -length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-    nS = _nSegments(0, width_m)
+    nS = int((width_m) / segLen_m)
     obj.add_wire(nTag, nS, -width_m/2, 0, -length_m/2,  width_m/2, 0,-length_m/2, wire_diameter_mm/2000)
     obj.add_wire(nTag, nS, -width_m/2, 0,  length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
     return obj
