@@ -9,8 +9,9 @@
 #Wire Array	Array of wires with specified spacing and phasing	component type + array geometry
 #Patch / Panel	Flat conducting surface (for reflectors, ground planes)	dimensions, thickness, nTagrmal_a
 
-
 import numpy as np
+
+global lambda_mg, object_counter, nSegs_per_wavelength, segLength_m, object_counter, EX_TAG
 
 class GeometryObject:
     def __init__(self, wires):
@@ -62,20 +63,13 @@ class GeometryObject:
         for params in wires_to_add:
             self.add_wire(*params)
 
-
-global lambda_mg, object_counter, nSegs_per_wavelength, segLength_m, object_counter, EX_TAG
-nSegs_per_wavelength = 40
-
-def set_lambda(wl_m):
-    global lambda_m, segLength_m
-    lambda_m = wl_m
+def init(lambda_m1, nSegs_per_wavelength1=40, SET_EX_TAG=999):
+    global lambda_m, segLength_m, nSegs_per_wavelength, object_counter, EX_TAG
+    lambda_m = lambda_m1
+    nSegs_per_wavelength = nSegs_per_wavelength1
     segLength_m = lambda_m / nSegs_per_wavelength
-
-def init():
-    global object_counter, wires, EX_TAG
     object_counter = 0
-    EX_TAG = 999
-
+    EX_TAG = SET_EX_TAG
 
 # =============
 # these will go in the wire class eventually

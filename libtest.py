@@ -1,13 +1,13 @@
 from nec_lib import NEC_runner as NEC
-from nec_lib import NEC_builder as BUILD
+from nec_lib import NEC_input_writer as INPUT
 from nec_lib import Geometries as GEOMDEF
 from nec_lib import RF_utils as RF
 
 def set_environment():
-    BUILD.set_wire_conductivity(sigma = 58000000)
-    BUILD.set_frequency(MHz = 144.2)
-    BUILD.set_gain_point(azimuth = 90, elevation = 5)
-    BUILD.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+    INPUT.set_wire_conductivity(sigma = 58000000)
+    INPUT.set_frequency(MHz = 144.2)
+    INPUT.set_gain_point(azimuth = 90, elevation = 5)
+    INPUT.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
     feed_rod = GEOMDEF.wire_with_feedpoint(length_m = w_m,
@@ -22,13 +22,13 @@ def build_hentenna(h_m, w_m, fp_m, wd_mm):
     
     feed_rod.connect_ends(outer_loop)
     
-    BUILD.CommitToModel(feed_rod)
-    BUILD.CommitToModel(outer_loop)
+    INPUT.add(feed_rod)
+    INPUT.add(outer_loop)
     
 def tabulate(length):
-    BUILD.start_model()
+    INPUT.start()
     build_hentenna(length, 0.28, 0.12, 5)
-    BUILD.write_model()
+    INPUT.write()
     NEC.run()
     gain = NEC.extract_gain()
     z = NEC.extract_input_impedance()
