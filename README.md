@@ -15,9 +15,13 @@ Next steps / future plans
     - polarisation purity
     - current on a certain segment
     - feedline current (needs a feedline object tagged)
+    - target antenna parameters plus stretch / warp / sheer the 3D geometry
 - Clutter / environment objects
     - dielectric slab (for brick walls, GRP panels etc)
     - other antennas
+- Error handling (at least stop if NEC output file indicates a problem)
 - Automated A/B compares
     - Over ground vs free space
     - With / without specified feature
+- Advanced graphing:
+    - A minus B graphs
