@@ -64,7 +64,9 @@ class components:
         obj = GeometryObject([])
         from_point = parametricPoint(fromObject, fromParam)
         to_point = parametricPoint(toObject, toParam)
-        obj.add_wire(nTag, 1, *from_point, *to_point, wire_diameter_mm/2000) 
+        l = distance(from_point, to_point)
+        nS = int(l / self.segLen_m)
+        obj.add_wire(nTag, nS, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
 class GeometryObject:
@@ -159,6 +161,12 @@ def parametricPoint(geom_object, wire_index_plus_alpha):
     B = np.array(w["b"], dtype=float)
     P = A + alpha * (B-A)
     return P
+
+def distance(point1, point2):
+    A = np.array(point1)
+    B = np.array(point2)
+    V = B-A
+    return np.linalg.norm(V)
 
 #===========
 

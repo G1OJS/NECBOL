@@ -41,7 +41,7 @@ model = NECModel(working_dir="C:\\Users\\drala\\Documents\\GitHub\\Python_nec\\n
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
-model.set_gain_point(azimuth = -90, elevation = 5)
+model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
@@ -51,10 +51,10 @@ for i in range(-5, 5):
                             segment_length_m = model.segLength_m,
                             ex_tag = model.EX_TAG)
     hen_height_m = 0.97
-    hen_width_m = 0.274
+    hen_width_m = 0.271
     feed_height_m = 0.12
-    refl_scale = 0.96
-    refl_sep = 0.242
+    refl_scale = 0.985
+    refl_sep = 0.33
     parameter = feed_height_m *(1 + 0.01 *i)
     feed_height_m = parameter
     model.start_geometry()
