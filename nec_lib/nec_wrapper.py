@@ -1,4 +1,5 @@
 import subprocess
+import os
 
 class NECModel:
     def __init__(self, working_dir, nec_exe_path, verbose=False):
@@ -25,7 +26,7 @@ class NECModel:
     def write_runner_files(self):
         print(self.nec_bat)
         with open(self.nec_bat, "w") as f:
-            f.write(f"{self.nec_exe} < {self.files_txt}\n")
+            f.write(f"{self.nec_exe} < {self.files_txt} \n")
         with open(self.files_txt, "w") as f:
             f.write(f"{self.nec_in}\n{self.nec_out}\n")
 
@@ -78,9 +79,10 @@ class NECModel:
         self.finalise()
         with open(self.nec_in, "w") as f:
             f.write(self.model_text)
-        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+        with open(os.devnull, "w") as devnull:
+            subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
-    def extract_gain(self):
+    def gains(self):
         with open(self.nec_out) as f:
             while "RADIATION PATTERNS" not in f.readline():
                 pass
@@ -94,7 +96,16 @@ class NECModel:
                 "total": float(l[37:45]),
             }
 
-    def extract_input_impedance(self):
+    def h_gain(self):
+        return self.gains()['h_gain']
+
+    def v_gain(self):
+        return self.gains()['v_gain']
+
+    def tot_gain(self):
+        return self.gains()['total']
+
+    def vswr(self):
         with open(self.nec_out) as f:
             while "ANTENNA INPUT PARAMETERS" not in f.readline():
                 pass
@@ -104,4 +115,8 @@ class NECModel:
                 print("Z line:", l.strip())
             r = float(l[60:72])
             x = float(l[72:84])
-            return complex(r, x)
+            z_in = r + x * 1j
+            z0 = 50
+            gamma = (z_in - z0) / (z_in + z0)
+            return (1 + abs(gamma)) / (1 - abs(gamma))
+

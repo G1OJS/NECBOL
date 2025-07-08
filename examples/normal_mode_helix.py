@@ -1,9 +1,8 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from nec_lib.nec_model import NECModel
+from nec_lib.nec_wrapper import NECModel
 from nec_lib import geometry_builder
-from nec_lib import rf_utils
 from nec_lib import wire_viewer
 
 def build_helix(d_mm, l_mm, main_wire_diameter_mm, cld_mm, cl_alpha, cl_spacing_mm):
@@ -58,10 +57,9 @@ for i in range(-5, 5):
     model.start_geometry()
     build_helix(d_mm, l_mm, wd_mm, cld_mm, cl_alpha, cl_spacing_mm)
     model.run()
-    gain = model.extract_gain()
-    z = model.extract_input_impedance()
-    vswr = rf_utils.vswr_from_z(z)
-    print(f"parameter {parameter:.3f}", gain, f"vswr:{vswr:.2f}")
+    gains = model.gains()
+    vswr = model.vswr()
+    print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
 
 wire_viewer.view_nec_input(model.nec_in)
 

@@ -170,7 +170,7 @@
 
                                 - - - MATRIX TIMING - - -
 
-                        FILL=    0.016 SEC.,  FACTOR=    0.000 SEC.
+                        FILL=    0.000 SEC.,  FACTOR=    0.000 SEC.
 
 
 
@@ -269,4 +269,4 @@
 
  ***** DATA CARD NO.  7   EN   0     1     1  1000  8.50000E+01  9.00000E+01  0.00000E+00  0.00000E+00  0.00000E+00  0.00000E+00
 
- RUN TIME =     0.094
+ RUN TIME =     0.078

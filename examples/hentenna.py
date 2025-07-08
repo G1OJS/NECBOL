@@ -1,10 +1,8 @@
 import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from nec_lib.nec_model import NECModel
+from nec_lib.nec_wrapper import NECModel
 from nec_lib import geometry_builder
-from nec_lib import rf_utils
-
 
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
     global model
@@ -46,10 +44,9 @@ for i in range(-5, 5):
     model.start_geometry()
     build_hentenna(h_m, 0.28, 0.12, 5)
     model.run()
-    gain = model.extract_gain()
-    z = model.extract_input_impedance()
-    vswr = rf_utils.vswr_from_z(z)
-    print(f"h_m {h_m:.3f}", gain, f"vswr:{vswr:.2f}")
+    gains = model.gains()
+    vswr = model.vswr()
+    print(gains, f"vswr:{vswr:.2f}")
 
 
 

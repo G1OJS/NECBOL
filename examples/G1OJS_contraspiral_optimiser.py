@@ -5,9 +5,28 @@ from nec_lib.nec_wrapper import NECModel
 from nec_lib import geometry_builder
 from nec_lib import wire_viewer
 
-def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
-    global model
+def cost_function(model):
+    vcost = model.vswr()
+    g = model.h_gain()
+    gcost = 15-g
+    return ({"cost":vcost*vcost + gcost*gcost, "info":f"VSWR:{vcost:.2f} Gain:{g:.2f}"})
 
+def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
+
+    model = NECModel(working_dir="..\\nec_wkg",
+                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
+                 verbose=False)
+    model.set_wire_conductivity(sigma = 58000000)
+    model.set_frequency(MHz = 144.2)
+    model.set_gain_point(azimuth = 90, elevation = 3)
+    model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+
+    antenna_components = geometry_builder.components(
+        starting_tag_nr=0,
+        segment_length_m=model.segLength_m,
+        ex_tag=model.EX_TAG
+    )
+    model.start_geometry()
 
     coupling_loop_wire_diameter_mm = 2.0
     
@@ -41,40 +60,34 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
     model.add(coupling_loop)
     model.add(top_helix)
     model.add(link)
-    
+
+    return model
 
 
-model = NECModel(working_dir="..\\nec_wkg",
-                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
-                 verbose=False)
-model.set_wire_conductivity(sigma = 58000000)
-model.set_frequency(MHz = 144.2)
-model.set_gain_point(azimuth = 90, elevation = 5)
-model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
-#model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
+from nec_lib.optimisers import RandomOptimiser
 
 
-for i in range(-5, 5):
-    antenna_components = geometry_builder.components(starting_tag_nr = 0,
-                            segment_length_m = model.segLength_m,
-                            ex_tag = model.EX_TAG)
-    d_mm = 160.5
-    l_mm = 159
-    wd_mm = 8
-    helix_sep_m = 140
-    cld_mm = 78
-    cl_spacing_mm = 2
-    cl_alpha=0.495
-    parameter = cl_alpha *(1 + 0.01 *i)
-    cl_alpha = parameter
-    model.start_geometry()
-    build_contraspiral(d_mm, l_mm, wd_mm, helix_sep_m, cld_mm, cl_alpha, cl_spacing_mm)
-    model.run()
-    gains = model.gains()
-    vswr = model.vswr()
-    print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
+param_init = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":122, "cld_mm":81, "cl_alpha":0.505, "cl_spacing_mm":2.1}
+vary_mask = {"d_mm":True, "l_mm":True, "main_wire_diameter_mm":True, "helix_sep_mm":True, "cld_mm":True, "cl_alpha":True, "cl_spacing_mm":True}
+bounds = {"d_mm":(120, 180), "l_mm":(120, 180), "main_wire_diameter_mm":(.5, 4), "helix_sep_mm":(120, 180), "cld_mm":(60,120), "cl_alpha":(0.2,0.8), "cl_spacing_mm":(2,20)}
 
-wire_viewer.view_nec_input(model.nec_in)
+opt = RandomOptimiser(
+    build_fn = build_contraspiral,
+    param_names = list(param_init.keys()),
+    param_init = param_init,
+    vary_mask = vary_mask,
+    bounds = bounds,
+    cost_fn = cost_function,
+    delta_init = 0.1,
+    stall_limit = 50,
+    max_iter = 500
+)
+
+best_params, best_info = opt.optimise(verbose=True)
+print("Achieved:", info)
+print("With parameters:", best_params)
+
+
 
 print("Done")
 
