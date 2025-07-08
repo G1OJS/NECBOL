@@ -1,2 +1,2 @@
-C:\Users\drala\Documents\GitHub\Python_nec\nec_wkg\model.nec
-C:\Users\drala\Documents\GitHub\Python_nec\nec_wkg\model.out
+..\nec_wkg\model.nec
+..\nec_wkg\model.out

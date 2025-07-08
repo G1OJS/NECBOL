@@ -1,3 +1,6 @@
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from nec_lib.nec_model import NECModel
 from nec_lib import geometry_builder
 from nec_lib import rf_utils
@@ -42,7 +45,7 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
     
 
 
-model = NECModel(working_dir="C:\\Users\\drala\\Documents\\GitHub\\Python_nec\\nec_wkg",
+model = NECModel(working_dir="..\\nec_wkg",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
