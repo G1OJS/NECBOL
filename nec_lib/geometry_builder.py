@@ -157,6 +157,12 @@ class GeometryObject:
         R = np.array([[0, 0, -1],[0,  1, 0],[1,  0, 0]])
         return self.rotate(R)
 
+    def rotate_around_Z(self, angle):
+        ca = math.cos(angle)
+        sa = math.sin(angle)
+        R = np.array([[ca, sa, 0], [-sa, ca, 0], [0,0,1]])
+        return self.rotate(R)
+
     def rotate(self, R):
         for w in self.wires:
             a = np.array(w['a'])
@@ -164,13 +170,14 @@ class GeometryObject:
             w['a'] = tuple(map(float, R @ a))
             w['b'] = tuple(map(float, R @ b))
 
-    def connect_ends(self, other):
+    def connect_ends(self, other, tol=1e-3):
         wires_to_add=[]
         for ws in self.wires:
-            for es in _ends(ws):
+            for es in [ws["a"], ws["b"]]:
                 for wo in other.wires:
-                    if (_touches(es,wo)):
+                    if (_point_can_connect_to_wire(es,wo['a'],wo['b'],tol)):
                         _split_wire_at(wo, es, wires_to_add)
+                        # print("Found connection")
                         break #(for efficiency only)
         for params in wires_to_add:
             other.add_wire(*params)
@@ -179,30 +186,31 @@ class GeometryObject:
 #=================
 # helper functions
 #=================
-def _touches(end, wire, tol=1e-6):
-    return _point_lies_on_line(end, wire['a'], wire['b'], tol)
 
-def _point_lies_on_line(P, A, B, tol=1e-6):
+def _point_can_connect_to_wire(P, A, B, tol=1e-6):
     P = np.array(P, dtype=float)
     A = np.array(A, dtype=float)
     B = np.array(B, dtype=float)
-
     AB = B - A
     AP = P - A
     AB_len = np.linalg.norm(AB)
-
+    # can't connect to a zero length wire using the splitting method
+    # but maybe should allow connecting by having the same co-ordinates
     if AB_len == 0:
-        # Degenerate wire, treat as a point
-        return np.linalg.norm(P - A) < tol
-
-    # 1. Check perpendicular distance
-    perp_dist = np.linalg.norm(np.cross(AP, AB)) / AB_len
-    if perp_dist > tol:
         return False
+    
+    # Check perpendicular distance from wire axis
+    # if we aren't close enough to the wire axis to need to connect, return false
+    # NOTE: need to align tol with nec's check of volumes intersecting
+    perp_dist = np.linalg.norm(np.cross(AP, AB)) / AB_len
+    if perp_dist > tol: 
+        return False    
 
-    # 2. Check scalar projection is within segment
+    # We *are* close enough to the wire axis so if we're between the ends return true
+    # Don't include the ends though, because connecting by having the same co-ordinates is OK
+    # and we don't need to do anything in that case
     t = np.dot(AP, AB) / (AB_len ** 2)
-    return 0 <= t <= 1
+    return 0 < t < 1 
 
 def _split_wire_at(wo, es, wires_to_add):
     a = np.array(wo['a'])
@@ -215,9 +223,6 @@ def _split_wire_at(wo, es, wires_to_add):
     wo['b']=tuple(es)
     wo['nS'] = s1
     wires_to_add.append( (wo['nTag'], s2, *es, *b, wo['wr']) )
-
-def _ends(wire):
-    return [wire["a"], wire["b"]]
 
 def _parametricPoint(geom_object, wire_index_plus_alpha):
     if(wire_index_plus_alpha < 0):
