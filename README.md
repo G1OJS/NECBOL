@@ -94,14 +94,14 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
 
 ## Next steps / future plans
 - add more geometry elements
-- look at adding a wires class
 - optimiser
-    - gain in a certain direction
-    - vswr
     - polarisation purity
     - current on a certain segment
     - feedline current (needs a feedline object tagged)
-    - target antenna parameters plus stretch / warp / sheer the 3D geometry
+    - stretch / warp / sheer the 3D geometry
+- Wireframe viewer
+    - arrow pointing to specified gain direction
+    - arrow pointing to max gain direction (with dBi & maybe F/B)
 - Clutter / environment objects
     - dielectric slab (for brick walls, GRP panels etc)
     - other antennas
