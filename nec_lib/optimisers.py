@@ -65,5 +65,9 @@ class RandomOptimiser:
                 if verbose:
                     print(f"[{i}] Reducing delta to {self.delta_x}")
 
+        best_model = self.build_fn(**best_params)
+        best_model.run()
+        result = self.cost_fn(best_model)
+        final_info = result['info']
         formatted_params = {k: round(v, 2) for k, v in best_params.items()}
-        return formatted_params, best_info
+        return formatted_params, final_info

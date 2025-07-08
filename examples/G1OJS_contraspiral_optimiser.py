@@ -79,12 +79,12 @@ opt = RandomOptimiser(
     bounds = bounds,
     cost_fn = cost_function,
     delta_init = 0.1,
-    stall_limit = 50,
-    max_iter = 500
+    stall_limit = 10,
+    max_iter = 100
 )
 
 best_params, best_info = opt.optimise(verbose=True)
-print("Achieved:", info)
+print("Achieved:", best_info)
 print("With parameters:", best_params)
 
 
