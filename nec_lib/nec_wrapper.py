@@ -24,7 +24,6 @@ class NECModel:
         self.write_runner_files()
         
     def write_runner_files(self):
-        print(self.nec_bat)
         with open(self.nec_bat, "w") as f:
             f.write(f"{self.nec_exe} < {self.files_txt} \n")
         with open(self.files_txt, "w") as f:

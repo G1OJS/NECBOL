@@ -57,7 +57,7 @@ class RandomOptimiser:
             else:
                 stall_count += 1
                 if verbose:
-                    print(f"[{i}]")
+                    print(f"[{i}] {test_info}")
 
             if stall_count >= self.stall_limit:
                 self.delta_x /= 2
