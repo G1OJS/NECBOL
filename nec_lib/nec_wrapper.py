@@ -70,6 +70,19 @@ class NECModel:
         self.comments = comments
         self.model_text = "CM " + comments + "\nCE\n"
 
+# add feed_alpha here i.e. add(self, geomObj, feed_alpha_object=-1) so if
+# feed_alpha lies within object, set the segment tag to EX_TAG
+# then this works for any object
+# could also work with load_alpha to add loads
+# generically, each segment has a type which is either conductor, load, or feed
+# and we just need a mechanism to map each segment to its type when adding it
+# (when adding loads, we need to create the LD card for that specific segment at the same time)
+
+# this also means we don't have to pass EX_TAG to the component library at initialisation
+# leaving only segment length to get rid of, which could also be passed here
+# and used to calculate nS from each wire length & then it's not needed in the component library either,
+# making the separation between the components and the model very clean
+
     def add(self, geomObj):
         for w in geomObj.get_wires():
             x1, y1, z1 = w['a']
