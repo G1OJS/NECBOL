@@ -67,6 +67,7 @@ class NECModel:
         self.model_text += self.GM_CARD
         self.model_text += self.GE_CARD
         self.model_text += self.GN_CARD
+        self.model_text += "EK\n"
         self.model_text += self.LD_WIRECOND
         self.model_text += f"EX 0 {self.EX_TAG} 1 0 1 0\n"
         self.model_text += self.FR_CARD

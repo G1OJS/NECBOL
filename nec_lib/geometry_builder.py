@@ -15,6 +15,7 @@
 #Replicator to stack & bay?
 
 import numpy as np
+import math
 
 class components:
     def __init__(self, starting_tag_nr, segment_length_m, ex_tag):
@@ -68,6 +69,46 @@ class components:
         l = distance(from_point, to_point)
         nS = int(l / self.segLen_m)
         obj.add_wire(nTag, nS, *from_point, *to_point, wire_diameter_mm/2000) 
+        return obj
+
+    def helix(self, diameter_mm, length_mm, pitch_mm, sense="RH", segments_per_turn=36, wire_diameter_mm = 1.0):
+        nTag, obj = self.new_geometry_object()
+
+        turns = length_mm / pitch_mm
+        total_segments = int(turns * segments_per_turn)
+        delta_theta = (2 * math.pi) / segments_per_turn  # angle per segment
+        delta_z = pitch_mm / segments_per_turn /1000
+        theta_sign = 1 if sense.upper() == "RH" else -1
+        radius = diameter_mm/2000
+
+        for i in range(total_segments):
+            theta1 = theta_sign * delta_theta * i
+            theta2 = theta_sign * delta_theta * (i + 1)
+            x1 = radius * math.cos(theta1)
+            y1 = radius * math.sin(theta1)
+            z1 = delta_z * i
+            x2 = radius * math.cos(theta2)
+            y2 = radius * math.sin(theta2)
+            z2 = delta_z * (i + 1)
+            obj.add_wire(nTag, 1, x1, y1, z1, x2, y2, z2, wire_diameter_mm / 2000)
+
+        return obj
+
+    def circular_loop_with_feedpoint(self, diameter_mm, segments=36, wire_diameter_mm = 1.0):
+        objTag, obj = self.new_geometry_object()
+        delta_phi = (2 * math.pi) / segments
+        radius = diameter_mm/2000
+
+        for i in range(segments):
+            phi1 = delta_phi * i
+            phi2 = delta_phi * (i + 1)
+            x1 = radius * math.cos(phi1)
+            y1 = radius * math.sin(phi1)
+            x2 = radius * math.cos(phi2)
+            y2 = radius * math.sin(phi2)
+            nTag = objTag if (i!=0) else self.EX_TAG
+            obj.add_wire(nTag, 1, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
+
         return obj
 
 class GeometryObject:
