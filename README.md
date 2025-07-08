@@ -1,10 +1,13 @@
 # Python Library to run NEC
 This is a new work in progress, but already provides:
-* Easy way to build antennas using a component library (rods/wires, loops etc)
-* Automatic joining of wires that intersect (currently if a wire end lies on another wire)
+* Easy way to build antennas using a component library (rods/wires, helices, loops etc)
+* **Automatic joining of wires that intersect** (currently if a wire end lies on another wire)
+* **Easily add a connector *from* object1-place1 *to* object2-place2**
 * Easy setting of frequency, ground, azimuth and elevation of pattern point
+* As the above is Python, write your own code to always show both over ground and free space etc
 * Extendable to sweep and optimise, tabulate and plot
-![Capture](https://github.com/user-attachments/assets/de95948a-58b6-4bb3-8367-dc35639638fe)
+
+![Capture](https://github.com/user-attachments/assets/c83263d2-cdf4-41bd-961c-ca787555a9e0)
 
 Next steps / future plans
 - add more geometry elements
