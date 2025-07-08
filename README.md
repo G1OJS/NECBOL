@@ -25,6 +25,24 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 
 ![Capture](https://github.com/user-attachments/assets/c83263d2-cdf4-41bd-961c-ca787555a9e0)
 
+## 🛠 Installation
+
+This is an early-stage project without a formal installer yet.
+
+For now, the easiest way to get started is:
+
+1. **Download or clone the repository**:
+   ```bash
+   git clone https://github.com/G1OJS/NECBOL.git
+   cd NECBOL
+
+2. **Use the files in:**
+   - nec_lib/ – the main library code
+   - examples/ – starting points you can adapt
+
+Open and modify the example scripts to suit your needs.
+**Tip:** Look inside nec_lib/geometry_builder.py to see which antenna components are currently available and how to use them. The goal is to make this library self-documenting in the future.
+
 ## Example Usage
 This is the code that built the example above
 
