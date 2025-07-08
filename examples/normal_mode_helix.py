@@ -11,21 +11,21 @@ def build_helix(d_mm, l_mm, main_wire_diameter_mm, cld_mm, cl_alpha, cl_spacing_
 
     coupling_loop_wire_diameter_mm = 2.0
     
-    helix = antenna_components.helix(diameter_mm = d_mm,
-                                     length_mm=l_mm,
-                                     pitch_mm = l_mm/2,
+    helix = antenna_components.helix(diameter_m = d_mm/1000,
+                                     length_m = l_mm/1000,
+                                     pitch_m = l_mm/2000,
                                      sense="RH",
                                      segments_per_turn=36,
                                      wire_diameter_mm = main_wire_diameter_mm)
     
-    coupling_loop = antenna_components.circular_loop_with_feedpoint(diameter_mm = cld_mm,
+    coupling_loop = antenna_components.circular_loop_with_feedpoint(diameter_m = cld_mm/1000,
                                                                     segments=36,
                                                                     wire_diameter_mm = coupling_loop_wire_diameter_mm)
 
-    cl_offset_z = cl_alpha*l_mm/1000
-    cl_offset_x = (d_mm - cld_mm - coupling_loop_wire_diameter_mm - main_wire_diameter_mm)/2000
-    cl_offset_x -= cl_spacing_mm/1000
-    coupling_loop.translate(cl_offset_x, 0, cl_offset_z)
+    cl_offset_z_m = cl_alpha*l_mm/1000
+    cl_offset_x_m = (d_mm - cld_mm - coupling_loop_wire_diameter_mm - main_wire_diameter_mm)/2000
+    cl_offset_x_m -= cl_spacing_mm/1000
+    coupling_loop.translate(cl_offset_x_m, 0, cl_offset_z_m)
 
     model.add(helix)
     model.add(coupling_loop)
@@ -56,7 +56,7 @@ for i in range(-5, 5):
     cl_alpha = parameter
     model.start_geometry()
     build_helix(d_mm, l_mm, wd_mm, cld_mm, cl_alpha, cl_spacing_mm)
-    model.run()
+    model.write_nec_and_run()
     gains = model.gains()
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")

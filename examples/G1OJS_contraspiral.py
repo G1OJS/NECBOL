@@ -11,16 +11,16 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
 
     coupling_loop_wire_diameter_mm = 2.0
     
-    bottom_helix = antenna_components.helix(diameter_mm = d_mm,
-                                     length_mm=l_mm,
-                                     pitch_mm = l_mm/2,
+    bottom_helix = antenna_components.helix(diameter_m = d_mm /1000,
+                                     length_m = l_mm /1000,
+                                     pitch_m = l_mm /2000,
                                      sense="RH",
                                      segments_per_turn=36,
                                      wire_diameter_mm = main_wire_diameter_mm)
 
-    top_helix = antenna_components.helix(diameter_mm = d_mm,
-                                     length_mm=l_mm,
-                                     pitch_mm = l_mm/2,
+    top_helix = antenna_components.helix(diameter_m = d_mm /1000,
+                                     length_m = l_mm /1000,
+                                     pitch_m = l_mm /2000,
                                      sense="LH",
                                      segments_per_turn=36,
                                      wire_diameter_mm = main_wire_diameter_mm)
@@ -28,7 +28,7 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
 
     link = antenna_components.connector(bottom_helix,71.99,top_helix,0,main_wire_diameter_mm)
     
-    coupling_loop = antenna_components.circular_loop_with_feedpoint(diameter_mm = cld_mm,
+    coupling_loop = antenna_components.circular_loop_with_feedpoint(diameter_m = cld_mm /1000,
                                                                     segments=36,
                                                                     wire_diameter_mm = coupling_loop_wire_diameter_mm)
 
@@ -54,7 +54,7 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
 
-for i in range(0, 1):
+for i in range(-5, 5):
     antenna_components = geometry_builder.components(starting_tag_nr = 0,
                             segment_length_m = model.segLength_m,
                             ex_tag = model.EX_TAG)
@@ -69,7 +69,7 @@ for i in range(0, 1):
     cl_alpha = parameter
     model.start_geometry()
     build_contraspiral(d_mm, l_mm, wd_mm, helix_sep_m, cld_mm, cl_alpha, cl_spacing_mm)
-    model.run()
+    model.write_nec_and_run()
     gains = model.gains()
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")

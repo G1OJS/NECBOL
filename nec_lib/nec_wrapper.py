@@ -1,3 +1,13 @@
+# do we ever want a full radiation pattern, or are we trialling based on
+# swr and gain in a known direction and optimising,
+# leaving the pattern analysis to something like 4nec2?
+# What about analysing bandwidth and optimising based on swr over frequency?
+
+# Maybe having the NECModel object written to piecemeal and then dumped to file
+# Doesn't help that much, and could be replaced with a simpler function call
+# to write the file each time (we'd still build the geometry piecemeal though ...)
+
+
 import subprocess
 import os
 
@@ -38,7 +48,13 @@ class NECModel:
         self.segLength_m = lambda_m / self.nSegs_per_wavelength
         
     def set_gain_point(self, azimuth, elevation):
-        self.RP_CARD = f"RP 0 1 1 1000 {90-elevation:.0f} {azimuth:.0f} 0 0\n"
+        self.RP_CARD = f"RP 0 1 1 1000 {90-elevation:.2f} {azimuth:.2f} 0 0\n"
+
+    def set_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):
+        if(nPoints<2):
+            nPoints=2
+        dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
+        self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth:.2f} 0 {dAz:.2f}\n"
 
     def set_ground(self, eps_r=1, sigma=1, origin_height_m=10):
         if eps_r == 1.0:
@@ -74,10 +90,13 @@ class NECModel:
         self.model_text += self.RP_CARD
         self.model_text += "EN"
 
-    def run(self):
+    def write_nec(self):
         self.finalise()
         with open(self.nec_in, "w") as f:
             f.write(self.model_text)
+
+    def write_nec_and_run(self):
+        self.write_nec()
         with open(os.devnull, "w") as devnull:
             subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 

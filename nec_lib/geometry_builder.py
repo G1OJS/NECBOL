@@ -1,21 +1,24 @@
-#Component	Description	Key Params / Conventions
-#Circular Loop	Circular wire loop	radius, wire diameter, nTagrmal_az/el, center anchor
-#Folded Dipole	Parallel wire folded structure	base dipole params + fold spacing, fold wire diameter
-#Wire Array	Array of wires with specified spacing and phasing	component type + array geometry
-#Patch / Panel	Flat conducting surface (for reflectors, ground planes)	dimensions, thickness, nTagrmal_a
-
-# make at least this file self-documenting
-#Helix	Helical wire antenna	diameter, pitch, number of turns, wire diameter, axis, center
-# split to accomodate Helix_with_feed?
-
-#Feedlines (for common mode)
-#Stub / Matching Section	Short wire segment for impedance matching	length, wire diameter, axis, center
-# - TL from EX_TAG to another TAG plus a stub
-
-#Replicator to stack & bay?
+# Ideas for better component catalogue
+# Canonical shapes
+    # Straight wire
+    # Rectangular loop - hentenna, folded dipole, quad
+    # Triangular - delta loops
+    # Circular / elliptic loops - halos, magloops, circular element yagis
+    # Helices
+    # Plane structures (use RLC load at segment to allow Epsr and sigma spec)
+    # Hyperbolic, Parabolic structures
+# Then components to add to the shapes at specified alpha location(s)
+    # Feed segments
+    # RLC Loads
+# So migrate the 'shape with feed' to shape.insert(feed, alpha) shape.insert(load, alpha)
+# which works for all shapes
 
 import numpy as np
 import math
+
+#=================================================================================
+# Cannonical components
+#=================================================================================
 
 class components:
     def __init__(self, starting_tag_nr, segment_length_m, ex_tag):
@@ -71,33 +74,49 @@ class components:
         obj.add_wire(nTag, nS, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
-    def helix(self, diameter_mm, length_mm, pitch_mm, sense="RH", segments_per_turn=36, wire_diameter_mm = 1.0):
+    def helix(self, diameter_m, length_m, pitch_m, sense="RH", segments_per_turn=36, wire_diameter_mm = 1.0):
         nTag, obj = self.new_geometry_object()
 
-        turns = length_mm / pitch_mm
+        turns = length_m / pitch_m
         total_segments = int(turns * segments_per_turn)
-        delta_theta = (2 * math.pi) / segments_per_turn  # angle per segment
-        delta_z = pitch_mm / segments_per_turn /1000
-        theta_sign = 1 if sense.upper() == "RH" else -1
-        radius = diameter_mm/2000
+        delta_phi = (2 * math.pi) / segments_per_turn  # angle per segment
+        delta_z_m = pitch_m / segments_per_turn 
+        phi_sign = 1 if sense.upper() == "RH" else -1
+        radius_m = diameter_m/2
 
         for i in range(total_segments):
-            theta1 = theta_sign * delta_theta * i
-            theta2 = theta_sign * delta_theta * (i + 1)
-            x1 = radius * math.cos(theta1)
-            y1 = radius * math.sin(theta1)
-            z1 = delta_z * i
-            x2 = radius * math.cos(theta2)
-            y2 = radius * math.sin(theta2)
-            z2 = delta_z * (i + 1)
+            phi1 = phi_sign * delta_phi * i
+            phi2 = phi_sign * delta_phi * (i + 1)
+            x1 = radius_m * math.cos(phi1)
+            y1 = radius_m * math.sin(phi1)
+            z1 = delta_z_m * i
+            x2 = radius_m * math.cos(phi2)
+            y2 = radius_m * math.sin(phi2)
+            z2 = delta_z_m * (i + 1)
             obj.add_wire(nTag, 1, x1, y1, z1, x2, y2, z2, wire_diameter_mm / 2000)
 
         return obj
 
-    def circular_loop_with_feedpoint(self, diameter_mm, segments=36, wire_diameter_mm = 1.0):
+    def circular_loop(self, diameter_m, segments=36, wire_diameter_mm = 1.0):
+        nTag, obj = self.new_geometry_object()
+        delta_phi = (2 * math.pi) / segments
+        radius = diameter_m/2
+
+        for i in range(segments):
+            phi1 = delta_phi * i
+            phi2 = delta_phi * (i + 1)
+            x1 = radius * math.cos(phi1)
+            y1 = radius * math.sin(phi1)
+            x2 = radius * math.cos(phi2)
+            y2 = radius * math.sin(phi2)
+            obj.add_wire(nTag, 1, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
+
+        return obj
+
+    def circular_loop_with_feedpoint(self, diameter_m, segments=36, wire_diameter_mm = 1.0):
         objTag, obj = self.new_geometry_object()
         delta_phi = (2 * math.pi) / segments
-        radius = diameter_mm/2000
+        radius = diameter_m/2
 
         for i in range(segments):
             phi1 = delta_phi * i
@@ -110,6 +129,10 @@ class components:
             obj.add_wire(nTag, 1, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
 
         return obj
+
+#=================================================================================
+# The geometry object that holds a single component plus its methods
+#=================================================================================
 
 class GeometryObject:
     def __init__(self, wires):
@@ -153,8 +176,9 @@ class GeometryObject:
             other.add_wire(*params)
         
 
-# =============
-# these will go in the wire class eventually
+#=================
+# helper functions
+#=================
 def _touches(end, wire, tol=1e-6):
     return _point_lies_on_line(end, wire['a'], wire['b'], tol)
 
@@ -215,7 +239,6 @@ def distance(point1, point2):
     V = B-A
     return np.linalg.norm(V)
 
-#===========
 
 
 
