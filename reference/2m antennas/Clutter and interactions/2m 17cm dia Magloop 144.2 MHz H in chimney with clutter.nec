@@ -1,0 +1,79 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2		'frequency MHz
+SY CfF=2372.39		'Tuning cap pF*1000
+SY Q_Cap=2000		'Tuning cap Q
+SY dLoop=170		'Main loop diameter mm
+SY dLoopWire=16		'Main loop wire dia. mm
+SY dFaraday=45	'Coupling loop diameter mm
+SY dFaradayWire=1	'Coupling loop wire dia. mm
+SY hBase=9000		'Height to base of loop mm
+SY Xant=-2.3
+SY Sep=15		'Separation from Faraday loop feed point to top of main loop mm
+SY ElevAng=0		'Loop plane elevation angle degrees
+SY n=72			'Main loop n sides
+SY n2=36		'Coupling loop n sides
+'
+'
+' CALCULATIONS --------------------------------------
+' 
+SY Cap=CfF*1e-15			'Convert capacitance to Farads
+SY h2=Sep*.001				'Convert cl gap to metres
+SY Rc=1/(2*Pi*1e6*FMHz*Cap)/Q_Cap	'Capacitor Rc
+SY r1=0.5*dLoop/1000			'Main loop radius m
+SY rw1=0.5*dLoopWire/1000		'Main loop wire radius m
+SY r2=0.5*dFaraday/1000			'Coupling loop radius m
+SY rw2=0.5*dFaradayWire/1000		'Coupling loop wire radius m
+SY HOff=hBase/1000+r1*cos(Pi*ElevAng/180)	'Required translation along Z when loop is rotated around centre by ElevAng m
+SY LpOff=r1-r2-h2			'Offset from loop center to Faraday loop center m 
+'
+'
+'  GEOMETRY --------------------------------------
+' 
+GH	1	n	1e-300	1e-300	r1	r1	r1	r1	rw1
+GH	2	n2	1e-300	1e-300	r2	r2	r2	r2	rw2
+GM	0	0	0	0	180/n2-180/n	0	0	0	2
+GM	0	0	0	0	180/n	0	0	0	0
+GM	0	0	0	0	0	-LpOff	0	0	2
+GM	0	0	0	0	-90
+GM	0	0	ElevAng	0	0
+GM	0	0	0	0	0	Xant	0	HOff
+
+CM **** Clutter file V1 including joist metal, 6m antenna, 7.2m loop and boiler flue ****
+CM
+
+GW	1000	9	1.3	-1.67	5.1	2.7	-1.67	5.1	0.01
+GM	1	2	0	0	0	0	1.67	0	1000
+GM	1	1	0	0	0	0	0	1.85	1000
+GW	1010	9	1.3	2.8	6.2	2.7	2.8	6.2	0.01
+GW	1011	9	1.3	-2.8	6.2	2.7	-2.8	6.2	0.01
+GM	1	1	0	0	0	-4.0	0	0	1000
+
+GW	501	9	1	-1.42	7.3	1	1.42	7.3	0.01
+
+GW	1100	10	0	0	0	0	0	1.8	0.05
+GM	0	0	-45	0	17	1.6	-0.1	6	1100
+GW	1101	10	0	0	0	0	0	1.6	0.05
+GM	0	0	0	0	0	1.6	-0.1	4.3	1101
+GM	1	1	0	0	0	-1.8*sin(17)*cos(45)	1.8*sin(45)*cos(17)	1.8+1.8*cos(45)	1101
+
+GW	1500	5	1.15	0	0	1.15*cos(30)	1.15*sin(30)	0	0.001
+GM	1	11	0	0	30	0	0	0	1500
+GM	0	0	90	0	25	-0.8	0.5	6.3	1500
+
+GM	0	0	0	0	-32	0	0	0	1000
+
+CM
+CM **** End of Clutter file ****
+
+
+
+
+GE	1
+LD	0	1	n	n	Rc	0	Cap
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	2	n2	0	1.	0	0
+FR	0	0	0	0	FMHz	0
+EN

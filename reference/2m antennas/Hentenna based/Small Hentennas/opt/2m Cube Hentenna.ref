@@ -1,0 +1,27 @@
+CM
+CM Y is North
+CM forw: 86, 0 ; back: 86, 180
+CE
+SY BASE=7400
+SY Wdia=13.21249
+SY H=332.6241
+SY W=327.0964
+'
+GW	1	7	-W/2	-W/2	0	-W/2	-W/2	H	Wdia/2
+GW	2	7	W/2	-W/2	0	W/2	-W/2	H	Wdia/2
+GW	3	7	-W/2	-W/2	0	W/2	-W/2	0	Wdia/2
+GW	4	7	-W/2	-W/2	H	W/2	-W/2	H	Wdia/2
+GM	10	1	0	0	0	0	W	0
+GW	20	7	-W/2	-W/2	H	-W/2	W/2	H	Wdia/2
+GW	30	7	W/2	-W/2	0	W/2	W/2	0	Wdia/2
+
+GM	0	0	0	0	0	0	0	BASE
+
+GS	0	0	0.001
+GE -1
+GN 2 0 0 0 11 0.01
+EX	0	30	4	0	1.
+FR,0,1,0,0,144.2
+PQ -1
+PT -1
+RP,0,60,121,1003,-88,0,3,3

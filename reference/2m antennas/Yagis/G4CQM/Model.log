@@ -1,0 +1,8 @@
+WS26082 over ground.nec wavelength=3.e5 mtr.
+
+Error: Wire 1 (tag 1), seg-len ( (0.086) ) below wlen/1000 (299.8)
+Error: Wire 2 (tag 2), seg-len ( (0.084) ) below wlen/1000 (299.8)
+Error: Wire 3 (tag 3), seg-len ( (0.08) ) below wlen/1000 (299.8)
+Error: Wire 4 (tag 4), seg-len ( (0.079) ) below wlen/1000 (299.8)
+Error: Wire 5 (tag 5), seg-len ( (0.076) ) below wlen/1000 (299.8)
+Error: Wire 6 (tag 6), seg-len ( (0.072) ) below wlen/1000 (299.8)

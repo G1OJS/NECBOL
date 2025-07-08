@@ -1,0 +1,50 @@
+SY Dwire=1	'mm
+SY Ha=7.0
+SY Lt=10
+SY Wm=0.532078
+SY Nm = 10
+SY Pm=0.050184
+SY Hm=Pm * (Nm-1)
+SY La=Lt-2*Hm
+CM Make the repeatable meander section (one cross-ways wire of length Wm and one interconnect of height Pm)
+GW	101	1	-Wm/2	0	0*Pm	-Wm/2	0	1*Pm	Dwire/2000	'Interconnect
+GW	102	1	-Wm/2	0	1*Pm	Wm/2	0	1*Pm	Dwire/2000	'Cross-ways wire
+CM Make copies of the repeatable meander sections each lifted Pm in Z and rotated 180 degrees around Z
+GM	2	1	0	0	180	0	0	Pm	101
+GM	2	1	0	0	180	0	0	Pm	103
+GM	2	1	0	0	180	0	0	Pm	105
+GM	2	1	0	0	180	0	0	Pm	107
+GM	2	1	0	0	180	0	0	Pm	109
+GM	2	1	0	0	180	0	0	Pm	111
+GM	2	1	0	0	180	0	0	Pm	113
+GM	2	1	0	0	180	0	0	Pm	115
+GM	2	1	0	0	180	0	0	Pm	117
+GM	2	1	0	0	180	0	0	Pm	119
+GM	2	1	0	0	180	0	0	Pm	121
+GM	2	1	0	0	180	0	0	Pm	123
+GM	2	1	0	0	180	0	0	Pm	125
+GM	2	1	0	0	180	0	0	Pm	127
+GM	2	1	0	0	180	0	0	Pm	129
+GM	2	1	0	0	180	0	0	Pm	131
+GM	2	1	0	0	180	0	0	Pm	133
+GM	2	1	0	0	180	0	0	Pm	135
+GM	2	1	0	0	180	0	0	Pm	137
+CM  Add the initial half-wire connecting the edge of the meander section to centre
+GW	100	1	0	0	0*Pm	-Wm/2	0	0*Pm	Dwire/2000
+CM Move the completed meander section to the end of where the main antenna wire will be
+GM	0	0	0	0	0	0	0	La/2	101
+CM Make a copy of the completed meander section rotated 180 degrees around X (and 180 around Z for nice symmetry)
+GM	100	1	180	0	180	0	0	0	101
+CM Add the main wire vertically between the two meander sections
+GW	1	9	0	0	-La/2	0	0	La/2	Dwire/2000
+CM Rotate the antenna to horizontal and lift to height
+GM	0	0	90	0	0	0	0	Ha
+
+GE	-1
+LD	5	0	0	0	58000000
+GN	2	0	0	0	15	0.01
+EK
+EX	0	1	5	0	1	0	0	0
+FR,0,1,0,0,7.05
+PQ -1
+PT -1

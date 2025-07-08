@@ -1,0 +1,40 @@
+CM
+CM
+CM
+CE
+SY BASE=7500
+SY Xc=0
+SY Yc=0
+SY Phi=0
+SY WDia=5
+SY DDia=5.485546
+SY Sq=258.7099
+SY Gap=10.02221
+SY DelY=100
+
+GW	2	5	-Sq/2	0	0	-Sq/2	SQ	0	WDia/2
+GW	5	5	Sq/2	0	0	Sq/2	Sq	0	WDia/2
+GW	6	5	-Sq/2	Sq	0	-Gap/2	Sq	0	WDia/2
+GW	7	5	Sq/2	Sq	0	Gap/2	Sq	0	WDia/2
+
+GW	8	1	-10	0.	0	10	0	0	WDia/2
+GW	9	5	-10	0.	0	-Sq/2	0	0	DDia/2
+GW	10	5	10	0.	0	Sq/2	0	0	DDia/2
+
+GW	110	10	10	0.	-10	10	0.0	-520	WDia/2
+GW	111	20	-10	0.	-10	-10	0.0	-1040	WDia/2
+GW	114	1	-10	0	-1040	10	0	-1040	WDia/2
+GW	115	10	10	0	-520	10	0	-1040	WDia/2
+GW	116	1	10	-10	-520	10	0	-520	WDia/2
+GW	117	1	-10	0.	-10	10	0.0	-10	WDia/2
+GW	118	20	10	-10	-520	10	-10	-1560	WDia/2
+
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+	
+GS	0	0	0.001
+
+GE -1
+GN 2 0 0 0 11 0.01
+EX	0	8	1	0	1.
+FR  0    5    0    0  144.      1.0
+EN

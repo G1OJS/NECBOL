@@ -1,0 +1,35 @@
+CM
+CM
+CM
+CM forw: 86, 58 ; back: 86, 238
+CE
+SY Apex=9.0
+SY WD=0.005
+SY LD=0.965
+SY SepYZ=1.492949
+SY SepX=1.815433
+SY Dz=SepYZ
+SY Dy=0
+SY P1=0
+SY P2=0
+GW	1	9	-LD/2	0.	0	LD/2	0.0	0	WD/2
+GW	2	9	-LD/2	-Dy	-Dz	LD/2	-Dy	-Dz	WD/2
+GW	3	9	-LD/2	-2*Dy	-2*Dz	LD/2	-2*Dy	-2*Dz	WD/2
+GM	10	2	0	0	0	SepX	0	0
+GM	0	0	0	0	-32	0	0	Apex
+GE -1
+GN 2 0 0 0 11 0.01
+
+EX	0	13	5	0	1.
+EX	0	12	5	0	cos(P1)	sin(P1)
+EX	0	11	5	0	cos(P2)	sin(P2)
+EX	0	3	5	0	1.
+EX	0	2	5	0	cos(P1)	sin(P1)
+EX	0	1	5	0	cos(P2)	sin(P2)
+EX	0	23	5	0	1.
+EX	0	22	5	0	cos(P1)	sin(P1)
+EX	0	21	5	0	cos(P2)	sin(P2)
+FR,0,1,0,0,144.2
+PQ -1
+PT -1
+RP,0,60,120,1003,-88,1,3,3

@@ -1,0 +1,21 @@
+CM
+CM
+CM
+CE
+SY BASE=7.3
+SY Xc=1.0
+SY Yc=0.5
+SY Phi=120
+SY Sep=0.26
+SY Lref=1.0
+SY WD=0.005
+SY LD=0.965
+
+GW	1	9	-LD/2	0.	0	LD/2	0.0	0	WD/2
+GW	2	9	-Lref/2	sep	0	Lref/2	sep	0	WD/2
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+
+GE 0
+EX  0    1    5    0  1.
+FR  0    5    0    0  144.      1.0
+EN

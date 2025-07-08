@@ -1,0 +1,22 @@
+SY Dwire=1	'mm
+SY MHz=7.05
+SY H=7.0
+SY Ind=1.395e-5
+SY IndQ=500
+SY Xl=1/(2*3.141*MHz*1e6*Ind)
+SY IndESR=Xl/IndQ
+SY L=10
+
+
+GW	300	9	0	0	-L/2	0	0	L/2	Dwire/2000
+GM	0	0	90	0	0	0	0	H
+GE -1
+LD	5	0	0	0	58000000
+LD	0	300	7	7	IndESR	Ind	1
+LD	0	300	3	3	IndESR	Ind	1
+LD	0	300	3	3	IndESR	Ind	1
+
+GN 2 0 0 0 11 0.01
+EX	0	300	5	0	1	0
+FR	0	1	0	0	MHz	0
+EN						

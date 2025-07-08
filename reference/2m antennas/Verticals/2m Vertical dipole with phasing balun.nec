@@ -1,0 +1,56 @@
+CM
+CM
+CM
+CE
+SY FR=144.2
+SY BASE=7500
+SY Xc=0
+SY Yc=0
+SY Phi=0
+SY FDia=5
+SY WDia=1.0
+SY Sep=30	'C-C between coax runs in balun
+SY Soff=25	'Balun end to radiator
+SY Lam=300000/FR
+SY Lrad=997.3624
+SY Lamby2elec=0.66*Lam/2
+SY Lamby4elec=0.66*Lam/4
+SY FeedX=-3000
+SY LErrQW=0
+SY LErrTQW=0
+SY PCErrVF=0	'Percent error in velocity factor
+SY VFreal=0.66*(1-0.01*PCErrVF)
+SY LQW=(Lamby4Elec+LErrQW)-Soff	'Physical Length of the QW section ~ QW*.66
+SY XTap=-(Lamby4Elec+LErrQW)-Soff	'X position of the balun end of the QW section
+SY Lu=(3*lamby4elec+LErrTQW)+LQW	'Physical Length of the U section (feed to feed) ~ 1WL*.66
+SY XUturn=-Sep/2-0.5*Lu	'X position of the turnaround
+SY Seg=Lam/80
+
+
+GW	1	1	0	0.	-Sep/2	0	0	0	WDia/2
+GW	2	1	0	0.	Sep/2	0	0	0	WDia/2
+GW	5	(Lrad/2-Sep/2)/Seg	0	0.	-Lrad/2	0	0.0	-Sep/2	WDia/2
+GW	6	(Lrad/2-Sep/2)/Seg	0	0.	Sep/2	0	0.0	Lrad/2	WDia/2
+GW	9	1	-Soff	0.	Sep/2	0	0.0	0	WDia/2
+
+GW	10	1	-Soff	0.	-Sep/2	-Soff	0.0	Sep/2	WDia/2
+GW	11	LQW/Seg	Xtap	0.	-Sep/2	-Soff	0.0	-Sep/2	FDia/2
+GW	12	(Xtap-XUturn)/Seg	XUturn	0.	-Sep/2	Xtap	0.0	-Sep/2	FDia/2
+GW	13	(-XUTurn-Soff)/Seg	XUturn	0.	Sep/2	-Soff	0.0	Sep/2	FDia/2
+GW	14	1	XUturn	0.	-Sep/2	XUturn	0.0	Sep/2	FDia/2
+GW	15	1	XTap	0.	-Sep/2-Sep	XTap	0.0	-Sep/2	FDia/2
+GW	16	(XTap-XUTurn)/Seg	XUTurn	0.	-Sep/2-Sep	XTap	0.0	-Sep/2-Sep	FDia/2
+
+GW	21	(XUTurn-FeedX)/Seg	FeedX	0.	-Sep/2-Sep	XUTurn	0.0	-Sep/2-Sep	FDia/2
+GW	22	(Base-3*Sep/2)/Seg	FeedX	0.	-Sep/2-Sep	FeedX	0.0	-Base	FDia/2
+
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+	
+GS	0	0	0.001
+GE	1
+GN 2 0 0 0 11 0.01
+TL	10	1	1	1	50	0.001*(Lamby4Elec+LErrQW)/VFReal
+TL	10	1	2	1	50	0.001*(3*Lamby4Elec+LErrTQW)/VFReal
+EX	0	10	1	0	1.
+FR	0	5	0	0	FR	1.0
+EN

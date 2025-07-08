@@ -1,0 +1,47 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=21.070		'frequency MHz
+SY CpF=22.97		'Tuning cap pF
+SY Q_Cap=2000		'Tuning cap Q
+SY dLoop=1000		'Main loop diameter mm
+SY dLoopWire=42		'Main loop wire dia. mm
+SY dFaraday=150		'Coupling loop diameter mm
+SY dFaradayWire=10	'Coupling loop wire dia. mm
+SY hBase=7000		'Height to base of loop mm
+SY Sep=15		'Separation from Faraday loop feed point to top of main loop mm
+SY ElevAng=0		'Loop plane elevation angle degrees
+SY n=72			'Main loop n sides
+SY n2=36		'Coupling loop n sidesp
+'
+'
+' CALCULATIONS --------------------------------------
+' 
+SY Cap=CpF*1e-12			'Convert capacitance to Farads
+SY h2=Sep*.001				'Convert cl gap to metres
+SY Rc=1/(2*Pi*1e6*FMHz*Cap)/Q_Cap	'Capacitor Rc
+SY r1=0.5*dLoop/1000			'Main loop radius m
+SY rw1=0.5*dLoopWire/1000		'Main loop wire radius m
+SY r2=0.5*dFaraday/1000			'Coupling loop radius m
+SY rw2=0.5*dFaradayWire/1000		'Coupling loop wire radius m
+SY HOff=hBase/1000+r1*cos(Pi*ElevAng/180)	'Required translation along Z when loop is rotated around centre by ElevAng m
+SY LpOff=r1-r2-h2			'Offset from loop center to Faraday loop center m 
+'
+'
+'  GEOMETRY --------------------------------------
+' 
+GH	1	n	1e-300	1e-300	r1	r1	r1	r1	rw1
+GH	2	n2	1e-300	1e-300	r2	r2	r2	r2	rw2
+GM	0	0	0	0	180/n2-180/n	0	0	0	2
+GM	0	0	0	0	180/n	0	0	0	0
+GM	0	0	0	0	0	-LpOff	0	0	2
+GM	0	0	0	0	-90
+GM	0	0	ElevAng	0	0
+GM	0	0	0	0	0	0	0	HOff
+GE	1
+LD	0	1	n	n	Rc	0	Cap
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	2	n2	0	1.	0	0
+FR	0	0	0	0	FMHz	0
+EN

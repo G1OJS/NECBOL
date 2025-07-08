@@ -1,0 +1,39 @@
+CM
+SY FR=144.2
+SY Lam=300000/FR
+SY H=7120	' Height above ground
+SY Dwire=0.9
+SY Lmatch=96.36056
+SY Wmatch=20.00466
+SY Lrad=1403.848
+SY Lstub=375.3482
+SY S=23.25704'100.3
+SY SegLen=Lam/40
+SY SegLen=Lstub/max(1, int(Lstub/SegLen))
+CM
+GW	1	int(Lrad/SegLen)	0.0	Wmatch/2	0	0.0	Wmatch/2	Lrad	Dwire/2
+GW	2	int(Lstub/SegLen)	0.0	-Wmatch/2	0	0.0	-Wmatch/2	Lstub	Dwire/2
+GW	3	2	-Lmatch	wmatch/2	0	-Lmatch+S	wmatch/2	0	Dwire/2
+GW	4	2	-Lmatch	-wmatch/2	0	-Lmatch+S	-wmatch/2	0	Dwire/2
+GW	5	5	0	wmatch/2	0	-Lmatch+S	wmatch/2	0	Dwire/2
+GW	6	5	0	-Wmatch/2	0	-Lmatch+S	-Wmatch/2	0	Dwire/2
+GW	7	int(Lstub/SegLen)	0.0	Wmatch/2	-Lstub	0.0	Wmatch/2	0	Dwire/2
+GW	8	int(Lrad/SegLen)	0.0	-Wmatch/2	-Lrad	0.0	-Wmatch/2	0	Dwire/2
+CM
+CM
+GW	10	1	-Lmatch	-Wmatch/2	0	-Lmatch	Wmatch/2	0	Dwire/2
+GW	11	1	-Lmatch+s	-Wmatch/2	0	-Lmatch+s	Wmatch/2	0	Dwire/2
+CM
+CM
+GM	0	0	0	0	0	0	0	H
+CM
+CM
+GS	0	0	0.001
+GE 1
+CM
+EK
+LD 5 0 0 0 25000000
+GN 2 0 0 0 13  0.005 0.0 0.0
+EX	0	11	1	0	1.0	0.0
+FR	0	1	0	0	FR
+EN

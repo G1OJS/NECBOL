@@ -1,0 +1,15 @@
+CM 
+SY MHz=14.07	' Frequency MHz
+SY Dwire=1	' wire radius mm
+SY L=5.05	' vertical wire length m
+SY Rl=5.05	' radial length m
+SY Nrads=256	' number of radials
+CM
+GW	1	32	0	0	0	0	0	L	Dwire/2000	'Monopolo
+GE	1
+GN	0	Nrads	0	0	15	0.01	Rl	Dwire/2000
+EK
+EX	0	1	1	0	1	0			'Voltage source (1+j0) at wire 1 segment 5.
+FR,0,1,0,0,14.07
+PQ -1
+PT -1

@@ -1,0 +1,22 @@
+CM
+CM
+CM
+CE
+SY Len=3.049059
+SY BASE=8
+SY Xc=0
+SY Yc=0
+SY Phi=0
+GW	1	9	-Len/2	0.	BASE	Len/2	0.0	BASE	.005
+GW	99	1	-0.01	0.	BASE-0.1	0.01	0.0	BASE-0.1	.005
+GM	0	0	0	0	Phi	Xc	Yc
+
+
+GM	0	0	0	0	-32	0	0
+
+GE -1
+GN 2 0 0 0 11 0.01
+TL	1	5	99	1	75	0.51
+EX	0	99	1	0	1.
+FR  0    5    0    0  144.      1.0
+EN

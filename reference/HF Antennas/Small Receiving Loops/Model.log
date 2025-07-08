@@ -1,0 +1,4 @@
+1M DIA LOOP.NEC wavelength=29.98 mtr.
+
+Error: Wire 2 (tag 100), seg-len ( (5.e-4) ) below wlen/1000 (0.03)
+Error: Wire 2 (tag 100), seg-len (5.e-4) below .5 * radius (5.e-3)

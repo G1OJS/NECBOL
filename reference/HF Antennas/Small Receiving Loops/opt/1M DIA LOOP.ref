@@ -1,0 +1,30 @@
+CM   INPUTS -----------------------------------------
+CM  
+CM 
+CM  
+CM  
+CM  Tx antenna
+CM forw:-68, 0 ; back: 68, 0
+CE
+SY FMHz=10.0	'frequency MHz
+SY dLoop=1000	'Main loop diameter mm
+SY dLoopWire=20	'Main loop wire dia. mm
+SY hBase=1000	'Height to base of loop mm
+SY n=18	'Input n-polygon main loop
+SY TxDist=500000.0	'Transmit antenna distance in mm
+SY r1=dLoop/2	'Main loop radius mm
+SY Rl=50	'load
+GH	1	n	1e-300	1e-300	r1	r1	r1	r1	dLoopWire/2
+GM	0	0	0	90	90	0	0	hBase
+GW	100	20	-TxDist	0	1	-TxDist	0	10000	10
+GS	0	0	0.001
+GE	1
+LD	0	1	n	n	Rl
+LD	5	0	0	0	58000000
+GN	2	0	0	0	11	0.01
+EK
+EX	0	100	10	00	1	0
+FR,0,1,0,0,10
+PQ -1
+PT -1
+RP,0,181,1,1000,-90,0,1

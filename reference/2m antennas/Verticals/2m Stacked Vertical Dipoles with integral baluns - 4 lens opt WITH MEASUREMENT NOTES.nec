@@ -1,0 +1,124 @@
+' part of investigating voltages at dipole centres (each leg vs shield)
+' after adjusting all 4 inductors for resonance around 144 (broad, +/- 10MHz)
+'
+' L1, L2, L3, L4 VSWR	V1234
+'
+'50,45,47,50	1.4	LHLH
+'50,45,50,47	1.4	LHLH
+'50,45,NC,NC	1.6	LH--	(top feeder disconnected at splitter but in place at top)
+'50,45,46,51	1.3	LHLH
+'
+'As above with whole stack inverted: 1.4, M000
+'As above with whole stack horizontal: 1.7, LHLH
+'
+'MM-- was seen before adjusting coils (resonances were ~130MHz) but no LEDs on top centre at this stage
+'
+' Adjusted coils again for minimum CM noise on bench (connected to coax phasing balun and DL)
+' and tried to get balanced V too (difficult at min noise)
+'
+' What's important? Ele lengths as optimised or voltage balance?
+' LC baluns seem "better" than the coax phase one, as the coax phase one (loose one) has VSWR 2:1 where LC are close to 1:1
+' Potentially, better to adjust coils to minimise noise *in place* in the antenna?
+'
+SY FR=144.2
+SY Lam=300000/FR
+'
+SY BASE=5700
+SY Xc=0
+SY Yc=0
+SY Phi=0
+SY FDia=5
+SY WDia=1
+SY ElSep=1518
+SY Lrad1=505
+SY Lrad2=505
+SY Lrad3=505
+SY Lrad4=505
+
+'
+SY LCentreTails=150
+'
+SY HarLen=1350+LCentreTails
+SY HarZo=50
+SY HarVf=0.66
+SY QWVf=0.66
+SY LQW=(Lam/4)*QWVF
+SY QWZo=37.5
+'
+SY tn=0.5*Elsep/Harlen
+SY HarAng=atn(tn/sqr(1-tn^2))
+SY FeedX=-3000
+SY Sep=30
+SY FPds=15
+'
+' phase section to model connection point of coax shield electrically 90 deg out of phase with feed to each leg
+GW	4	40/8	0	Lam/8	0	0	0.0	FPds/2	WDia/2
+GW	5	1	-FPds	Lam/8	0	0	Lam/8	0	WDia/2
+GW	6	40/8	-FPds	0	0	-FPds	Lam/8	0	WDia/2
+GW	7	40/8	-FPds	0	0	-FPds	-Lam/8	0	WDia/2
+GW	8	1	-FPds	-Lam/8	0	0	-Lam/8	0	WDia/2
+GW	9	40/8	0	-Lam/8	0	0	0	-FPds/2	WDia/2
+' 	Copy phase section to other dipole
+GM	10	1	0	0	0	0	0	ElSep
+'
+' 	Lower dipole
+GW	50	1	0	0.	-FPds/2	0	0.0	FPds/2	WDia/2
+GW	51	10	0	0.	-Lrad1	0	0.0	-FPds/2	WDia/2
+GW	52	10	0	0.	FPds/2	0	0.0	Lrad2	WDia/2
+'
+' 	Upper dipole
+GW	60	1	0	0.	-FPds/2+Elsep	0	0.0	FPds/2+Elsep	WDia/2
+GW	61	10	0	0.	-Lrad3+Elsep	0	0.0	-FPds/2+Elsep	WDia/2
+GW	62	10	0	0.	FPds/2+Elsep	0	0.0	Lrad4+Elsep	WDia/2
+'
+'	Harness connections (shield)
+GW	101	40*(HarLen/Lam)	-HarLen*Cos(HarAng)	0.	ElSep/2	-FPds	0.0	0	FDia/2
+GW	102	40*(HarLen/Lam)	-HarLen*Cos(HarAng)	0	ElSep/2	-FPds	0	ElSep	FDia/2
+GW	103	1	-HarLen*Cos(HarAng)	0.	ElSep/2	-HarLen*Cos(HarAng)	Sep	ElSep/2	FDia/2
+'
+'	Horizontal feedline, vertical feedline
+GW	201	40*((-FeedX-HarLen*Cos(HarAng))/Lam)	FeedX	0.	ElSep/2	-HarLen*Cos(HarAng)	0.0	ElSep/2	FDia/2
+GW	202	40*Base/Lam	FeedX	0.	ElSep/2	FeedX	0.0	-Base	FDia/2
+'
+'
+'feed for 37.5 Ohm QW
+GW	499	1	-HarLen*Cos(HarAng)-100	Sep	-0+Elsep/2	-HarLen*Cos(HarAng)-100	Sep	20+Elsep/2	WDia/2
+'Harness Join
+GW	500	1	-HarLen*Cos(HarAng)	Sep	Elsep/2	-HarLen*Cos(HarAng)	Sep	20+Elsep/2	WDia/2
+' Joiners for tails to dipole centres
+GW	502	1	-100	0.	Elsep	-100	0.0	20+Elsep	WDia/2
+GW	501	1	-100	0.	-20	-100	0.0	0	WDia/2
+'
+'
+' Load for measurement
+GW	1000	1	-FPds	0	0	0	0	FPds/2	0.5
+GW	1001	1	-FPds	0	0	0	0	-FPds/2	0.5
+GW	1002	1	-FPds	0	Elsep	0	0	Elsep+FPds/2	0.5
+GW	1003	1	-FPds	0	Elsep	0	0	Elsep-FPds/2	0.5
+
+'
+'	move into position
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+'GM	0	0	0	0	-32	0	0	0
+'	
+GS	0	0	0.001
+GE	1
+GN 2 0 0 0 11 0.01
+'
+'Loads for voltage measurement
+LD	0	1000	1	1	100000	0	0
+LD	0	1001	1	1	100000	0	0
+LD	0	1002	1	1	100000	0	0
+LD	0	1003	1	1	100000	0	0
+' QW Transformer
+TL	499	1	500	1	QWZo	0.001*LQW/QWVf
+' Main V harness
+TL	500	1	501	1	HarZo	0.001*(HarLen-LCentreTails)/HarVf
+TL	500	1	502	1	HarZo	0.001*(HarLen-LCentreTails)/HarVf
+' tails on dipole centres
+TL	501	1	50	1	50	0.001*LCentreTails/0.66
+TL	502	1	60	1	50	0.001*LCentreTails/0.66
+
+EX	0	499	1	0	1.
+FR	0	5	0	0	FR	1.0
+EN

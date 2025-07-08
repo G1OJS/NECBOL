@@ -1,0 +1,35 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2			'frequency MHz
+SY dHelix=165			'Helix diameter mm
+SY tHelix=2			'Number of turns
+SY lHelix=172			'Helix length mm
+SY dHelixWire=10		'Helix wire dia. mm
+SY dCplLoop=131			'Coupling loop diameter mm
+SY dCplWire=1			'Coupling loop wire dia. mm
+SY hBase=8			'Height to z=0 m
+SY clSep=2			'separation of coupling loop wire centre from helix wire centre, along x
+SY clAlphaZ=0.6			'position along z of coupling loop relative to helix ends (0 .. 1)
+SY clPhi=0			'rotation of coupling loop around z
+SY n=36				'Number of segments in each helix
+SY n2=16			'Number of segments in coupling loop
+'
+'  CALCS -----------------------------------------
+' 
+SY pHelix = lHelix / tHelix	' Helix pitch, mm
+SY clZ = lHelix * clAlphaZ' Coupling loop Z position, mm
+'
+'
+'  GEOMETRY --------------------------------------
+GH	10	n	pHelix/1000	lHelix/1000	dHelix/2000	dHelix/2000	dHelix/2000	dHelix/2000	dHelixWire/2000
+GH	1	n2	1e-300	1e-300	dCplLoop/2000	dCplLoop/2000	dCplLoop/2000	dCplLoop/2000	dCplWire/2000
+GM	0	0	0	0	0	(dHelix/2 - dCplLoop/2 - clSep)/1000	0	clZ/1000	1
+GM	0	0	0	0	clPhi	0	0	0	1
+GM	0	0	0	0	0	0	0	hbase
+GE	1
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	1	1	0	1.	0
+FR	0	0	0	0	FMHz	0
+EN

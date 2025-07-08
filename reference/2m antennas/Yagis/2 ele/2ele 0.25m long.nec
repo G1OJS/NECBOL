@@ -1,0 +1,18 @@
+CM
+CM
+CM
+CE
+SY Apex=8.0
+SY WD=5.003e-3
+SY LD=0.94
+SY LR=0.972659
+SY Dy=0.556891
+SY Dz=0
+GW	1	9	-LD/2	Dy	-2*Dz	LD/2	Dy	-2*Dz	WD/2
+GW	2	9	-LR/2	0	-Dz	LR/2	0	-Dz	WD/2
+GM	0	0	0	0	-32	0	0	Apex
+GE	-1
+GN 2 0 0 0 11 0.01
+EX	0	1	5	00	1.
+FR	0	5	0	0	144.2	1.0
+EN

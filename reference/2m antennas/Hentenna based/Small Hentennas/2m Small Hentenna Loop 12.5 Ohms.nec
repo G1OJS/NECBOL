@@ -1,0 +1,26 @@
+CM
+CM Y is North
+CE
+SY BASE=7400
+SY Wdia=13.21249
+SY WdiaS=14.8308
+SY H=760.3649
+SY W=395.5593
+SY L1=514.1822
+'
+GW	21	20	-W/2	0.	0	-W/2	0.0	H	WdiaS/2
+GW	31	20	W/2	0.	0	W/2	0.0	H	WdiaS/2
+GW	4	6	-W/2	0.	H	W/2	0.0	H	Wdia/2
+GW	5	3	-W/2	0.	0	-5	0.0	0	Wdia/2
+GW	6	3	5	0.	0	W/2	0.0	0	Wdia/2
+GW	7	1	-5	0.	0	5	0.0	0	Wdia/2
+GW	100	1	-5	0.	-L1	5	0.0	-L1	Wdia/2
+GM	0	0	0	0	-32	0	0	BASE
+
+GS	0	0	0.001
+GE -1
+GN 2 0 0 0 11 0.01
+TL	7	1	100	1	25	L1/1000
+EX	0	100	1	0	1.
+FR	0	5	0	0	144.2	1.0
+EN

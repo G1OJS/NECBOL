@@ -1,0 +1,34 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2			'frequency MHz
+SY dHelix=226.0348		'Helix diameter mm
+SY tHelix=2			'Number of turns
+SY lHelix=164.8894			'Helix length mm
+SY dHelixWire=3.5			'Helix wire dia. mm
+SY hBase=8			'Height to base of helix m
+SY sep=106.7077			'separation of the two helices along z, mm
+SY n=36				'Number of segments in each helix
+SY scl=1.0
+'
+'  CALCS -----------------------------------------
+' 
+SY pHelix = lHelix / tHelix	' Helix pitch, mm
+'
+'
+'  GEOMETRY --------------------------------------
+GH	10	n	pHelix/1000	lHelix/1000	dHelix/2000	dHelix/2000	dHelix/2000	dHelix/2000	dHelixWire/2000
+GM	0	0	0	0	0	0	0	sep/2000	10
+GX	100	001
+GW	3	1	dHelix/2000	0	-sep/2000	dHelix/2000	0	sep/2000	.001
+GM	0	0	0	0	0	0	0	hbase
+GS	0	0	scl
+GE	1
+LD	5	0	0	0	58000000
+LD	7	0	0	0	4.5	5
+GN 2 0 0 0 11 0.01
+EK
+EX	0	10	3	0	1.	0
+FR,0,1,0,0,144.2
+PQ -1
+PT -1
+RP,0,61,1,1000,-90,0,3

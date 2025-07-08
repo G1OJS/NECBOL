@@ -1,0 +1,52 @@
+SY Dwire=1	' Wire diameter mm
+SY Va=45	' V angle degrees
+SY Ha=7.0	' Height of apex, m
+SY Leg=5	' Length of one leg including meander section, m
+SY Wm=0.845266	' Width of each meander section, m
+SY Nm = 10	' Number of meanders each side
+SY Pm=Leg/(Nm)	' Pitch of meanders, m
+CM		
+SY Hm=Pm * (Nm-1)'Height of eacn meander section, m
+SY Lt=2*leg	' Length total of both legs incl meander sections, m
+SY La=Lt-2*Hm	' Length total of both legs excl meander sections, m 
+CM
+CM Add the main wires vertically (initially) and tilt over by the V angle Va degrees 
+GW	1	1	0	0	-La/2	0	0	0	Dwire/2000
+GM	0	0	-Va	0	0	0	0	0	1
+GW	2	1	0	0	0	0	0	La/2	Dwire/2000
+GM	0	0	Va	0	0	0	0	0	2
+CM
+CM Start of making the meander section:
+CM Make the repeatable meander section (one cross-ways wire of length Wm and one interconnect of height Pm)
+GW	101	1	-Wm/2	0	0*Pm	-Wm/2	0	1*Pm	Dwire/2000	'Interconnect
+GW	102	1	-Wm/2	0	1*Pm	Wm/2	0	1*Pm	Dwire/2000	'Cross-ways wire
+CM Make copies of the repeatable meander sections each lifted Pm in Z and rotated 180 degrees around Z
+GM	2	1	0	0	180	0	0	Pm	101
+GM	2	1	0	0	180	0	0	Pm	103
+GM	2	1	0	0	180	0	0	Pm	105
+GM	2	1	0	0	180	0	0	Pm	107
+GM	2	1	0	0	180	0	0	Pm	109
+GM	2	1	0	0	180	0	0	Pm	111
+GM	2	1	0	0	180	0	0	Pm	113
+GM	2	1	0	0	180	0	0	Pm	115
+CM  Add the initial half-wire connecting the edge of the meander section to centre
+GW	100	1	0	0	0*Pm	-Wm/2	0	0*Pm	Dwire/2000
+CM Single meander section finished
+CM
+CM Move the completed meander section to the end of where the main antenna wires are & tilted over by the V angle Va degrees
+GM	0	0	0	0	0	0	0	La/2	101
+GM	0	0	Va	0	0	0	0	0	101
+CM Make a copy of the completed meander section rotated 180 degrees around X (and 180 around Z for nice symmetry)
+GM	100	1	180	0	180	0	0	0	101
+CM
+CM Rotate the antenna to horizontal and lift to height
+GM	0	0	90	0	0	0	0	Ha
+CM
+GE	-1	'end of geometry
+LD	5	0	0	0	58000000	'copper wires everywhere
+GN	2	0	0	0	15	0.01	'ground params
+EK
+EX	0	1	1	0	1	0	' feed at top of V
+FR,0,1,0,0,7.05
+PQ -1
+PT -1

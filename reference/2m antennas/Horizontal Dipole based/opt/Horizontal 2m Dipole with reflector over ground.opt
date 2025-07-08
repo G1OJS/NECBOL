@@ -1,0 +1,18 @@
+CM
+CM
+CM
+CM forw: 85, 270 ; back: 85, 90
+CE
+SY BASE=7.0
+SY Sep=0.26
+SY Lref=1.0
+SY WD=0.005
+SY LD=0.972541
+GW	1	9	-LD/2	0.	BASE	LD/2	0.0	BASE	WD/2
+GW	2	9	-Lref/2	sep	BASE	Lref/2	sep	BASE	WD/2
+GE -1
+GN 2 0 0 0 15 0.01
+EX  0    1    5    0  1.
+FR,0,1,0,0,144
+PQ -1
+PT -1

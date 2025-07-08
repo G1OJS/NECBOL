@@ -1,0 +1,29 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2			'frequency MHz
+SY d_mm=74		'Structure diameter mm
+SY l_mm=240			'Structure length mm
+SY dW_mm=0.9				'Helix wire dia. mm
+SY hBase=8			'Height to base of helix m
+SY phi_feed=360		'angle of feedpoint from helix inner end
+'
+'
+SY r = d_mm/2000
+SY lh = (l_mm)/2000
+SY rW = dW_mm/2000
+SY zFeed = lh*phi_feed/720
+  
+'  GEOMETRY --------------------------------------
+GH	1	36*phi_feed/360	lh/2	zfeed	r	r	r	r	rW
+GM	0	0	0	0	-phi_feed	0	0	-zfeed
+GW	99	10	r	0	.01	0	0	-0.52	rW
+GH	2	36+36*(360-phi_feed)/360	lh/2	lh-zfeed	r	r	r	r	rW
+GM	0	0	0	0	phi_feed
+GM	0	0	0	0	0	0	0	hbase+lh
+GE	1
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	2	1	0	1.	0
+FR	0	0	0	0	FMHz	0
+EN

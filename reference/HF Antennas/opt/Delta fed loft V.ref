@@ -1,0 +1,27 @@
+SY Dwire=1	' Wire diameter mm
+SY Apex=3.4	' Height, m
+SY Floor=5.1
+SY Tap=0.7
+SY Wid=6.8
+SY FH=0.508526
+SY FR=18.1
+CM
+GW	1	5	0	0	Floor+Apex	0	-Tap*Wid/2	Floor+Apex*(1-Tap)	Dwire/2000
+GW	2	5	0	0	Floor+Apex	0	Tap*Wid/2	Floor+Apex*(1-Tap)	Dwire/2000
+GW	3	5	0	Tap*Wid/2	Floor+Apex*(1-Tap)	0	Wid/2	Floor	Dwire/2000
+GW	4	5	0	-Tap*Wid/2	Floor+Apex*(1-Tap)	0	-Wid/2	Floor	Dwire/2000
+GW	5	5	0	Tap*Wid/2	Floor+Apex*(1-Tap)	0	0.01	Floor+FH	Dwire/2000
+GW	6	5	0	-Tap*Wid/2	Floor+Apex*(1-Tap)	0	-.01	Floor+FH	Dwire/2000
+GW	7	5	0	0.01	Floor+FH	0	-.01	Floor+FH	Dwire/2000
+CM
+CM lift to height
+GM	0	0	0	0	0	0	0	Apex
+CM
+GE	-1	'end of geometry
+LD	5	0	0	0	58000000	'copper wires everywhere
+GN 2 0 0 0 11 0.01
+EK
+EX	0	7	3	0	1	0
+FR,0,1,0,0,FR
+PQ -1
+PT -1

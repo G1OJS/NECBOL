@@ -1,0 +1,46 @@
+SY FR=144.2
+SY Lam=300000/FR
+'
+SY Base=7000
+SY WDia=1
+SY WX=589
+SY WY=284
+SY P=30
+SY Sep=159.2543
+'
+'
+SY Nx=Int(Wx/P)+1
+SY Ny=Int(Wy/(2*P))+1
+SY Px=Wx/(Nx-1)
+SY Py=0.5*Wy/(Ny-1)
+'
+'Basis wires
+GW	1	1	0	-Py/2	-Sep/2	Px/2	0	-Sep/2	Wdia/2
+GW	2	1	0	Py/2	-Sep/2	Px/2	0	-Sep/2	Wdia/2
+' other 2 basis wires
+GM	2	1	0	0	180	0	0	0	1
+' shift and replicate in x
+GM	0	0	0	0	0	Px/2	0	0	1
+GM	1	Nx-1	0	0	0	Px	0	0	1
+' shift and replicate in y
+GM	0	0	0	0	0	0	Wy/2	0	1
+GM	1	2*(Ny-1)	0	0	0	0	-Py	0	1
+' Duplicate all for top plate
+GM	1	1	0	0	0	0	0	Sep
+' Shorting wires
+GW	1000	3	Nx*Px	Wy/2	-Sep/2	Nx*Px	Wy/2	Sep/2	Wdia/2
+GM	1	2*(Ny-1)	0	0	0	0	-Py	0	1000
+'
+' feed wire
+GW	5000	3	0	0	-Sep/2	0	0	Sep/2	Wdia/2
+' mounting position
+GM	0	0	0	0	0	0	0	Base
+'
+' final scale mm to m
+GS	0	0	0.001
+GE	1
+GN 2 0 0 0 11 0.01
+'
+EX	0	5000	1	0	1.
+FR	0	5	0	0	FR	1.0
+EN

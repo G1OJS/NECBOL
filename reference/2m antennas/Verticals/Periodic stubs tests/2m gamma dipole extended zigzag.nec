@@ -1,0 +1,46 @@
+CM
+CM
+CM
+SY Len=1459
+SY BASE=6200
+SY Wdmm=0.9
+SY PWdmm=0.9
+
+SY Wrad=0.5*Wdmm
+SY PWrad=0.5*PWdmm
+SY GWrad=2.5
+SY GAMsep=12.81492
+SY GAMlen=117.705
+SY GAMCap=GAMlen*100/1000
+
+SY Pgap=202
+SY Plen=1188
+SY Px=sqr((Plen/2)^2-(Pgap/2)^2)
+SY Toplen=771
+
+GW	1	10	0	0.	-Len/2	0	0.0	0	Wrad
+GW	2	5	0	0.	0	0	0.0	GAMlen	Wrad
+GW	3	10	0	0.	GAMlen	0	0.0	Len/2	Wrad
+GW	12	5	GAMsep	0.	0	GAMsep	0.0	GAMlen	Wrad
+GW	13	2	0	0.	0	GAMsep	0.0	0	GWrad
+GW	14	1	0	0.	GAMlen	GAMsep	0.0	GAMlen	Wrad
+
+GW	20	3	0	0.	Len/2	Px/3	0.0	Len/2+Pgap/4		PWrad
+GW	21	3	Px/3	0.	Len/2+Pgap/4	-Px/3	0.0	Len/2+Pgap/2	PWrad
+GW	22	3	-Px/3	0.	Len/2+Pgap/2	Px/3	0.0	Len/2+3*Pgap/4	PWrad
+GW	23	3	Px/3	0.	Len/2+3*Pgap/4	0	0.0	Len/2+Pgap	PWrad
+
+
+GW	51	20	0	0.	Len/2+Pgap	0	0.0	Len/2+Pgap+TopLen	Wrad
+
+GM	0	0	0	0	0	0	0	Base+Len/2
+
+GS	0	0	0.001
+
+
+GE -1
+GN 2 0 0 0 11 0.01
+LD	0	13	2	2	0.01	0	GAMCap/1e12
+EX	0	13	1	0	1.
+FR	0	5	0	0	144.2	1.0
+EN

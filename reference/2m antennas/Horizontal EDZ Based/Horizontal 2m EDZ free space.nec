@@ -1,0 +1,11 @@
+CM
+CM
+CM
+CE
+SY Len=3.04891
+SY BASE=7.0
+GW	1	9	-Len/2	0.	BASE	Len/2	0.0	BASE	.005
+GE
+EX  0    1    5    0  1.
+FR  0    5    0    0  144.      1.0
+EN

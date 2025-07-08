@@ -1,0 +1,16 @@
+CM 
+SY Dwire=1	' wire diameter mm
+SY L=10.31472	' vertical wire length m
+SY Rl=10	' radial length m
+SY Nrads=32	' number of radials
+CM
+GW	1	32	0	0	0	0	0	L	Dwire/2000	'Monopolo
+GW	2	32	0	0	0	Rl	0	0	Dwire/2000
+GM	1	Nrads-1	0	0	360/nRads	0	0	0	2
+GM	0	0	0	0	0	0	0	0.05
+GE	-1
+GN 2 0 0 0 11 0.01
+EK
+EX	0	1	1	0	1	0
+FR	0	0	0	0	7.07	0
+EN

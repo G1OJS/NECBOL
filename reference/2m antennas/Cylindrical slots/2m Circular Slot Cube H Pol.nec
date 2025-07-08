@@ -1,0 +1,31 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2	'frequency MHz
+SY d=197.3304	'Circle diameter mm
+SY dW=10	'Wire dia. mm
+SY hBase=8	'Height to centre of straight wires
+SY h_mm=186.5942	'Straight wire length
+SY a=8	' angle of gap
+SY b=50.1384	'angle of feed
+SY nSegs = 32	'number of segments per circle
+'
+'  CALCS -----------------------------------------
+' 
+SY r = d/2000
+SY rW = dW/2000
+SY h = h_mm /1000
+'
+'  GEOMETRY --------------------------------------
+GA	1	nSegs	r	0	360-a	rW
+GM	10	1	0	0	0	0	h	0
+GW	100	9	r	0	0	r	h	0	rW
+GM	1	1	0	a	0	0	0	0	100
+
+GM	0	0	90	0	0	0	0	hbase
+GE	1
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	1	17	0	1.	0
+FR	0	0	0	0	FMHz	0
+EN

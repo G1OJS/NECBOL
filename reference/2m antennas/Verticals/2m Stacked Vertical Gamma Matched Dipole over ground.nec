@@ -1,0 +1,98 @@
+SY FR=144.2
+SY Lam=300000/FR
+'
+SY BASE=5700
+SY Xc=0
+SY Yc=0
+SY Phi=0
+SY FDia=5
+SY WDia=1
+SY ElSep=1518
+SY Lrad=979.5851
+'
+CM gamma match
+SY GWDia=5
+SY GAMLen=92.96454
+SY GAMSep=17.10234
+SY GAMCAP=GAMLen*100/1000
+'
+SY LCentreTails=5
+'
+SY ChokeWireLen=1
+SY ChokeLenPhys=1
+SY ChokeInductance=0.0001	'nH
+'
+SY HarLen=1350+ChokeLenPhys+LCentreTails
+SY HarZo=50
+SY HarVf=0.66
+SY QWVf=0.66
+SY LQW=(Lam/4)*QWVF
+SY QWZo=37.5
+
+SY tn=0.5*Elsep/Harlen
+SY HarAng=atn(tn/sqr(1-tn^2))
+SY FeedX=-3000
+SY Sep=Lam/40
+
+
+'
+' 	Dipole 1
+GW	1	1	0	0.	0	0	GamSep	0	WDia/2
+GW	2	10	0	0.	-Lrad/2	0	0.0	0	WDia/2
+GW	3	10	0	0.	GAMLen	0	0.0	Lrad/2	WDia/2
+GW	4	3	0	0	0	0	0	GAMLen	WDia/2
+GW	5	3	0	GAMSep	0	0	GAMSep	GAMLen	GWDia/2
+GW	6	1	0	0.	GAMLen	0	GAMSep	GAMLen	WDia/2
+'
+' 	Dipole 2
+GM	10	1	0	0	0	0	0	ElSep
+'
+'
+'	Harness connections (shield)
+GW	101	40*(HarLen/Lam)	-HarLen*Cos(HarAng)	0.	ElSep/2	0	0.0	0	FDia/2
+GW	102	40*(HarLen/Lam)	-HarLen*Cos(HarAng)	0.	ElSep/2	0	0.0	ElSep	FDia/2
+GW	103	1	-HarLen*Cos(HarAng)	0.	ElSep/2	-HarLen*Cos(HarAng)	Sep	ElSep/2	FDia/2
+'
+'	Horizontal feedline, vertical feedline
+GW	201	40*((-FeedX-HarLen*Cos(HarAng))/Lam)	FeedX	0.	ElSep/2	-HarLen*Cos(HarAng)	0.0	ElSep/2	FDia/2
+GW	202	40*Base/Lam	FeedX	0.	ElSep/2	FeedX	0.0	-Base	FDia/2
+'
+'feed for 37.5 Ohm QW
+GW	499	1	-HarLen*Cos(HarAng)-100	Sep	-0+Elsep/2	-HarLen*Cos(HarAng)-100	Sep	20+Elsep/2	WDia/2
+'
+'Harness Join
+GW	500	1	-HarLen*Cos(HarAng)	Sep	Elsep/2	-HarLen*Cos(HarAng)	Sep	20+Elsep/2	WDia/2
+'
+' Joiners for tails to dipole centres
+GW	501	1	-100	0.	-10+Elsep	-100	0.0	10+Elsep	WDia/2
+GW	502	1	-100	0.	-10	-100	0.0	10	WDia/2
+'
+'	move into position
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+'GM	0	0	0	0	-32	0	0	0
+'	
+GS	0	0	0.001
+GE	1
+GN 2 0 0 0 11 0.01
+EK
+
+' QW Transformer
+TL	499	1	500	1	QWZo	0.001*LQW/QWVf
+' Main V harness
+TL	500	1	501	1	HarZo	0.001*HarLen/HarVf+0.001*ChokeWireLen/0.66
+TL	500	1	502	1	HarZo	0.001*HarLen/HarVf+0.001*ChokeWireLen/0.66
+' tails on dipole centres
+TL	501	1	11	1	50	0.001*LCentreTails/0.66
+TL	502	1	1	1	50	0.001*LCentreTails/0.66
+
+' chokes in main V of harness
+LD	0	101	8	8	0	ChokeInductance/1e9	0
+LD	0	102	8	8	0	ChokeInductance/1e9	0
+'
+'Gamma capacitors
+LD	0	5	1	1	0	0	GAMCap/1e12
+LD	0	15	1	1	0	0	GAMCap/1e12
+
+EX	0	499	1	0	1.
+FR	0	5	0	0	FR	1.0
+EN

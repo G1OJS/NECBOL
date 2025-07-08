@@ -1,0 +1,108 @@
+CM
+CM
+CM
+SY Len=1000
+SY BASE=6200
+SY Wdmm=0.9
+SY PWdmm=0.9
+
+SY Wrad=0.5*Wdmm
+SY PWrad=0.5*PWdmm
+SY GWrad=2.5
+SY GAMsep=12.81492
+SY GAMlen=117.705
+SY GAMCap=GAMlen*100/1000
+
+SY Pgap=942.4316
+SY Sl=275.3225
+SY Ns=10
+SY dZ=Pgap/Ns
+SY Toplen=698.32
+
+SY Z1=Len/2
+
+SY i=1
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=2
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=3
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=4
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=5
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=6
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=7
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=8
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=9
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+SY i=10
+SY Y=1+Sl*sin(180*i/Ns)
+GW	200+5*i	1	0	0.	Z1+dZ*(i-1.)	0	0.0	Z1+dZ*(i-.5)	Wrad
+GW	201+5*i	1	0	0.	Z1+dZ*(i-.5)	0	Y	Z1+dZ*(i-.5)	Wrad
+GW	202+5*i	1	0	0.	Z1+dZ*(i-.5)	0	-Y	Z1+dZ*(i-.5)	Wrad
+GW	203+5*i	1	0	0.	Z1+dZ*(i-.5)	0	0.0	Z1+dZ*(i-.0)	Wrad
+
+
+
+
+GW	1	10	0	0.	-Len/2	0	0.0	0	Wrad
+GW	2	5	0	0.	0	0	0.0	GAMlen	Wrad
+GW	3	10	0	0.	GAMlen	0	0.0	Len/2	Wrad
+
+GW	12	5	GAMsep	0.	0	GAMsep	0.0	GAMlen	Wrad
+GW	13	2	0	0.	0	GAMsep	0.0	0	GWrad
+GW	14	1	0	0.	GAMlen	GAMsep	0.0	GAMlen	Wrad
+
+GW	51	20	0	0.	Len/2+Pgap	0	0.0	Len/2+Pgap+TopLen	Wrad
+
+GM	0	0	0	0	0	0	0	Base+Len/2
+
+GS	0	0	0.001
+
+
+GE -1
+GN 2 0 0 0 11 0.01
+LD	0	13	2	2	0.01	0	GAMCap/1e12
+EX	0	13	1	0	1.
+FR	0	5	0	0	144.2	1.0
+EN

@@ -1,0 +1,34 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2			'frequency MHz
+SY d=391.0101			'Cylinder diameter mm
+SY dW=1				'Wire dia. mm
+SY hBase=8			'Height to base of helix m
+SY h=819.7276			'cylinder length
+SY nSects=4			' number of sections (even)
+SY a=25.4641				' angle of gap
+SY nSegs = 31	'number of segments per slice
+'
+'  CALCS -----------------------------------------
+' 
+SY sLen = h / nSects / 1000
+SY r = d/2000
+SY rW = dW/2000
+'
+'  GEOMETRY --------------------------------------
+GA	3	nSegs	r	0	360-a	rW
+GM	0	0	0	0	0	0	sLen	0	3
+GW	1	20	r	0	0	r	sLen	0	rW
+GM	1	1	0	a	0	0	0	0	1
+GM	5	nSects/2-1	0	0	0	0	sLen	0
+GX	100	010
+GA	900	nSegs	r	0	360-a	rW
+GA	999	1	r	0	-a	rW
+GM	0	0	90	0	0	0	0	hbase+sLen/2
+GE	1
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	999	1	0	1.	0
+FR	0	0	0	0	FMHz	0
+EN

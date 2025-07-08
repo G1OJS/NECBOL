@@ -1,0 +1,67 @@
+SY Dwire=1	'mm
+SY Ha=7.0
+SY Lt=10.72631
+
+SY Wm = 1
+SY Nm = 10
+SY Pm=0.050184
+SY Hm=Pm * (Nm-1)
+
+SY La=Lt-2*Hm
+
+GW	300	9	0	0	-La/2	0	0	La/2	Dwire/2000
+
+GW	101	5	-Wm/2	0	-La/2-Hm	Wm/2	0	-La/2-Hm	Dwire/2000
+GW	102	5	Wm/2	0	-La/2-Hm+Pm	-Wm/2	0	-La/2-Hm+Pm	Dwire/2000
+GW	103	5	-Wm/2	0	-La/2-Hm+2*Pm	Wm/2	0	-La/2-Hm+2*Pm	Dwire/2000
+GW	104	5	Wm/2	0	-La/2-Hm+3*Pm	-Wm/2	0	-La/2-Hm+3*Pm	Dwire/2000
+GW	103	5	-Wm/2	0	-La/2-Hm+4*Pm	Wm/2	0	-La/2-Hm+4*Pm	Dwire/2000
+GW	104	5	Wm/2	0	-La/2-Hm+5*Pm	-Wm/2	0	-La/2-Hm+5*Pm	Dwire/2000
+GW	103	5	-Wm/2	0	-La/2-Hm+6*Pm	Wm/2	0	-La/2-Hm+6*Pm	Dwire/2000
+GW	104	5	Wm/2	0	-La/2-Hm+7*Pm	-Wm/2	0	-La/2-Hm+7*Pm	Dwire/2000
+GW	103	5	-Wm/2	0	-La/2-Hm+8*Pm	Wm/2	0	-La/2-Hm+8*Pm	Dwire/2000
+GW	105	5	Wm/2	0	-La/2-Hm+9*Pm	0	0	-La/2-Hm+9*Pm	Dwire/2000
+GW	201	5	Wm/2	0	-La/2-Hm	Wm/2	0	-La/2-Hm+Pm	Dwire/2000
+GW	202	5	-Wm/2	0	-La/2-Hm+Pm	-Wm/2	0	-La/2-Hm+2*Pm	Dwire/2000
+GW	203	5	Wm/2	0	-La/2-Hm+2*Pm	Wm/2	0	-La/2-Hm+3*Pm	Dwire/2000
+GW	204	5	-Wm/2	0	-La/2-Hm+3*Pm	-Wm/2	0	-La/2-Hm+4*Pm	Dwire/2000
+GW	205	5	Wm/2	0	-La/2-Hm+4*Pm	Wm/2	0	-La/2-Hm+5*Pm	Dwire/2000
+GW	206	5	-Wm/2	0	-La/2-Hm+5*Pm	-Wm/2	0	-La/2-Hm+6*Pm	Dwire/2000
+GW	207	5	Wm/2	0	-La/2-Hm+6*Pm	Wm/2	0	-La/2-Hm+7*Pm	Dwire/2000
+GW	208	5	-Wm/2	0	-La/2-Hm+7*Pm	-Wm/2	0	-La/2-Hm+8*Pm	Dwire/2000
+GW	209	5	Wm/2	0	-La/2-Hm+8*Pm	Wm/2	0	-La/2-Hm+9*Pm	Dwire/2000
+
+
+GW	301	5	-Wm/2	0	-(-La/2-Hm)	Wm/2	0	-(-La/2-Hm)	Dwire/2000
+GW	302	5	Wm/2	0	-(-La/2-Hm+Pm)	-Wm/2	0	-(-La/2-Hm+Pm)	Dwire/2000
+GW	303	5	-Wm/2	0	-(-La/2-Hm+2*Pm)	Wm/2	0	-(-La/2-Hm+2*Pm)	Dwire/2000
+GW	304	5	Wm/2	0	-(-La/2-Hm+3*Pm)	-Wm/2	0	-(-La/2-Hm+3*Pm)	Dwire/2000
+GW	303	5	-Wm/2	0	-(-La/2-Hm+4*Pm)	Wm/2	0	-(-La/2-Hm+4*Pm)	Dwire/2000
+GW	304	5	Wm/2	0	-(-La/2-Hm+5*Pm)	-Wm/2	0	-(-La/2-Hm+5*Pm)	Dwire/2000
+GW	303	5	-Wm/2	0	-(-La/2-Hm+6*Pm)	Wm/2	0	-(-La/2-Hm+6*Pm)	Dwire/2000
+GW	304	5	Wm/2	0	-(-La/2-Hm+7*Pm)	-Wm/2	0	-(-La/2-Hm+7*Pm)	Dwire/2000
+GW	303	5	-Wm/2	0	-(-La/2-Hm+8*Pm)	Wm/2	0	-(-La/2-Hm+8*Pm)	Dwire/2000
+GW	305	5	Wm/2	0	-(-La/2-Hm+9*Pm)	0	0	-(-La/2-Hm+9*Pm)	Dwire/2000
+GW	401	5	Wm/2	0	-(-La/2-Hm)	Wm/2	0	-(-La/2-Hm+Pm)	Dwire/2000
+GW	402	5	-Wm/2	0	-(-La/2-Hm+Pm)	-Wm/2	0	-(-La/2-Hm+2*Pm)	Dwire/2000
+GW	403	5	Wm/2	0	-(-La/2-Hm+2*Pm)	Wm/2	0	-(-La/2-Hm+3*Pm)	Dwire/2000
+GW	404	5	-Wm/2	0	-(-La/2-Hm+3*Pm)	-Wm/2	0	-(-La/2-Hm+4*Pm)	Dwire/2000
+GW	405	5	Wm/2	0	-(-La/2-Hm+4*Pm)	Wm/2	0	-(-La/2-Hm+5*Pm)	Dwire/2000
+GW	406	5	-Wm/2	0	-(-La/2-Hm+5*Pm)	-Wm/2	0	-(-La/2-Hm+6*Pm)	Dwire/2000
+GW	407	5	Wm/2	0	-(-La/2-Hm+6*Pm)	Wm/2	0	-(-La/2-Hm+7*Pm)	Dwire/2000
+GW	408	5	-Wm/2	0	-(-La/2-Hm+7*Pm)	-Wm/2	0	-(-La/2-Hm+8*Pm)	Dwire/2000
+GW	409	5	Wm/2	0	-(-La/2-Hm+8*Pm)	Wm/2	0	-(-La/2-Hm+9*Pm)	Dwire/2000
+
+
+
+
+
+
+GM	0	0	90	0	0	0	0	Ha
+GE -1
+LD	5	0	0	0	58000000
+GN 2 0 0 0 15 0.01
+EX	0	300	5	0	1	0
+FR,0,1,0,0,7.05
+PQ -1
+PT -1

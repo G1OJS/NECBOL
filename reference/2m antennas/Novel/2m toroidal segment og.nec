@@ -1,0 +1,38 @@
+SY FR=144.2
+SY Lam=300000/FR
+'
+SY Base=7000
+SY WDia=1
+SY Tc=2340
+SY Td=Tc/3.141
+SY Tn=8
+SY Ta=180/(Tn)
+SY Sd=175
+SY Sn=13	'must be odd
+SY Sa=Sd/(Sn-1)
+'
+'
+'Basis wires
+GW	1	8	0	-Td/2	0	0	-0.5*Td*Cos(Ta)	-0.5*Td*Sin(Ta)	Wdia/2
+GM	0	0	Ta	0	0	0	0	0	1
+GM	1	2*Tn-3	Ta	0	0	0	0	0	1
+GM	0	0	0	0	0	0	Td/2
+GM	1	Sn-1	0	0	Sa	0	0	0
+GW	100	1	0	Td/2-0.5*Td*Cos(Ta)	-0.5*Td*Sin(Ta)	-Sin(Sa)*(Td/2-0.5*Td*Cos(Ta))	Cos(Sa)*(Td/2-0.5*Td*Cos(Ta))	-0.5*Td*Sin(Ta)	Wdia/2
+GW	101	1	0	Td/2-0.5*Td*Cos(Ta)	0.5*Td*Sin(Ta)	-Sin(Sa)*(Td/2-0.5*Td*Cos(Ta))	Cos(Sa)*(Td/2-0.5*Td*Cos(Ta))	0.5*Td*Sin(Ta)	Wdia/2
+GM	1	Sn-2	0	0	Sa	0	0	0	100
+GM	0	0	0	0	-Sd/2	0	0	0
+'
+' feed wire
+GW	5000	11	0	Td/2-0.5*Td*Cos(Ta)	-0.5*Td*Sin(Ta)	0	Td/2-0.5*Td*Cos(Ta)	0.5*Td*Sin(Ta)	Wdia/2
+'
+' final scale mm to m
+GS	0	0	0.001
+' mounting position
+GM	0	0	0	0	0	0	0	Base
+GE	1
+GN 2 0 0 0 11 0.01
+'
+EX	0	5000	6	0	1.
+FR	0	5	0	0	FR	1.0
+EN

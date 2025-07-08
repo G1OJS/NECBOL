@@ -1,0 +1,90 @@
+SY FR=144.2
+SY Lam=300000/FR
+'
+SY BASE=5700
+SY Xc=0
+SY Yc=0
+SY Phi=0
+SY FDia=5
+SY WDia=1
+SY ElSep=1868.228
+SY Lrad=1010.877
+'
+SY LCentreTails=150
+'
+SY HarLen=1350+LCentreTails
+SY HarZo=50
+SY HarVf=0.66
+SY QWVf=0.66
+SY LQW=(Lam/4)*QWVF
+SY QWZo=37.5
+'
+SY tn=0.5*Elsep/Harlen
+SY HarAng=atn(tn/sqr(1-tn^2))
+SY FeedX=-3000
+SY Sep=Lam/40
+
+
+
+'
+'
+
+'
+' 	Dipole 1
+GW	1	1	0	0.	-Sep/2	0	0.0	Sep/2	WDia/2
+GW	2	10	0	0.	-Lrad/2	0	0.0	-Sep/2	WDia/2
+
+GW	3	10	0	0.	Sep/2	0	0.0	Lrad/2	WDia/2
+'including phase section to model connection point of coax shield electrically 90 deg out of phase with feed to each leg
+GW	4	3	0	Lam/8	0	0	0.0	Sep/2	WDia/2
+GW	5	1	-30	Lam/8	0	0	Lam/8	0	WDia/2
+GW	6	3	-30	0	0	-30	Lam/8	0	WDia/2
+GW	7	3	-30	0	0	-30	-Lam/8	0	WDia/2
+GW	8	1	-30	-Lam/8	0	0	-Lam/8	0	WDia/2
+GW	9	3	0	-Lam/8	0	0	0	-Sep/2	WDia/2
+
+' 	Dipole 2
+GM	10	1	0	0	0	0	0	ElSep
+'	Length error on dipole 1
+'GW	1001	1	0	0.	-Lrad/2-30	0	0.0	-Lrad/2	WDia/2
+
+'	Harness connections (shield)
+GW	101	40*(HarLen/Lam)	-HarLen*Cos(HarAng)	0.	ElSep/2	-30	0.0	0	FDia/2
+GW	102	40*(HarLen/Lam)	-HarLen*Cos(HarAng)	0	ElSep/2	-30	0	ElSep	FDia/2
+GW	103	1	-HarLen*Cos(HarAng)	0.	ElSep/2	-HarLen*Cos(HarAng)	Sep	ElSep/2	FDia/2
+'
+'
+'	Horizontal feedline, vertical feedline
+GW	201	40*((-FeedX-HarLen*Cos(HarAng))/Lam)	FeedX	0.	ElSep/2	-HarLen*Cos(HarAng)	0.0	ElSep/2	FDia/2
+GW	202	40*Base/Lam	FeedX	0.	ElSep/2	FeedX	0.0	-Base	FDia/2
+'
+'feed for 37.5 Ohm QW
+GW	499	1	-HarLen*Cos(HarAng)-100	Sep	-0+Elsep/2	-HarLen*Cos(HarAng)-100	Sep	20+Elsep/2	WDia/2
+'Harness Join
+GW	500	1	-HarLen*Cos(HarAng)	Sep	Elsep/2	-HarLen*Cos(HarAng)	Sep	20+Elsep/2	WDia/2
+' Joiners for tails to dipole centres
+GW	501	1	-100	0.	Elsep	-100	0.0	20+Elsep	WDia/2
+GW	502	1	-100	0.	-20	-100	0.0	0	WDia/2
+
+'
+'	move into position
+GM	0	0	0	-90	0	0	0	0
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+GM	0	0	0	0	-32	0	0	0
+'	
+GS	0	0	0.001
+GE	1
+GN 2 0 0 0 11 0.01
+
+' QW Transformer
+TL	499	1	500	1	QWZo	0.001*LQW/QWVf
+' Main V harness
+TL	500	1	501	1	HarZo	0.001*(HarLen-LCentreTails)/HarVf
+TL	500	1	502	1	HarZo	0.001*(HarLen-LCentreTails)/HarVf
+' tails on dipole centres
+TL	501	1	11	1	50	0.001*LCentreTails/0.66
+TL	502	1	1	1	50	0.001*LCentreTails/0.66
+
+EX	0	499	1	0	1.
+FR	0	5	0	0	FR	1.0
+EN

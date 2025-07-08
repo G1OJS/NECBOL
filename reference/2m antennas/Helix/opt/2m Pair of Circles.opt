@@ -1,0 +1,33 @@
+'  INPUTS -----------------------------------------
+' 
+SY FMHz=144.2			'frequency MHz
+SY d=213.7607			'Circle diameter mm
+SY dW=10			'Circle wire dia. mm
+SY hBase=8			'Height to base of helix m
+SY sep=190.0694			'separation of the two circles along z, mm
+SY a=11.36373			' angle of gap
+SY fpa=364.4929	'feedpoint angle
+'
+'  CALCS -----------------------------------------
+' 
+SY segs=50*3*0.001*d/1.04
+'
+'  GEOMETRY --------------------------------------
+GA	10	segs*fpa/360+1	d/2000	0	fpa	dW/2000
+GM	0	0	90	0	fpa+a	0	0	0
+GA	20	segs*(1-fpa/360)+1	d/2000	0	360-fpa-a	dW/2000
+GM	0	0	90	0	0	0	0	0	20
+GM	0	0	0	0	0	0	0	sep/2000
+GX	100	001
+GW	3	50*sep/1000	d/2000	0	-sep/2000	d/2000	0	sep/2000	dW/2000
+GM	1	1	0	0	a	0	0	0	3
+GM	0	0	0	0	0	0	0	hbase
+GE	1
+LD	5	0	0	0	58000000
+GN 2 0 0 0 11 0.01
+EK
+EX	0	10	1	0	1.	0
+FR,0,1,0,0,144.2
+PQ -1
+PT -1
+RP,0,61,121,1003,-180,0,3,3

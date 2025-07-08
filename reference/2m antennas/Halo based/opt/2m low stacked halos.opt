@@ -1,0 +1,56 @@
+CM
+CM
+CM forw: 0, 32 ; back: 0, 32
+CE
+SY FR=144.2
+SY Dh=8.534001
+SY Dg=3.045328
+SY Cap=100
+SY Wx=295
+SY Wy=280
+SY Gap=48.46979
+SY Gam=40
+
+SY Base=7200
+SY Xc=-2200
+SY Yc=200
+SY Phi=0
+SY El=0
+
+SY ElSep=1800
+SY Lam=300000/FR
+SY HarY=-100
+SY Botfeed=1.37	' RG58 from junction to bottom halo, real length in m 
+SY Topfeed=1.37	' RG58 from junction to top halo, real length in m
+
+CM
+GW	0	8	-Wx/2	0.0	0.0	0	0.0	0.0	Dh/2
+GW	1	8	0	0.0	0.0	Wx/2	0.0	0.0	Dh/2
+GW	2	16	Wx/2	0.0	0.0	Wx/2	Wy	0.0	Dh/2
+GW	3	8	Wx/2	Wy	0.0	Gap/2	Wy	0.0	Dh/2
+GW	4	8	-Gap/2	Wy	0.0	-Wx/2	Wy	0.0	Dh/2
+GW	5	16	-Wx/2	Wy	0.0	-Wx/2	GAM	0.0	Dh/2
+GW	6	2	0.00	0.000	0.0	0.00	GAM	0.0	Dg/2
+GW	7	1	-Wx/2	0.00	0.0	-Wx/2	GAM	0.0	Dh/2
+GW	8	8	0.00	GAM	0.0	-Wx/2	GAM	0.0	Dg/2
+
+GM	100	1	0	0	0	0	0	ElSep	0
+GW	99	1	0	HarY-20	Elsep/2	0	HarY+20	Elsep/2	0.0005
+'GW	98	20	0	0.	0	0	HarY	Elsep/2	0.0025
+'GW	97	20	0	0.	Elsep	0	HarY	Elsep/2	0.0025
+
+GM	0	0	El	0	Phi	Xc	Yc	Base
+GM	0	0	0	0	-32	0	0	0
+GS	0	0	0.001
+
+GE -1
+GN 2 0 0 0 11 0.01
+LD	0	6	2	2	0	0	Cap/1e12
+LD	0	106	2	2	0	0	Cap/1e12
+TL	99	1	6	1	50	Botfeed/.66
+TL	99	1	106	1	50	Topfeed/.66
+EX	0	99	1	0	1.	0
+FR,0,1,0,0,144.2
+PQ -1
+PT -1
+RP,0,37,1,1000,-90,32,5

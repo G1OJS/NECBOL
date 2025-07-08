@@ -1,0 +1,41 @@
+CM
+CM
+CM
+CE
+SY BASE=7500
+SY Xc=0
+SY Yc=0
+SY Phi=0
+SY WDia=5
+SY DDia=1
+SY LDip=785.4311
+SY DelW=479.1128
+SY DelH=819.015
+
+GW	1	10	-LDip/2	0.	0	-DelW/2	0.0	0	WDia/2
+GW	2	5	-DelW/2	0.	0	-10	0.0	0	WDia/2
+GW	3	1	-10	0.	0	10	0.0	0	WDia/2
+GW	4	5	10	0.	0	DelW/2	0.0	0	WDia/2
+GW	5	10	DelW/2	0.	0	Ldip/2	0.0	0	WDia/2
+
+GW	6	1	-10	0.	-DelH	10	0.0	-DelH	WDia/2
+GW	7	5	-10	0.	-DelH	-DelW/2	0	0	DDia/2
+GW	8	5	10	0.	-DelH	DelW/2	0	0	DDia/2
+
+GW	10	10	10	0.	-DelH-10	10	0.0	-DelH-520	WDia/2
+GW	11	20	-10	0.	-DelH-10	-10	0.0	-DelH-1040	WDia/2
+GW	14	1	-10	0	-DelH-1040	10	0	-DelH-1040	WDia/2
+GW	15	10	10	0	-DelH-520	10	0	-DelH-1040	WDia/2
+GW	16	1	10	-10	-DelH-520	10	0	-DelH-520	WDia/2
+GW	17	1	-10	0.	-DelH-10	10	0.0	-DelH-10	WDia/2
+GW	18	20	10	-10	-DelH-520	10	-10	-DelH-1560	WDia/2
+
+GM	0	0	0	0	Phi	Xc	Yc	BASE
+	
+GS	0	0	0.001
+
+GE -1
+GN 2 0 0 0 11 0.01
+EX	0	6	1	0	1.
+FR  0    5    0    0  144.      1.0
+EN

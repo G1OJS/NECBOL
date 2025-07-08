@@ -1,0 +1,33 @@
+SY FR=144.2
+SY Lam=300000/FR
+'
+SY Base=7000
+SY WDia=1
+SY WX=705.7046
+SY Ang=12.85309
+SY Sep=321.5952
+SY Nang=2
+SY Dang=Ang/Nang
+'
+'
+'Basis wires
+GW	1	8	0	0	-Sep/2	WX	0	-Sep/2	Wdia/2
+GW	2	8	WX	0	-Sep/2	WX	0	Sep/2	Wdia/2
+GW	3	8	0	0	Sep/2	WX	0	Sep/2	Wdia/2
+GM	10	Nang-1	0	0	Dang	0	0	0	1
+
+
+'
+' feed wire
+GW	5000	3	0	0	-Sep/2	0	0	Sep/2	Wdia/2
+' mounting position
+GM	0	0	0	0	0	0	0	Base
+'
+' final scale mm to m
+GS	0	0	0.001
+GE	1
+GN 2 0 0 0 11 0.01
+'
+EX	0	5000	2	0	1.
+FR	0	5	0	0	FR	1.0
+EN
