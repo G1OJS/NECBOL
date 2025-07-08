@@ -1,5 +1,7 @@
 import numpy as np
 
+# Follows method used in https://lso.fe.uni-lj.si/literatura/Razno/SRK2020/SRK2020.10/NEC2/Dielectric_films_NEC2.pdf
+
 # Parameters
 F = 144.2   # f MHz
 W = 0.36    # Chimney width m (along x)
