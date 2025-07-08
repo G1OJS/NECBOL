@@ -4,6 +4,7 @@
 
 I wrote it primarily for my own use for the reasons below, but I think it's good enough now to share so that other people can make use of it.
  - Not having to think about splitting wires into three-way junctions
+ - Being able to view the geometry easily & in the same way whether it's in free space at Z=0 or 10m above a specified ground
  - Being able to re-use components easily (almost in the style of copy, paste, rotate, move, connect)
  - Being able to comment out entire components like loops, helices etc with one or two comment symbols
  - Being able to add and remove 'environment' components like dielectric slabs and conductive sheets, cylinders etc
