@@ -97,8 +97,7 @@ class NECModel:
 
     def write_nec_and_run(self):
         self.write_nec()
-        with open(os.devnull, "w") as devnull:
-            subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
     def gains(self):
         with open(self.nec_out) as f:

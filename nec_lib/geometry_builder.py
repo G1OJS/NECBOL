@@ -13,6 +13,8 @@
 # So migrate the 'shape with feed' to shape.insert(feed, alpha) shape.insert(load, alpha)
 # which works for all shapes
 
+# so far, I haven't found a neat way of doing object.insert at an arbitrary point in an object
+
 import numpy as np
 import math
 
@@ -33,10 +35,8 @@ class components:
         
     def wire_Z(self, length_m = 1, wire_diameter_mm = 1.0, Origin_Z = 0):
         nTag, obj = self.new_geometry_object()
-        z1 = -length_m/2
-        z2 = length_m/2
-        nS = int( (z2 - z1) / self.segLen_m)
-        obj.add_wire(nTag,    nS, 0, 0, z1, 0, 0, z2, wire_diameter_mm/2000)
+        nS = int( length_m / self.segLen_m )
+        obj.add_wire(nTag,    nS, 0, 0, -length_m/2, 0, 0, length_m/2, wire_diameter_mm/2000)
         obj.translate(0, 0, -Origin_Z)
         return obj
 
@@ -56,10 +56,10 @@ class components:
     
     def rect_loop_XZ(self, length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0, Origin_X = 0, Origin_Z = 0):
         nTag, obj = self.new_geometry_object()
-        nS = int((length_m) / self.segLen_m)
+        nS = int( length_m / self.segLen_m )
         obj.add_wire(nTag,    nS, -width_m/2, 0, -length_m/2, -width_m/2, 0, length_m/2, wire_diameter_mm/2000)
         obj.add_wire(nTag, nS,  width_m/2, 0, -length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-        nS = int((width_m) / self.segLen_m)
+        nS = int( width_m / self.segLen_m )
         obj.add_wire(nTag, nS, -width_m/2, 0, -length_m/2,  width_m/2, 0,-length_m/2, wire_diameter_mm/2000)
         obj.add_wire(nTag, nS, -width_m/2, 0,  length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
         obj.translate(-Origin_X, 0, -Origin_Z)
@@ -67,8 +67,8 @@ class components:
 
     def connector(self, fromObject, fromParam, toObject, toParam, wire_diameter_mm = 1.0):
         nTag, obj = self.new_geometry_object()
-        from_point = _parametricPoint(fromObject, fromParam)
-        to_point = _parametricPoint(toObject, toParam)
+        from_point = _point_on_object(fromObject, fromParam)
+        to_point = _point_on_object(toObject, toParam)
         l = distance(from_point, to_point)
         nS = int(l / self.segLen_m)
         obj.add_wire(nTag, nS, *from_point, *to_point, wire_diameter_mm/2000) 
@@ -97,36 +97,20 @@ class components:
 
         return obj
 
-    def circular_loop(self, diameter_m, segments=36, wire_diameter_mm = 1.0):
+    def circular_arc(self, diameter_m, arc_phi_deg, segments=36, feed_alpha_object = -1, wire_diameter_mm = 1.0):
         nTag, obj = self.new_geometry_object()
-        delta_phi = (2 * math.pi) / segments
+        delta_phi_deg = arc_phi_deg / segments
         radius = diameter_m/2
 
         for i in range(segments):
-            phi1 = delta_phi * i
-            phi2 = delta_phi * (i + 1)
-            x1 = radius * math.cos(phi1)
-            y1 = radius * math.sin(phi1)
-            x2 = radius * math.cos(phi2)
-            y2 = radius * math.sin(phi2)
-            obj.add_wire(nTag, 1, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
-
-        return obj
-
-    def circular_loop_with_feedpoint(self, diameter_m, segments=36, wire_diameter_mm = 1.0):
-        objTag, obj = self.new_geometry_object()
-        delta_phi = (2 * math.pi) / segments
-        radius = diameter_m/2
-
-        for i in range(segments):
-            phi1 = delta_phi * i
-            phi2 = delta_phi * (i + 1)
-            x1 = radius * math.cos(phi1)
-            y1 = radius * math.sin(phi1)
-            x2 = radius * math.cos(phi2)
-            y2 = radius * math.sin(phi2)
-            nTag = objTag if (i!=0) else self.EX_TAG
-            obj.add_wire(nTag, 1, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
+            ca, sa = cos_sin(delta_phi_deg * i)
+            x1 = radius * ca
+            y1 = radius * sa
+            ca, sa = cos_sin(delta_phi_deg * (i+1))
+            x2 = radius * ca
+            y2 = radius * sa
+            isFeed = (int(feed_alpha_object * (segments-1)) == i)
+            obj.add_wire(self.EX_TAG if (isFeed) else nTag , 1, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
 
         return obj
 
@@ -157,9 +141,8 @@ class GeometryObject:
         R = np.array([[0, 0, -1],[0,  1, 0],[1,  0, 0]])
         return self.rotate(R)
 
-    def rotate_around_Z(self, angle):
-        ca = math.cos(angle)
-        sa = math.sin(angle)
+    def rotate_around_Z(self, angle_deg):
+        ca, sa = cos_sin(angle_deg)
         R = np.array([[ca, sa, 0], [-sa, ca, 0], [0,0,1]])
         return self.rotate(R)
 
@@ -176,16 +159,22 @@ class GeometryObject:
             for es in [ws["a"], ws["b"]]:
                 for wo in other.wires:
                     if (_point_can_connect_to_wire(es,wo['a'],wo['b'],tol)):
-                        _split_wire_at(wo, es, wires_to_add)
+                        _split_wire_at_point(wo, es, wires_to_add)
                         # print("Found connection")
                         break #(for efficiency only)
         for params in wires_to_add:
             other.add_wire(*params)
-        
+               
 
 #=================
 # helper functions
 #=================
+
+def cos_sin(angle_deg):
+    angle_rad = math.pi*angle_deg/180
+    ca = math.cos(angle_rad)
+    sa = math.sin(angle_rad)
+    return ca, sa
 
 def _point_can_connect_to_wire(P, A, B, tol=1e-6):
     P = np.array(P, dtype=float)
@@ -210,25 +199,29 @@ def _point_can_connect_to_wire(P, A, B, tol=1e-6):
     # Don't include the ends though, because connecting by having the same co-ordinates is OK
     # and we don't need to do anything in that case
     t = np.dot(AP, AB) / (AB_len ** 2)
-    return 0 < t < 1 
+    return 0 < t < 1
 
-def _split_wire_at(wo, es, wires_to_add):
-    a = np.array(wo['a'])
-    b = np.array(wo['b'])
-    p = np.array(es)
+def _alpha_wire(wire, point_on_wire):
+    a = np.array(wire['a'])
+    b = np.array(wire['b'])
+    p = np.array(point_on_wire)
     ab = np.linalg.norm(b - a)
     ap = np.linalg.norm(p - a)
-    s1 = max(1,round(wo['nS']*(ap/ab)) )
-    s2 = wo['nS'] - s1
-    wo['b']=tuple(es)
-    wo['nS'] = s1
-    wires_to_add.append( (wo['nTag'], s2, *es, *b, wo['wr']) )
+    return ap/ab
 
-def _parametricPoint(geom_object, wire_index_plus_alpha):
-    if(wire_index_plus_alpha < 0):
-        wire_index_plus_alpha = 0.0
-    wire_index = int(wire_index_plus_alpha)
-    alpha = wire_index_plus_alpha - wire_index
+def _split_wire_at_point(wo, es, wires_to_add):
+    nSegs1 = max(1,round(wo['nS']*_alpha_wire(wo, es)) )
+    nSegs2 = wo['nS'] - nSegs1
+    b = wo["b"]
+    wo['b']=tuple(es)
+    wo['nS'] = nSegs1
+    wires_to_add.append( (wo['nTag'], nSegs2, *es, *b, wo['wr']) )
+
+def _point_on_object(geom_object, alpha_object):
+    if(alpha_object < 0):
+        alpha_object = 0.0
+    wire_index = int(alpha_object)
+    alpha = alpha_object - wire_index
     if(wire_index> len(geom_object.wires)):
         wire_index = len(geom_object.wires)
         alpha = 1.0

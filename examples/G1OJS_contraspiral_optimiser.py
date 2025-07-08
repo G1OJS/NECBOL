@@ -47,9 +47,11 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
 
     link = antenna_components.connector(bottom_helix,71.99,top_helix,0,main_wire_diameter_mm)
     
-    coupling_loop = antenna_components.circular_loop_with_feedpoint(diameter_m = cld_mm /1000,
-                                                                    segments=36,
-                                                                    wire_diameter_mm = coupling_loop_wire_diameter_mm)
+    coupling_loop = antenna_components.circular_arc(diameter_m = cld_mm /1000,
+                                                    arc_phi_deg = 360,
+                                                    segments=36,
+                                                    feed_alpha_object=.99,
+                                                    wire_diameter_mm = coupling_loop_wire_diameter_mm)
 
     cl_offset_z_m = cl_alpha*l_mm/1000
     cl_offset_x_m = (d_mm - cld_mm - coupling_loop_wire_diameter_mm - main_wire_diameter_mm)/2000
