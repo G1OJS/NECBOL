@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from nec_lib.nec_wrapper import NECModel
 from nec_lib import geometry_builder
+from nec_lib import wire_viewer
 
 def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     global model
@@ -27,13 +28,10 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     feed_rod.connect_ends(outer_loop)
     reflector_loop.translate(0,-refl_sep_m,fp_m/2)
     
-    support_rod = antenna_components.wire_Z(length_m = refl_sep_m, wire_diameter_mm = wd_mm)
-    support_rod.rotate_ZtoY()
-    support_rod.translate(0,-refl_sep_m/2,h_m)
-    
+    support_rod = antenna_components.connector(fromObject = outer_loop, fromParam=3.5, toObject = reflector_loop, toParam=3.5)
     support_rod.connect_ends(outer_loop)
     support_rod.connect_ends(reflector_loop)
-
+    
     model.add(feed_rod)
     model.add(reflector_loop)
     model.add(outer_loop)
@@ -50,20 +48,26 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
 
-
 for i in range(-5, 5):
     antenna_components = geometry_builder.components(starting_tag_nr = 0,
                             segment_length_m = model.segLength_m,
                             ex_tag = model.EX_TAG)
-    refl_scale = 1.0
-    refl_sep = 0.1+.01*i
+    hen_height_m = 0.97
+    hen_width_m = 0.271
+    feed_height_m = 0.12
+    refl_scale = 0.985
+    refl_sep = 0.33
+    parameter = feed_height_m *(1 + 0.01 *i)
+    feed_height_m = parameter
     model.start_geometry()
-    build_hentenna_yagi(0.97, 0.28, 0.12, refl_sep, refl_scale, 5)
+    build_hentenna_yagi(hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
     model.run()
     gains = model.gains()
     vswr = model.vswr()
-    print(gains, f"vswr:{vswr:.2f}")
-    
+    print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
+
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title='Hentenna with reflector')
+
 print("Done")
 
 

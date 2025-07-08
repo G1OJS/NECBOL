@@ -8,23 +8,24 @@ def parse_nec_wires(file_path):
                     # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
                     x1, y1, z1 = map(float, parts[3:6])
                     x2, y2, z2 = map(float, parts[6:9])
-                    wires.append(((x1, y1, z1), (x2, y2, z2)))
+                    tag = int(parts[1])
+                    wires.append(((x1, y1, z1), (x2, y2, z2), tag))
     return wires
 
-def view_nec_input(file_path, color='blue'):
+def view_nec_input(file_path, ex_tag, color='blue', title = "3D Viewer"):
     wires = parse_nec_wires(file_path)
-    view_wires(wires, color=color)
+    view_wires(wires, ex_tag, title, color=color)
 
 
-def view_wires(wires, color='blue'):
+def view_wires(wires, ex_tag, title, color='blue'):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
 
-    for start, end in wires:
-        ax.plot(*zip(start, end), color=color)
+    for start, end, tag in wires:
+        ax.plot(*zip(start, end), color=color if (tag!=ex_tag) else 'red')
 
     plt.draw()  # ensure autoscale limits are calculated
 
@@ -42,7 +43,7 @@ def view_wires(wires, color='blue'):
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-    ax.set_title('3D Wire Geometry Viewer')
+    ax.set_title(title)
     plt.tight_layout()
     plt.show()
 

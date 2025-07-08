@@ -64,8 +64,8 @@ class components:
 
     def connector(self, fromObject, fromParam, toObject, toParam, wire_diameter_mm = 1.0):
         nTag, obj = self.new_geometry_object()
-        from_point = parametricPoint(fromObject, fromParam)
-        to_point = parametricPoint(toObject, toParam)
+        from_point = _parametricPoint(fromObject, fromParam)
+        to_point = _parametricPoint(toObject, toParam)
         l = distance(from_point, to_point)
         nS = int(l / self.segLen_m)
         obj.add_wire(nTag, nS, *from_point, *to_point, wire_diameter_mm/2000) 
@@ -144,9 +144,9 @@ class GeometryObject:
     def connect_ends(self, other):
         wires_to_add=[]
         for ws in self.wires:
-            for es in ends(ws):
+            for es in _ends(ws):
                 for wo in other.wires:
-                    if (touches(es,wo)):
+                    if (_touches(es,wo)):
                         _split_wire_at(wo, es, wires_to_add)
                         break #(for efficiency only)
         for params in wires_to_add:
@@ -155,7 +155,7 @@ class GeometryObject:
 
 # =============
 # these will go in the wire class eventually
-def touches(end, wire, tol=1e-6):
+def _touches(end, wire, tol=1e-6):
     return _point_lies_on_line(end, wire['a'], wire['b'], tol)
 
 def _point_lies_on_line(P, A, B, tol=1e-6):
@@ -192,12 +192,17 @@ def _split_wire_at(wo, es, wires_to_add):
     wo['nS'] = s1
     wires_to_add.append( (wo['nTag'], s2, *es, *b, wo['wr']) )
 
-def ends(wire):
+def _ends(wire):
     return [wire["a"], wire["b"]]
 
-def parametricPoint(geom_object, wire_index_plus_alpha):
+def _parametricPoint(geom_object, wire_index_plus_alpha):
+    if(wire_index_plus_alpha < 0):
+        wire_index_plus_alpha = 0.0
     wire_index = int(wire_index_plus_alpha)
     alpha = wire_index_plus_alpha - wire_index
+    if(wire_index> len(geom_object.wires)):
+        wire_index = len(geom_object.wires)
+        alpha = 1.0
     w = geom_object.wires[wire_index]
     A = np.array(w["a"], dtype=float)
     B = np.array(w["b"], dtype=float)

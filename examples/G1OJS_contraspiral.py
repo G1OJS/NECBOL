@@ -54,7 +54,7 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
 
-for i in range(-5, 5):
+for i in range(0, 1):
     antenna_components = geometry_builder.components(starting_tag_nr = 0,
                             segment_length_m = model.segLength_m,
                             ex_tag = model.EX_TAG)
@@ -74,7 +74,7 @@ for i in range(-5, 5):
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
 
-wire_viewer.view_nec_input(model.nec_in)
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "G1OJS Contraspiral")
 
 print("Done")
 

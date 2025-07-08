@@ -61,7 +61,7 @@ for i in range(-5, 5):
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
 
-wire_viewer.view_nec_input(model.nec_in)
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Normal Mode Helix")
 
 print("Done")
 

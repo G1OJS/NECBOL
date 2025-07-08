@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from nec_lib.nec_wrapper import NECModel
 from nec_lib import geometry_builder
+from nec_lib import wire_viewer
 
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
     global model
@@ -48,6 +49,6 @@ for i in range(-5, 5):
     vswr = model.vswr()
     print(gains, f"vswr:{vswr:.2f}")
 
-
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title='Hentenna')
 
 
