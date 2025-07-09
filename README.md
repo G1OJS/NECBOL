@@ -139,6 +139,9 @@ print("Done")
     - current on a certain segment
     - feedline current (needs a feedline object tagged)
     - stretch / warp / sheer the 3D geometry
+- Optimise the circular slot cube
+- Add gamma feeds? Does this need a component? Look at adding squalo maybe.
+    - this links to adding models for feedline and common mode current minimisation in optimiser.
 - Wireframe viewer
     - arrow pointing to specified gain direction
     - arrow pointing to max gain direction (with dBi & maybe F/B)
