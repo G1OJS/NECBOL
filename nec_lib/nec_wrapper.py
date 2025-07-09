@@ -10,6 +10,7 @@
 
 import subprocess
 import os
+import numpy as np
 
 class NECModel:
     def __init__(self, working_dir, nec_exe_path, verbose=False):
@@ -70,27 +71,49 @@ class NECModel:
         self.comments = comments
         self.model_text = "CM " + comments + "\nCE\n"
 
-# add feed_alpha here i.e. add(self, geomObj, feed_alpha_object=-1) so if
-# feed_alpha lies within object, set the segment tag to EX_TAG
-# then this works for any object
-# could also work with load_alpha to add loads
-# generically, each segment has a type which is either conductor, load, or feed
-# and we just need a mechanism to map each segment to its type when adding it
-# (when adding loads, we need to create the LD card for that specific segment at the same time)
+    def place_feed(self, geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
+        wires = geomObj.get_wires()
+        if(feed_alpha_object >=0):
+            feed_wire_index = min(len(wires)-1,int(feed_alpha_object*len(wires))) # 0 to nWires -1
+            feed_alpha_wire = feed_alpha_object - feed_wire_index
+        w = wires[feed_wire_index]       
 
-# this also means we don't have to pass EX_TAG to the component library at initialisation
-# leaving only segment length to get rid of, which could also be passed here
-# and used to calculate nS from each wire length & then it's not needed in the component library either,
-# making the separation between the components and the model very clean
+        # calculate wire length vector AB, length a to b and distance from a to feed point
+        A = np.array(w["a"], dtype=float)
+        B = np.array(w["b"], dtype=float)
+        AB = B-A
+        wLen = np.linalg.norm(AB)
+        feedDist = wLen * feed_alpha_wire
 
+        if (wLen <= self.segLength_m):
+            # feed segment is all of this wire, so no need to split
+            w['nS'] = 1
+            w['iTag'] = self.EX_TAG
+        else:
+            # split the wire AB into three wires: A to C, CD (feed segment), D to B
+            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
+            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
+            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
+            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
+            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
+            # (nonzero nS field is preserved during segmentation in 'add')
+            w['b'] = tuple(C)
+            w['nS'] = nS1
+            geomObj.add_wire(self.EX_TAG , 1, *C, *D, w["wr"])
+            geomObj.add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
+                
     def add(self, geomObj):
         for w in geomObj.get_wires():
-            x1, y1, z1 = w['a']
-            x2, y2, z2 = w['b']
-            self.model_text += (
-                f"GW {w['nTag']} {w['nS']} {x1:.3f} {y1:.3f} {z1:.3f} "
-                f"{x2:.3f} {y2:.3f} {z2:.3f} {w['wr']:.3f}\n"
-            )
+            A = np.array(w["a"], dtype=float)
+            B = np.array(w["b"], dtype=float)
+            if(w['nS'] == 0): # preserve pre-calculated segments
+                w['nS'] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
+            self.model_text += f"GW {w['iTag']} {w['nS']} "
+            for v in A:
+                self.model_text += f"{v:.3f} "
+            for v in B:
+                self.model_text += f"{v:.3f} "
+            self.model_text += f"{w['wr']}\n"
 
     def finalise(self):
         self.model_text += self.GM_CARD
@@ -149,4 +172,3 @@ class NECModel:
             z0 = 50
             gamma = (z_in - z0) / (z_in + z0)
             return (1 + abs(gamma)) / (1 - abs(gamma))
-

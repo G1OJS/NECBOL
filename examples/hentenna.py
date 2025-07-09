@@ -9,9 +9,8 @@ def build_hentenna(h_m, w_m, fp_m, wd_mm):
     global model
 
     
-    feed_rod = antenna_components.wire_Z_with_feedpoint(length_m = w_m,
-                                           wire_diameter_mm = wd_mm,
-                                           feedpoint_alpha = 0.5)
+    feed_rod = antenna_components.wire_Z(length_m = w_m,
+                                           wire_diameter_mm = wd_mm)
     feed_rod.rotate_ZtoX()
     feed_rod.translate(0, 0, fp_m)
     
@@ -21,6 +20,8 @@ def build_hentenna(h_m, w_m, fp_m, wd_mm):
                                    Origin_Z = -h_m/2)
     
     feed_rod.connect_ends(outer_loop)
+
+    model.place_feed(feed_rod, feed_wire_index=0, feed_alpha_wire=0.5)
     
     model.add(feed_rod)
     model.add(outer_loop)
@@ -36,14 +37,13 @@ model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
-antenna_components = geometry_builder.components(starting_tag_nr = 0,
-                            segment_length_m = model.segLength_m,
-                            ex_tag = model.EX_TAG)
+antenna_components = geometry_builder.components()
 
 for i in range(-5, 5):
     h_m = 1+i*0.01
     model.start_geometry()
     build_hentenna(h_m, 0.28, 0.12, 5)
+#    model.write_nec()
     model.write_nec_and_run()
     gains = model.gains()
     vswr = model.vswr()

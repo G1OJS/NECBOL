@@ -9,13 +9,12 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     global model
 
     
-    feed_rod = antenna_components.wire_Z_with_feedpoint(length_m = w_m,
-                                           wire_diameter_mm = wd_mm,
-                                           feedpoint_alpha = 0.5)
+    feed_rod = antenna_components.wire_Z(length_m = w_m,
+                                           wire_diameter_mm = wd_mm)
     feed_rod.rotate_ZtoX()
     feed_rod.translate(0, 0, fp_m)
     
-    outer_loop = antenna_components.rect_loop_XZ(length_m = h_m,
+    hentenna_outer_loop = antenna_components.rect_loop_XZ(length_m = h_m,
                                    width_m = w_m,
                                    wire_diameter_mm = wd_mm,
                                    Origin_Z = -h_m/2)
@@ -25,16 +24,19 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
                                    wire_diameter_mm = wd_mm,
                                    Origin_Z = -h_m/2)
     
-    feed_rod.connect_ends(outer_loop)
+    feed_rod.connect_ends(hentenna_outer_loop)
     reflector_loop.translate(0,-refl_sep_m,fp_m/2)
     
-    support_rod = antenna_components.connector(fromObject = outer_loop, fromParam=3.5, toObject = reflector_loop, toParam=3.5)
-    support_rod.connect_ends(outer_loop)
+    support_rod = antenna_components.connector(from_object = hentenna_outer_loop, from_wire_index=3, from_alpha_wire=0.5,
+                                               to_object = reflector_loop, to_wire_index=3, to_alpha_wire=0.5)
+    support_rod.connect_ends(hentenna_outer_loop)
     support_rod.connect_ends(reflector_loop)
+
+    model.place_feed(feed_rod, feed_wire_index=0, feed_alpha_wire=0.5)
     
     model.add(feed_rod)
     model.add(reflector_loop)
-    model.add(outer_loop)
+    model.add(hentenna_outer_loop)
     model.add(support_rod)
 
 
@@ -49,9 +51,7 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 
 for i in range(-5, 5):
-    antenna_components = geometry_builder.components(starting_tag_nr = 0,
-                            segment_length_m = model.segLength_m,
-                            ex_tag = model.EX_TAG)
+    antenna_components = geometry_builder.components()
     hen_height_m = 0.97
     hen_width_m = 0.271
     feed_height_m = 0.12

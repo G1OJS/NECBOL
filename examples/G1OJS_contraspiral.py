@@ -15,24 +15,25 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
                                      length_m = l_mm /1000,
                                      pitch_m = l_mm /2000,
                                      sense="RH",
-                                     segments_per_turn=36,
+                                     wires_per_turn=36,
                                      wire_diameter_mm = main_wire_diameter_mm)
 
     top_helix = antenna_components.helix(diameter_m = d_mm /1000,
                                      length_m = l_mm /1000,
                                      pitch_m = l_mm /2000,
                                      sense="LH",
-                                     segments_per_turn=36,
+                                     wires_per_turn=36,
                                      wire_diameter_mm = main_wire_diameter_mm)
     top_helix.translate(0,0, l_mm/1000 + helix_sep_mm/1000)
 
-    link = antenna_components.connector(bottom_helix,71.99,top_helix,0,main_wire_diameter_mm)
+    link = antenna_components.connector(bottom_helix, 71, 1, top_helix, 0, 0, main_wire_diameter_mm)
     
     coupling_loop = antenna_components.circular_arc(diameter_m = cld_mm /1000,
                                                     arc_phi_deg = 360,
-                                                    segments=36,
-                                                    feed_alpha_object=.99,
+                                                    n_wires=36,
                                                     wire_diameter_mm = coupling_loop_wire_diameter_mm)
+    
+    model.place_feed(coupling_loop, feed_alpha_object=0)
 
     cl_offset_z = cl_alpha*l_mm/1000
     cl_offset_x = (d_mm - cld_mm - coupling_loop_wire_diameter_mm - main_wire_diameter_mm)/2000
@@ -57,9 +58,7 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 
 for i in range(-5, 5):
-    antenna_components = geometry_builder.components(starting_tag_nr = 0,
-                            segment_length_m = model.segLength_m,
-                            ex_tag = model.EX_TAG)
+    antenna_components = geometry_builder.components()
     d_mm = 160.5
     l_mm = 159
     wd_mm = 8

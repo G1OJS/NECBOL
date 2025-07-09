@@ -14,8 +14,9 @@ def build_csc(d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
 
     model.start_geometry()
 
-    top_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg,segments=36, feed_alpha_object=1, wire_diameter_mm = main_wire_diameter_mm)
-    bottom_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg,  segments=36, wire_diameter_mm = main_wire_diameter_mm)
+    top_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg, nWires=36, wire_diameter_mm = main_wire_diameter_mm)
+    
+    bottom_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg,  nWires=36, wire_diameter_mm = main_wire_diameter_mm)
     
     top_loop.translate(0,0,h_mm/1000)
     
@@ -25,15 +26,16 @@ def build_csc(d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
     slot_wire1.connect_ends(bottom_loop)
 
     slot_wire2 = antenna_components.wire_Z(length_m = h_mm /1000, wire_diameter_mm = main_wire_diameter_mm, Origin_Z = -h_mm/2000)
-    slot_wire2.translate(d_mm/2000,0,0)
-    
+    slot_wire2.translate(d_mm/2000,0,0)    
     slot_wire2.rotate_around_Z(angle_deg = feed_gap_angle_deg)
-    
     slot_wire2.connect_ends(top_loop, tol = 0.1)
     slot_wire2.connect_ends(bottom_loop, tol = 0.1)
 
-    model.add(bottom_loop)
+    model.place_feed(top_loop, feed_alpha_object = 1)
+  
+
     model.add(top_loop)
+    model.add(bottom_loop)
     model.add(slot_wire1)
     model.add(slot_wire2)
 
@@ -48,20 +50,18 @@ model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
-antenna_components = geometry_builder.components(starting_tag_nr = 0,
-                            segment_length_m = model.segLength_m,
-                            ex_tag = model.EX_TAG)
+antenna_components = geometry_builder.components()
 
 d_mm = 200
 h_mm = 200
 wd_mm = 10
 fd_gap_mm = 10
 build_csc(d_mm, h_mm, wd_mm, fd_gap_mm)
-#model.write_nec()
-model.write_nec_and_run()
-gains = model.gains()
-vswr = model.vswr()
-print(gains, f"vswr:{vswr:.2f}")
+model.write_nec()
+#model.write_nec_and_run()
+#gains = model.gains()
+#vswr = model.vswr()
+#print(gains, f"vswr:{vswr:.2f}")
 
 wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
 
