@@ -5,9 +5,7 @@ from nec_lib.nec_wrapper import NECModel
 from nec_lib import geometry_builder
 from nec_lib import wire_viewer
 
-def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
-    global model
-
+def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
 
     coupling_loop_wire_diameter_mm = 2.0
     
@@ -44,6 +42,8 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, 
     model.add(coupling_loop)
     model.add(top_helix)
     model.add(link)
+
+    return model
     
 
 
@@ -69,7 +69,7 @@ for i in range(-5, 5):
     parameter = cl_alpha *(1 + 0.01 *i)
     cl_alpha = parameter
     model.start_geometry()
-    build_contraspiral(d_mm, l_mm, wd_mm, helix_sep_m, cld_mm, cl_alpha, cl_spacing_mm)
+    model = build_contraspiral(model, d_mm, l_mm, wd_mm, helix_sep_m, cld_mm, cl_alpha, cl_spacing_mm)
     model.write_nec_and_run()
     gains = model.gains()
     vswr = model.vswr()
