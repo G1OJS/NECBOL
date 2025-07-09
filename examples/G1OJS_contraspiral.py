@@ -32,6 +32,7 @@ def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, c
                                                     wire_diameter_mm = coupling_loop_wire_diameter_mm)
     
     model.place_feed(coupling_loop, feed_alpha_object=0)
+#    model.place_series_RLC_load(top_helix, R_ohms = 0, L_uH = 0, C_pf = 50, load_alpha_object=0.5)
 
     cl_offset_z = cl_alpha*l_mm/1000
     cl_offset_x = (d_mm - cld_mm - coupling_loop_wire_diameter_mm - main_wire_diameter_mm)/2000
@@ -57,23 +58,20 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
 
-for i in range(-5, 5):
-    antenna_components = geometry_builder.components()
-    d_mm = 160.5
-    l_mm = 159
-    wd_mm = 8
-    helix_sep_m = 140
-    cld_mm = 78
-    cl_spacing_mm = 2
-    cl_alpha=0.495
-    parameter = cl_alpha *(1 + 0.01 *i)
-    cl_alpha = parameter
-    model.start_geometry()
-    model = build_contraspiral(model, d_mm, l_mm, wd_mm, helix_sep_m, cld_mm, cl_alpha, cl_spacing_mm)
-    model.write_nec_and_run()
+params = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":122, "cld_mm":81, "cl_alpha":0.505, "cl_spacing_mm":2.1}
+
+antenna_components = geometry_builder.components()
+
+model.start_geometry()
+model = build_contraspiral(model, **params)
+model.write_nec()
+
+happy_with_geometry = True
+if(happy_with_geometry):
+    model.run_nec()
     gains = model.gains()
     vswr = model.vswr()
-    print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
+    print(gains, f"vswr:{vswr:.2f}")
 
 wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "G1OJS Contraspiral")
 

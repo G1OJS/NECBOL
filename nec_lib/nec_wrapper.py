@@ -70,25 +70,40 @@ class NECModel:
     def start_geometry(self, comments="No comments specified"):
         self.comments = comments
         self.model_text = "CM " + comments + "\nCE\n"
+        self.LOAD_iTag = 500
+        self.LOADS = []
 
-    def place_feed(self, geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
+    def place_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
+        self.LOADS.append(f"LD 0 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
+        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
+        self.LOAD_iTag +=1
+        
+    def place_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
+        self.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
+        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
+        self.LOAD_iTag +=1
+
+    def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
+        self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
+
+    def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
         wires = geomObj.get_wires()
-        if(feed_alpha_object >=0):
-            feed_wire_index = min(len(wires)-1,int(feed_alpha_object*len(wires))) # 0 to nWires -1
-            feed_alpha_wire = feed_alpha_object - feed_wire_index
-        w = wires[feed_wire_index]       
+        if(item_alpha_object >=0):
+            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
+            item_alpha_wire = item_alpha_object - item_wire_index
+        w = wires[item_wire_index]       
 
         # calculate wire length vector AB, length a to b and distance from a to feed point
         A = np.array(w["a"], dtype=float)
         B = np.array(w["b"], dtype=float)
         AB = B-A
         wLen = np.linalg.norm(AB)
-        feedDist = wLen * feed_alpha_wire
+        feedDist = wLen * item_alpha_wire
 
         if (wLen <= self.segLength_m):
             # feed segment is all of this wire, so no need to split
             w['nS'] = 1
-            w['iTag'] = self.EX_TAG
+            w['iTag'] = item_iTag
         else:
             # split the wire AB into three wires: A to C, CD (feed segment), D to B
             nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
@@ -99,7 +114,7 @@ class NECModel:
             # (nonzero nS field is preserved during segmentation in 'add')
             w['b'] = tuple(C)
             w['nS'] = nS1
-            geomObj.add_wire(self.EX_TAG , 1, *C, *D, w["wr"])
+            geomObj.add_wire(item_iTag , 1, *C, *D, w["wr"])
             geomObj.add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
                 
     def add(self, geomObj):
@@ -121,6 +136,8 @@ class NECModel:
         self.model_text += self.GN_CARD
         self.model_text += "EK\n"
         self.model_text += self.LD_WIRECOND
+        for LD in self.LOADS:
+            self.model_text += LD
         self.model_text += f"EX 0 {self.EX_TAG} 1 0 1 0\n"
         self.model_text += self.FR_CARD
         self.model_text += self.RP_CARD
@@ -131,8 +148,7 @@ class NECModel:
         with open(self.nec_in, "w") as f:
             f.write(self.model_text)
 
-    def write_nec_and_run(self):
-        self.write_nec()
+    def run_nec(self):
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
     def gains(self):

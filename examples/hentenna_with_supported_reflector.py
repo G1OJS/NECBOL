@@ -61,7 +61,8 @@ for i in range(-5, 5):
     feed_height_m = parameter
     model.start_geometry()
     build_hentenna_yagi(hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
-    model.write_nec_and_run()
+    model.write_nec()
+    model.run_nec()
     gains = model.gains()
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")

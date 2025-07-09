@@ -43,8 +43,8 @@ for i in range(-5, 5):
     h_m = 1+i*0.01
     model.start_geometry()
     build_hentenna(h_m, 0.28, 0.12, 5)
-#    model.write_nec()
-    model.write_nec_and_run()
+    model.write_nec()
+    model.run_nec()
     gains = model.gains()
     vswr = model.vswr()
     print(gains, f"vswr:{vswr:.2f}")

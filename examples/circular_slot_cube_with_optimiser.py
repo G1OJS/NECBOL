@@ -77,7 +77,8 @@ def optimise():
 
 def analyse():
     model = build_csc(**params)
-    model.write_nec_and_run()
+    model.write_nec()
+    model.run_nec()
     gains = model.gains()
     vswr = model.vswr()
     print(gains, f"vswr:{vswr:.2f}")
@@ -89,8 +90,8 @@ def view():
 
 params = {'d_mm': 209.49, 'h_mm': 202.84, 'main_wire_diameter_mm': 3.67, 'feed_gap_mm': 10.08}
 #view()
-analyse()
-#optimise()
+#analyse()
+optimise()
 print("Done")
 
 
