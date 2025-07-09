@@ -33,9 +33,8 @@ class RandomOptimiser:
         best_cost = result['cost']
         best_info = result['info']
         stall_count = 0
-        if verbose:
-            formatted_params = {k: round(v, 2) for k, v in best_params.items()}
-            print(f"[] INITIAL: {best_info} with {formatted_params}")
+        formatted_params = {k: round(v, 2) for k, v in best_params.items()}
+        print(f"[] INITIAL: {best_info} with {formatted_params}")
 
         for i in range(self.max_iter):
             test_params = self.random_variation(best_params)
@@ -50,24 +49,26 @@ class RandomOptimiser:
                 best_params = test_params
                 best_info = test_info
                 stall_count = 0
-                if verbose:
-                    formatted_params = {k: round(v, 2) for k, v in best_params.items()}
-                    print(f"[{i}] IMPROVED: {best_info} with {formatted_params}")
-
+                formatted_params = {k: round(v, 2) for k, v in best_params.items()}
+                print(f"[{i}] IMPROVED: {best_info} with {formatted_params}")
             else:
                 stall_count += 1
-                if verbose:
+                if (verbose):
+                    formatted_params = {k: round(v, 2) for k, v in test_params.items()}
+                    print(f"[{i}] {test_info} with {formatted_params}")
+                else:
                     print(f"[{i}] {test_info}")
 
             if stall_count >= self.stall_limit:
                 self.delta_x /= 2
                 stall_count = 0
-                if verbose:
-                    print(f"[{i}] Reducing delta to {self.delta_x}")
+                print(f"[{i}] Reducing delta to {self.delta_x}")
 
         best_model = self.build_fn(**best_params)
         best_model.write_nec_and_run()
         result = self.cost_fn(best_model)
         final_info = result['info']
         formatted_params = {k: round(v, 2) for k, v in best_params.items()}
+        print(f"[] FINAL: {best_info} with {formatted_params}")
+
         return formatted_params, final_info

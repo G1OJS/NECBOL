@@ -83,9 +83,7 @@ opt = RandomOptimiser(
     max_iter = 100
 )
 
-best_params, best_info = opt.optimise(verbose=True)
-print("Achieved:", best_info)
-print("With parameters:", best_params)
+best_params, best_info = opt.optimise(verbose=False)
 
 
 

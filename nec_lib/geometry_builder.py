@@ -168,14 +168,6 @@ def _point_should_connect_to_wire(P, A, B, tol=1e-6):
 
     return True
 
-def _alpha_wire(wire, point_on_wire):
-    # alpha_wire is 0 at a end and 1 at b end
-    a = np.array(wire['a'])
-    b = np.array(wire['b'])
-    p = np.array(point_on_wire)
-    ab = np.linalg.norm(b - a)
-    ap = np.linalg.norm(p - a)
-    return ap/ab
 
 def _point_on_object(geom_object, wire_index, alpha_wire):
     if(wire_index> len(geom_object.wires)):
@@ -186,12 +178,6 @@ def _point_on_object(geom_object, wire_index, alpha_wire):
     B = np.array(w["b"], dtype=float)
     P = A + alpha_wire * (B-A)
     return P
-
-def _distance(point1, point2):
-    A = np.array(point1)
-    B = np.array(point2)
-    V = B-A
-    return np.linalg.norm(V)
 
 
 
