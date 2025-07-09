@@ -19,8 +19,12 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 - **Automatic wire joining**: Automatically connects wires that intersect, simplifying model creation.
 - **Flexible connector placement**: Add connectors between specific points on different objects.
 - **Configurable simulation parameters**: Set frequency, ground type, and pattern observation points.
+- **Library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
+- **Easy to place**: feedpoint, series RLC load(s), prarallel RLC load(s) specified in ohms, uH and pF
+- **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
 - **More coming soon**: See next steps/future plans below.
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
+- **Example antennas**: Hentenna, hentenna with reflector, G1OJS Contraspiral, Circular version of Skeleton Slot Cube
 
 ### ⚠️ **Note:** NECBOL is a very new project and the API is likely to change significantly in upcoming versions. Please expect some instability. And, note that I still have a lot to learn about Python and especially GitHub processes.
 
@@ -139,7 +143,6 @@ print("Done")
     - current on a certain segment
     - feedline current (needs a feedline object tagged)
     - stretch / warp / sheer the 3D geometry
-- Optimise the circular slot cube
 - Add gamma feeds? Does this need a component? Look at adding squalo maybe.
     - this links to adding models for feedline and common mode current minimisation in optimiser.
 - Wireframe viewer
