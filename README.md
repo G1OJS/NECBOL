@@ -19,7 +19,7 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 - **Automatic wire joining**: Automatically connects wires that intersect, simplifying model creation.
 - **Flexible connector placement**: Add connectors between specific points on different objects.
 - **Configurable simulation parameters**: Set frequency, ground type, and pattern observation points.
-- **Library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
+- **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
 - **Easy to place**: feedpoint, series RLC load(s), prarallel RLC load(s) specified in ohms, uH and pF
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
 - **More coming soon**: See next steps/future plans below.
