@@ -14,9 +14,9 @@ def build_csc(d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
 
     model.start_geometry()
 
-    top_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg, nWires=36, wire_diameter_mm = main_wire_diameter_mm)
+    top_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg, n_wires=36, wire_diameter_mm = main_wire_diameter_mm)
     
-    bottom_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg,  nWires=36, wire_diameter_mm = main_wire_diameter_mm)
+    bottom_loop = antenna_components.circular_arc(diameter_m = d_mm /1000, arc_phi_deg = 360-feed_gap_angle_deg,  n_wires=36, wire_diameter_mm = main_wire_diameter_mm)
     
     top_loop.translate(0,0,h_mm/1000)
     
@@ -57,11 +57,12 @@ h_mm = 200
 wd_mm = 10
 fd_gap_mm = 10
 build_csc(d_mm, h_mm, wd_mm, fd_gap_mm)
-model.write_nec()
-#model.write_nec_and_run()
-#gains = model.gains()
-#vswr = model.vswr()
-#print(gains, f"vswr:{vswr:.2f}")
+#model.write_nec()
+model.write_nec_and_run()
+gains = model.gains()
+vswr = model.vswr()
+print(gains, f"vswr:{vswr:.2f}")
+print("Note - design not yet optimised")
 
 wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
 
