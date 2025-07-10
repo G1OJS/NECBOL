@@ -68,25 +68,52 @@ class NECModel:
             self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"
 
     def start_geometry(self, comments="No comments specified"):
+        # effectively *resets* the model, except that all of the parameters
+        # set by set_ functions are still incorporated when the file is written
         self.comments = comments
         self.model_text = "CM " + comments + "\nCE\n"
+        # TO DO: decide if 500 is the right tag to start at, and whether to limit # of loads
         self.LOAD_iTag = 500
         self.LOADS = []
 
     def place_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
+        """
+            inserts a single segment containing a series RLC load into an existing geometry object
+            see _place_feed_or_load for how to specify the position of the segment within the object
+        """
         self.LOADS.append(f"LD 0 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
         self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
         self.LOAD_iTag +=1
         
     def place_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
+        """
+            inserts a single segment containing a parakllel RLC load into an existing geometry object
+            see _place_feed_or_load for how to specify the position of the segment within the object
+        """
         self.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
         self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
         self.LOAD_iTag +=1
 
     def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
+        """
+            inserts a single segment containing the excitation point into an existing geometry object
+            see _place_feed_or_load for how to specify the position of the segment within the object
+        """
         self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
 
     def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
+        """
+            inserts a single segment with a specified iTag into an existing geometry object
+            position within the object is specied as
+            EITHER:
+              item_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+            OR:
+              item_wire_index AND item_alpha_wire
+              which specify the i'th wire in the n wires in the object, and the distance along that
+              wire divided by that wire's length
+        """
         wires = geomObj.get_wires()
         if(item_alpha_object >=0):
             item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
@@ -152,18 +179,22 @@ class NECModel:
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
     def gains(self):
-        with open(self.nec_out) as f:
-            while "RADIATION PATTERNS" not in f.readline():
-                pass
-            for _ in range(5):
-                l = f.readline()
-            if self.verbose:
-                print("Gains line:", l.strip())
-            return {
-                "v_gain": float(l[21:29]),
-                "h_gain": float(l[29:37]),
-                "total": float(l[37:45]),
-            }
+        try:
+            with open(self.nec_out) as f:
+                while "RADIATION PATTERNS" not in f.readline():
+                    pass
+                for _ in range(5):
+                    l = f.readline()
+                if self.verbose:
+                    print("Gains line:", l.strip())
+        except (RuntimeError, ValueError):
+            raise ValueError(f"Something went wrong reading gains from {nec_out}")
+
+        return {
+            "v_gain": float(l[21:29]),
+            "h_gain": float(l[29:37]),
+            "total": float(l[37:45]),
+        }
 
     def h_gain(self):
         return self.gains()['h_gain']
@@ -175,16 +206,20 @@ class NECModel:
         return self.gains()['total']
 
     def vswr(self):
-        with open(self.nec_out) as f:
-            while "ANTENNA INPUT PARAMETERS" not in f.readline():
-                pass
-            for _ in range(4):
-                l = f.readline()
-            if self.verbose:
-                print("Z line:", l.strip())
-            r = float(l[60:72])
-            x = float(l[72:84])
-            z_in = r + x * 1j
-            z0 = 50
-            gamma = (z_in - z0) / (z_in + z0)
-            return (1 + abs(gamma)) / (1 - abs(gamma))
+        try:
+            with open(self.nec_out) as f:
+                while "ANTENNA INPUT PARAMETERS" not in f.readline():
+                    pass
+                for _ in range(4):
+                    l = f.readline()
+                if self.verbose:
+                    print("Z line:", l.strip())
+                r = float(l[60:72])
+                x = float(l[72:84])
+        except (RuntimeError, ValueError):
+            raise ValueError(f"Something went wrong reading input impedance from {nec_out}")
+
+        z_in = r + x * 1j
+        z0 = 50
+        gamma = (z_in - z0) / (z_in + z0)
+        return (1 + abs(gamma)) / (1 - abs(gamma))

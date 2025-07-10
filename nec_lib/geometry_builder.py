@@ -49,7 +49,7 @@ class components:
 
     def helix(self, **params):
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params)
+        params_m = self.units.from_suffixed_params(params, whitelist=['sense','wires_per_turn'])
         radius_m = params_m.get('diameter_m')/2
         length_m = params_m.get('length_m')
         pitch_m = params_m.get('pitch_m')
@@ -78,7 +78,7 @@ class components:
 
     def circular_arc(self, **params):
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params)
+        params_m = self.units.from_suffixed_params(params, whitelist=['n_wires','arc_phi_deg'])
         radius_m = params_m.get('diameter_m')/2
         wire_radius_m = params_m.get('wire_diameter_m')/2    
         sense = params.get("sense", "RH")

@@ -10,7 +10,7 @@ def build_hentenna(model, h_mm, w_mm, fp_mm, wd_mm):
     antenna_components = geometry_builder.components()
     model.start_geometry()
     
-    feed_rod = antenna_components.wire_Z(length_mm = w_mm,
+    feed_rod = antenna_components.wire_Z(length_mm = w_mm, 
                                            wire_diameter_mm = wd_mm)
     feed_rod.rotate_ZtoX()
     feed_rod.translate(dx_mm = 0, dy_mm = 0, dz_mm = fp_mm)

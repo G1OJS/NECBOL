@@ -18,7 +18,7 @@ def build_csc(model, d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
     
     bottom_loop = antenna_components.circular_arc(diameter_mm = d_mm, arc_phi_deg = 360-feed_gap_angle_deg,  n_wires=36, wire_diameter_mm = main_wire_diameter_mm)
     
-    top_loop.translate(dx_m = 0, dy_m = 0, dz_mm = h_mm)
+    top_loop.translate(dx_m = 0, dy_mm = 0, dz_mm = h_mm)
     
     slot_wire1 = antenna_components.wire_Z(length_mm = h_mm, wire_diameter_mm = main_wire_diameter_mm)
     slot_wire1.translate(dx_mm = d_mm / 2, dy_m = 0, dz_mm = h_mm /2)
