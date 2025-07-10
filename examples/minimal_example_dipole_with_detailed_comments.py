@@ -27,10 +27,11 @@ model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 # Frequency in azimuth and elevation of gain point (leave at 0,0 if you only want vswr)
 model.set_gain_point(azimuth = 0, elevation = 0)
-# Ground type. Currently limited to simple choices. If eps_r = 1 and sigma = 0, nec is told to use no ground
-# Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
-# the specified distance above ground. Currently this is in m only.
-model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0) 
+# Ground type. Currently limited to simple choices. If eps_r = 1 and sigma = 0, or if you omit this line,
+# nec is told to use no ground. Othewise you should set the origin height so that the antenna reference
+# point X,Y,Z = (0,0,0) is set to be the specified distance above ground.
+# You can specify this in m, mm, cm, in, or ft (e.g. origin_height_ft = 30.33)
+model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0) 
 
 # Get a 'copy' of the geometry builder class called antenna_components (again, you can change this name if desired)
 antenna_components = geometry_builder.components()
@@ -40,9 +41,12 @@ antenna_components = geometry_builder.components()
 # It's a mandatory line even if there is no existing geometry to clear because it initilises various things
 model.start_geometry()
 
-# (At last!) define your antenna structure. Here you must use named arguments (length =, wire_diameter =)
+# Define your antenna structure. Here you must use named arguments (length =, wire_diameter =)
 # but the _mm can be replaced by _m, _cm, _ft, _in if you want to work in other unit systems,
 # and you can mix and match if needed (length_ft = 13.5, wire_diameter_cm = 1.3)
+# NOTE - although it seems like a lot of work to get to this point, you've now defined a lot of
+# parameters that won't change as your antenna definition grows from the single line below
+# into some complicated antenna definitions, and the idea is that that is as easy as doing this next line:
 dipole = antenna_components.wire_Z(length_mm = 1040, wire_diameter_mm = 10)
 
 # Now tell the nec interface where you're going to feed the antenna from
@@ -54,15 +58,15 @@ dipole = antenna_components.wire_Z(length_mm = 1040, wire_diameter_mm = 10)
 # If you *don't* know about nec segmentation, one goal of this project is that you shouldn't *need* to know.
 model.place_feed(dipole, feed_wire_index=0, feed_alpha_wire=0.5)
 
-# add the dipole (and its feed definition) to the model - in a sense this says "I've done defining the dipole,
-# please add it to the model"
+# Add the dipole (and its feed definition) to the model - in a sense this says
+# "I've done defining the dipole, please add it to the model"
 model.add(dipole)
 
 # now write all of the above definitions into the nec input file
 model.write_nec()
 # now ask nec to analyse the nec input file and produce a nec output file
 model.run_nec()
-# get gains (H, V and Total) from the nec output file
+# get gains (H, V and Total) and vswr(calculated from impedance) from the nec output file
 gains = model.gains()
 vswr = model.vswr()
 # print the results

@@ -11,6 +11,7 @@
 import subprocess
 import os
 import numpy as np
+from nec_lib.units import units
 
 class NECModel:
     def __init__(self, working_dir, nec_exe_path, verbose=False):
@@ -25,14 +26,16 @@ class NECModel:
         self.LD_WIRECOND = ""
         self.FR_CARD = ""
         self.RP_CARD = ""
-        self.GE_CARD = ""
+        self.GE_CARD = "GE 0\n"
         self.GN_CARD = ""
         self.GM_CARD = ""
         self.comments = ""
         self.EX_TAG = 999
         self.nSegs_per_wavelength = 40
         self.segLength_m = 0
+        self.units = units()
         self.write_runner_files()
+        
         
     def write_runner_files(self):
         with open(self.nec_bat, "w") as f:
@@ -57,12 +60,24 @@ class NECModel:
         dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
         self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth:.2f} 0 {dAz:.2f}\n"
 
-    def set_ground(self, eps_r=1, sigma=1, origin_height_m=10):
+    def set_ground(self, eps_r, sigma, **params):
+    """
+        Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
+        If eps_r = 1 and sigma = 0, nec is told to use no ground (free space model), and you may omit the origin height parameter
+        If you don't call this function, free space will be assumed.
+        Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
+        the specified distance above ground.
+        Parameters:
+            eps_r (float): relative permittivity (relative dielectric constant) of the ground
+            sigma (float): conductivity of the ground in mhos/meter
+            origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
+    """
         if eps_r == 1.0:
             self.GE_CARD = "GE 0\n"
             self.GN_CARD = ""
             self.GM_CARD = "GM 0 0 0 0 0 0 0 0.000\n"
         else:
+            origin_height_m = self.units.from_suffixed_params(params)['origin_height_m']
             self.GE_CARD = "GE 1\n"
             self.GN_CARD = f"GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n"
             self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"

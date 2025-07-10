@@ -41,19 +41,11 @@ def optimise():
     best_params, best_info = RandomOptimiser(build_antenna, param_init, cost_function,
                                              max_iter=1000, bounds = bounds).optimise(model, verbose=False)
 
-def analyse():
-    model = build_antenna(**params)
-    model.write_nec()
+def analyse(model):
     model.run_nec()
     gains = model.gains()
     vswr = model.vswr()
     print(gains, f"vswr:{vswr:.2f}")
-
-def view():
-    model = build_antenna(**params)
-    model.write_nec()
-    wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
-
 
 model = NECModel(working_dir="..\\nec_wkg",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
@@ -63,13 +55,19 @@ model.set_frequency(MHz = 144.2)
 model.set_gain_point(azimuth = 90, elevation = 3)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
+
 params = {'l0_mm': 1040, 'l1_mm': 1040, 'l2_mm': 1040, 'y1_mm': 250, 'y2_mm': 500, 'main_wire_diameter_mm': 10}
 #params = {'l0_mm': 997.23, 'l1_mm': 994.02, 'l2_mm': 889.92, 'y1_mm': 304.22, 'y2_mm': 511.18, 'main_wire_diameter_mm': 8.13}
 #params = {'l0_mm': 800.7, 'l1_mm': 1006.48, 'l2_mm': 943.58, 'y1_mm': 117.11, 'y2_mm': 395.46, 'main_wire_diameter_mm': 5.41}
 
-#view()
-#analyse()
+model = build_antenna(model, **params)
+model.write_nec()
+
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
+analyse(model)
 optimise()
+
+
 print("Done")
 
 

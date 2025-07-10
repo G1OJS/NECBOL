@@ -1,7 +1,8 @@
 import warnings
+import sys, os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 class units:
-    
     
     _UNIT_FACTORS = {
         "m": 1.0,
@@ -15,10 +16,6 @@ class units:
         if default_unit not in self._UNIT_FACTORS:
             raise ValueError(f"Unsupported unit: {default_unit}")
         self.default_unit = default_unit
-
-    def from_unit(self, value, unit):
-        """Convert a value from a specific unit to meters."""
-        return value / self._UNIT_FACTORS[unit]
 
     def from_suffixed_params(self, params: dict, whitelist=[]) -> dict:
         """Converts suffixed values like 'd_mm' to meters.
@@ -48,7 +45,7 @@ class units:
 
             if suffix in self._UNIT_FACTORS:
                 # Convert value, output key with '_m' suffix
-                out[name + "_m"] = self.from_unit(value, suffix)
+                out[name + "_m"] = value / self._UNIT_FACTORS[suffix]
                 continue
 
             if key in whitelist:
@@ -58,7 +55,6 @@ class units:
             warnings.warn(f"No recognised units specified for {name}: '{suffix}' specified, metres assumed")
             # output key gets '_m' suffix added
             out[name + "_m"] = value
-
 
         return out
 
