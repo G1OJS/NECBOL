@@ -63,7 +63,7 @@ def analyse():
 def view():
     model = build_csc(model, **params)
     model.write_nec()
-    wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
+    wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circular slot cube")
 
 model = NECModel(working_dir="..\\nec_wkg",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",

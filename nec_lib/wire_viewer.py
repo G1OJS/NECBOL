@@ -21,7 +21,7 @@ def view_wires(wires, ex_tag, title, color='blue'):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
-    fig = plt.figure()
+    fig = plt.figure(label = 'Please close this window to continue')
     ax = fig.add_subplot(111, projection='3d')
 
     for start, end, tag in wires:
@@ -44,6 +44,7 @@ def view_wires(wires, ex_tag, title, color='blue'):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     ax.set_title(title)
+    
     plt.tight_layout()
     plt.show()
 

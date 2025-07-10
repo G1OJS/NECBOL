@@ -76,7 +76,7 @@ params = {'A_mm': 750, 'B_mm': 100, 'C_mm': 30, 'D_mm': 140, 'main_wire_diameter
 
 model = build_antenna(model, **params)
 model.write_nec()
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Moxon")
 
 optimise()
 print("Done")
