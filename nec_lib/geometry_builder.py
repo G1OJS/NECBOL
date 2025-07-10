@@ -22,6 +22,13 @@ class components:
         self.object_counter += 1
         iTag = self.object_counter
         return iTag, GeometryObject([])
+
+    def copy_of(self, existing_obj):
+        """Returns a clone of existing_obj with a new iTag """
+        iTag, obj = self.new_geometry_object()
+        for w in existing_obj.wires:
+            obj.add_wire(iTag, w['nS'], *w['a'], *w['b'], w['wr'])
+        return obj
         
     def wire_Z(self, **params):
         """

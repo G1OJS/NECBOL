@@ -13,6 +13,9 @@ class RandomOptimiser:
         self.stall_limit = stall_limit
         self.max_iter = max_iter
 
+    def format_params(self, params):
+        return {k: f"{v:.2f}" for k, v in params.items()}
+
     def random_variation(self, x):
         x_new = x.copy()
         for name in self.param_names:
@@ -33,8 +36,8 @@ class RandomOptimiser:
         best_cost = result['cost']
         best_info = result['info']
         stall_count = 0
-        formatted_params = {k: round(v, 2) for k, v in best_params.items()}
-        print(f"[] INITIAL: {best_info} with {formatted_params}")
+        initial_message = f"[] INITIAL: {best_info} with {self.format_params(best_params)}"
+        print(initial_message)
 
         for i in range(self.max_iter):
             test_params = self.random_variation(best_params)
@@ -50,13 +53,11 @@ class RandomOptimiser:
                 best_params = test_params
                 best_info = test_info
                 stall_count = 0
-                formatted_params = {k: round(v, 2) for k, v in best_params.items()}
-                print(f"[{i}] IMPROVED: {best_info} with {formatted_params}")
+                print(f"[{i}] IMPROVED: {best_info} with {self.format_params(best_params)}")
             else:
                 stall_count += 1
                 if (verbose):
-                    formatted_params = {k: round(v, 2) for k, v in test_params.items()}
-                    print(f"[{i}] {test_info} with {formatted_params}")
+                    print(f"[{i}] {test_info} with {self.format_params(test_params)}")
                 else:
                     print(f"[{i}] {test_info}")
 
@@ -74,7 +75,8 @@ class RandomOptimiser:
         best_model.run_nec()
         result = self.cost_fn(best_model)
         final_info = result['info']
-        formatted_params = {k: round(v, 2) for k, v in best_params.items()}
-        print(f"[] FINAL: {best_info} with {formatted_params}")
+        print("# Optimiser Results (copy and paste into your antenna file for reference)")
+        print("# "+ initial_message)
+        print(f"# []   FINAL: {final_info} with {self.format_params(best_params)}")
 
-        return formatted_params, final_info
+        return best_params, final_info
