@@ -61,17 +61,17 @@ class NECModel:
         self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth:.2f} 0 {dAz:.2f}\n"
 
     def set_ground(self, eps_r, sigma, **params):
-    """
-        Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
-        If eps_r = 1 and sigma = 0, nec is told to use no ground (free space model), and you may omit the origin height parameter
-        If you don't call this function, free space will be assumed.
-        Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
-        the specified distance above ground.
-        Parameters:
-            eps_r (float): relative permittivity (relative dielectric constant) of the ground
-            sigma (float): conductivity of the ground in mhos/meter
-            origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
-    """
+        """
+            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
+            If eps_r = 1 and sigma = 0, nec is told to use no ground (free space model), and you may omit the origin height parameter
+            If you don't call this function, free space will be assumed.
+            Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
+            the specified distance above ground.
+            Parameters:
+                eps_r (float): relative permittivity (relative dielectric constant) of the ground
+                sigma (float): conductivity of the ground in mhos/meter
+                origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
+        """
         if eps_r == 1.0:
             self.GE_CARD = "GE 0\n"
             self.GN_CARD = ""
