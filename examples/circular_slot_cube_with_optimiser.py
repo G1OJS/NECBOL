@@ -73,24 +73,11 @@ def cost_function(model):
 
 def optimise():
     from nec_lib.optimisers import RandomOptimiser
-
     param_init = params
     best_params, best_info = RandomOptimiser(build_csc, param_init, cost_function).optimise(model, verbose=False)
 
-def analyse():
-    model = build_csc(model, **params)
-    model.write_nec()
-    model.run_nec()
-    gains = model.gains()
-    vswr = model.vswr()
-    print(gains, f"vswr:{vswr:.2f}")
-
-def view():
-    model = build_csc(model, **params)
-    model.write_nec()
-    wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circular slot cube")
-
 model = NECModel(working_dir="..\\nec_wkg",
+                 model_name="Circular slot cube",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
@@ -100,7 +87,10 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 
 params = {'d_mm': 209.49, 'h_mm': 202.84, 'main_wire_diameter_mm': 3.67, 'feed_gap_mm': 10.08}
-#view()
+model = build_csc(model, **params)
+model.write_nec()
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
+
 #analyse()
 optimise()
 print("Done")

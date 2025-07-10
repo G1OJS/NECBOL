@@ -86,6 +86,7 @@ def optimise():
                                              max_iter=1000, bounds = bounds).optimise(model, verbose=False)
 
 model = NECModel(working_dir="..\\nec_wkg",
+                 model_name = "Moxon example",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
@@ -101,7 +102,7 @@ params = {'A_mm': 750, 'B_mm': 100, 'C_mm': 30, 'D_mm': 140, 'main_wire_diameter
 
 model = build_antenna(model, **params)
 model.write_nec()
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Moxon")
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
 
 optimise()
 print("Done")

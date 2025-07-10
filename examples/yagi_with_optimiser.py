@@ -73,6 +73,7 @@ def analyse(model):
     print(gains, f"vswr:{vswr:.2f}")
 
 model = NECModel(working_dir="..\\nec_wkg",
+                 model_name = "Yagi example",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
@@ -88,7 +89,7 @@ params = {'l0_mm': 1040, 'l1_mm': 1040, 'l2_mm': 1040, 'y1_mm': 250, 'y2_mm': 50
 model = build_antenna(model, **params)
 model.write_nec()
 
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Yagi")
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
 analyse(model)
 optimise()
 

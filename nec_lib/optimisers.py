@@ -85,8 +85,6 @@ class RandomOptimiser:
             else:
                 stall_count += 1
                 if (verbose):
-                    print(f"[{i}] {test_info} with {self.format_params(test_params)}")
-                else:
                     print(f"[{i}] {test_info}")
 
             if stall_count >= self.stall_limit:

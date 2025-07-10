@@ -68,6 +68,7 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     return model
 
 model = NECModel(working_dir="..\\nec_wkg",
+                 model_name = "Hentenna with reflector rectangle",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
@@ -91,7 +92,7 @@ for i in range(-5, 5):
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
 
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title='Hentenna with reflector')
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title=model.model_name)
 
 print("Done")
 

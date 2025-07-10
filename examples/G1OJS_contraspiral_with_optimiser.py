@@ -84,6 +84,7 @@ def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, c
 from nec_lib.optimisers import RandomOptimiser
 
 model = NECModel(working_dir="..\\nec_wkg",
+                 model_name = "G1OJS Contraspiral",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 model.set_wire_conductivity(sigma = 58000000)
@@ -92,6 +93,10 @@ model.set_gain_point(azimuth = 90, elevation = 3)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 param_init = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":122, "cld_mm":81, "cl_alpha":0.505, "cl_spacing_mm":2.1}
+
+model=build_contraspiral(model, **param_init)
+model.write_nec()
+wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
 
 opt = RandomOptimiser(
     build_fn = build_contraspiral,

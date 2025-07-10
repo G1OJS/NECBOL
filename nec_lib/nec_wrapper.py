@@ -29,14 +29,15 @@ import numpy as np
 from nec_lib.units import units
 
 class NECModel:
-    def __init__(self, working_dir, nec_exe_path, verbose=False):
+    def __init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):
         self.verbose = verbose
         self.working_dir = working_dir
         self.nec_exe = nec_exe_path
         self.nec_bat = working_dir + "\\nec.bat"
-        self.nec_in = working_dir + "\\model.nec"
-        self.nec_out = working_dir + "\\model.out"
+        self.nec_in = working_dir + "\\" + model_name +  ".nec"
+        self.nec_out = working_dir + "\\" + model_name +  ".out"
         self.files_txt = working_dir + "\\files.txt"
+        self.model_name = model_name
         self.model_text = ""
         self.LD_WIRECOND = ""
         self.FR_CARD = ""
