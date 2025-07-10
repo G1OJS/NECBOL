@@ -6,9 +6,10 @@ from nec_lib import geometry_builder
 from nec_lib import wire_viewer
 
 def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
-    global model
 
-    
+    model.start_geometry()
+
+    antenna_components = geometry_builder.components()   
     feed_rod = antenna_components.wire_Z(length_m = w_m,
                                            wire_diameter_mm = wd_mm)
     feed_rod.rotate_ZtoX()
@@ -39,6 +40,7 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     model.add(hentenna_outer_loop)
     model.add(support_rod)
 
+    return model
 
 model = NECModel(working_dir="..\\nec_wkg",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
@@ -49,9 +51,7 @@ model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
-
 for i in range(-5, 5):
-    antenna_components = geometry_builder.components()
     hen_height_m = 0.97
     hen_width_m = 0.271
     feed_height_m = 0.12
@@ -59,8 +59,7 @@ for i in range(-5, 5):
     refl_sep = 0.33
     parameter = feed_height_m *(1 + 0.01 *i)
     feed_height_m = parameter
-    model.start_geometry()
-    build_hentenna_yagi(hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
+    model = build_hentenna_yagi(hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
     model.write_nec()
     model.run_nec()
     gains = model.gains()

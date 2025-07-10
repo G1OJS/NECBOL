@@ -8,6 +8,8 @@ from nec_lib import wire_viewer
 def build_hentenna(h_m, w_m, fp_m, wd_mm):
     global model
 
+    antenna_components = geometry_builder.components()
+    model.start_geometry()
     
     feed_rod = antenna_components.wire_Z(length_m = w_m,
                                            wire_diameter_mm = wd_mm)
@@ -37,11 +39,8 @@ model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
-antenna_components = geometry_builder.components()
-
 for i in range(-5, 5):
     h_m = 1+i*0.01
-    model.start_geometry()
     build_hentenna(h_m, 0.28, 0.12, 5)
     model.write_nec()
     model.run_nec()

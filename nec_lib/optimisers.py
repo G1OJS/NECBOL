@@ -1,28 +1,27 @@
-# optimisers.py
-
 import random
 
 class RandomOptimiser:
-    def __init__(self, build_fn, param_names, param_init, vary_mask, bounds, cost_fn, 
-                 delta_init=0.2, stall_limit=50, max_iter=1000):
+    def __init__(self, build_fn, param_init, cost_fn,
+                 bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):
         self.build_fn = build_fn
-        self.param_names = param_names
+        self.param_names = list(param_init.keys())
         self.x_baseline = param_init.copy()
-        self.vary_mask = vary_mask
         self.bounds = bounds
         self.cost_fn = cost_fn
         self.delta_x = delta_init
+        self.min_delta = min_delta
         self.stall_limit = stall_limit
         self.max_iter = max_iter
 
     def random_variation(self, x):
         x_new = x.copy()
         for name in self.param_names:
-            if self.vary_mask.get(name, False):
-                factor = 1 + random.uniform(-self.delta_x, self.delta_x)
-                val = x[name] * factor
+            factor = 1 + random.uniform(-self.delta_x, self.delta_x)
+            val = x[name] * factor
+            x_new[name] = val
+            if(name in self.bounds):
                 minv, maxv = self.bounds[name]
-                x_new[name] = max(min(val, maxv), minv)
+                x_new[name] = max(min(x_new[name], maxv), minv)
         return x_new
 
     def optimise(self, verbose=False):
@@ -63,8 +62,12 @@ class RandomOptimiser:
 
             if stall_count >= self.stall_limit:
                 self.delta_x /= 2
+                if(self.delta_x < self.min_delta):
+                    print(f"[{i}] Delta below minimum")
+                    break
                 stall_count = 0
                 print(f"[{i}] Reducing delta to {self.delta_x}")
+
 
         best_model = self.build_fn(**best_params)
         best_model.write_nec()

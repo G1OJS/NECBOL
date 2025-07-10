@@ -68,19 +68,11 @@ from nec_lib.optimisers import RandomOptimiser
 
 
 param_init = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":122, "cld_mm":81, "cl_alpha":0.505, "cl_spacing_mm":2.1}
-vary_mask = {"d_mm":True, "l_mm":True, "main_wire_diameter_mm":True, "helix_sep_mm":True, "cld_mm":True, "cl_alpha":True, "cl_spacing_mm":True}
-bounds = {"d_mm":(120, 180), "l_mm":(120, 180), "main_wire_diameter_mm":(.5, 4), "helix_sep_mm":(120, 180), "cld_mm":(60,120), "cl_alpha":(0.2,0.8), "cl_spacing_mm":(2,20)}
 
 opt = RandomOptimiser(
     build_fn = build_contraspiral,
-    param_names = list(param_init.keys()),
     param_init = param_init,
-    vary_mask = vary_mask,
-    bounds = bounds,
     cost_fn = cost_function,
-    delta_init = 0.1,
-    stall_limit = 10,
-    max_iter = 100
 )
 
 best_params, best_info = opt.optimise(verbose=False)

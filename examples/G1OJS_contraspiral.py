@@ -7,6 +7,9 @@ from nec_lib import wire_viewer
 
 def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
 
+    model.start_geometry()
+    antenna_components = geometry_builder.components()
+
     coupling_loop_wire_diameter_mm = 2.0
     
     bottom_helix = antenna_components.helix(diameter_m = d_mm /1000,
@@ -60,9 +63,6 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
 params = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":122, "cld_mm":81, "cl_alpha":0.505, "cl_spacing_mm":2.1}
 
-antenna_components = geometry_builder.components()
-
-model.start_geometry()
 model = build_contraspiral(model, **params)
 model.write_nec()
 

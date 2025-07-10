@@ -8,14 +8,7 @@ from nec_lib import wire_viewer
 
 
 def build_csc(d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
-    model = NECModel(working_dir="..\\nec_wkg",
-                     nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
-                     verbose=False)
-    model.set_wire_conductivity(sigma = 58000000)
-    model.set_frequency(MHz = 144.2)
-    model.set_gain_point(azimuth = 90, elevation = 5)
-    model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
-    
+
     model.start_geometry()
     antenna_components = geometry_builder.components()
 
@@ -57,23 +50,7 @@ def optimise():
     from nec_lib.optimisers import RandomOptimiser
 
     param_init = params
-    vary_mask = {"d_mm":True, "h_mm":True, "main_wire_diameter_mm":True, "feed_gap_mm":True}
-    bounds = {"d_mm":(120, 220), "h_mm":(120, 220), "main_wire_diameter_mm":(.5, 4), "feed_gap_mm":(2,20)}
-
-    opt = RandomOptimiser(
-        build_fn = build_csc,
-        param_names = list(param_init.keys()),
-        param_init = param_init,
-        vary_mask = vary_mask,
-        bounds = bounds,
-        cost_fn = cost_function,
-        delta_init = 0.1,
-        stall_limit = 50,
-        max_iter = 500
-    )
-
-    best_params, best_info = opt.optimise(verbose=False)
-    
+    best_params, best_info = RandomOptimiser(build_csc, param_init, cost_function).optimise(verbose=False)
 
 def analyse():
     model = build_csc(**params)
@@ -87,6 +64,15 @@ def view():
     model = build_csc(**params)
     model.write_nec()
     wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = "Circulare slot cube")
+
+model = NECModel(working_dir="..\\nec_wkg",
+                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
+                 verbose=False)
+model.set_wire_conductivity(sigma = 58000000)
+model.set_frequency(MHz = 144.2)
+model.set_gain_point(azimuth = 90, elevation = 5)
+model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+
 
 params = {'d_mm': 209.49, 'h_mm': 202.84, 'main_wire_diameter_mm': 3.67, 'feed_gap_mm': 10.08}
 #view()
