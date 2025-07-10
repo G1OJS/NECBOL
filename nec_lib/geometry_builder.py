@@ -1,5 +1,10 @@
+import sys, os
+import math
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 import numpy as np
 import math
+from nec_lib.units import units
 
 #=================================================================================
 # Cannonical components
@@ -8,25 +13,31 @@ import math
 class components:
     def __init__(self, starting_tag_nr = 0):
         self.object_counter = starting_tag_nr
+        self.units = units()
 
     def new_geometry_object(self):
         self.object_counter += 1
         iTag = self.object_counter
         return iTag, GeometryObject([])
         
-    def wire_Z(self, length_m = 1, wire_diameter_mm = 1.0, Origin_Z = 0):
+    def wire_Z(self, **params):
         iTag, obj = self.new_geometry_object()
-        obj.add_wire(iTag, 0, 0, 0, -length_m/2, 0, 0, length_m/2, wire_diameter_mm/2000)
-        obj.translate(0, 0, -Origin_Z)
+        params_m = self.units.from_suffixed_params(params)
+        half_length_m = params_m.get('length_m')/2
+        wire_radius_m = params_m.get('wire_diameter_m')/2
+        obj.add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
         return obj
     
-    def rect_loop_XZ(self, length_m = 1, width_m = 0.2, wire_diameter_mm = 1.0, Origin_X = 0, Origin_Z = 0):
+    def rect_loop_XZ(self, **params):
         iTag, obj = self.new_geometry_object()
-        obj.add_wire(iTag, 0, -width_m/2, 0, -length_m/2, -width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-        obj.add_wire(iTag, 0,  width_m/2, 0, -length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-        obj.add_wire(iTag, 0, -width_m/2, 0, -length_m/2,  width_m/2, 0,-length_m/2, wire_diameter_mm/2000)
-        obj.add_wire(iTag, 0, -width_m/2, 0,  length_m/2,  width_m/2, 0, length_m/2, wire_diameter_mm/2000)
-        obj.translate(-Origin_X, 0, -Origin_Z)
+        params_m = self.units.from_suffixed_params(params)
+        half_length_m = params_m.get('length_m')/2
+        half_width_m = params_m.get('width_m')/2
+        wire_radius_m = params_m.get('wire_diameter_m')/2        
+        obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
+        obj.add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
+        obj.add_wire(iTag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
         return obj
 
     def connector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):
@@ -36,15 +47,21 @@ class components:
         obj.add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
-    def helix(self, diameter_m, length_m, pitch_m, sense="RH", wires_per_turn=36, wire_diameter_mm = 1.0):
+    def helix(self, **params):
         iTag, obj = self.new_geometry_object()
+        params_m = self.units.from_suffixed_params(params)
+        radius_m = params_m.get('diameter_m')/2
+        length_m = params_m.get('length_m')
+        pitch_m = params_m.get('pitch_m')
+        wire_radius_m = params_m.get('wire_diameter_m')/2
+        sense = params.get("sense", "RH")
+        wires_per_turn = params.get("wires_per_turn", 36)
 
         turns = length_m / pitch_m
         n_wires = int(turns * wires_per_turn)
         delta_phi = (2 * math.pi) / wires_per_turn  # angle per segment
         delta_z_m = pitch_m / wires_per_turn 
         phi_sign = 1 if sense.upper() == "RH" else -1
-        radius_m = diameter_m/2
 
         for i in range(n_wires):
             phi1 = phi_sign * delta_phi * i
@@ -55,23 +72,28 @@ class components:
             x2 = radius_m * math.cos(phi2)
             y2 = radius_m * math.sin(phi2)
             z2 = delta_z_m * (i + 1)
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_diameter_mm / 2000)
+            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
-    def circular_arc(self, diameter_m, arc_phi_deg, n_wires=36, wire_diameter_mm = 1.0):
+    def circular_arc(self, **params):
         iTag, obj = self.new_geometry_object()
-        delta_phi_deg = arc_phi_deg / n_wires
-        radius = diameter_m/2
+        params_m = self.units.from_suffixed_params(params)
+        radius_m = params_m.get('diameter_m')/2
+        wire_radius_m = params_m.get('wire_diameter_m')/2    
+        sense = params.get("sense", "RH")
+        arc_phi_deg = params.get("arc_phi_deg")
+        n_wires = params.get("n_wires", 36)
 
+        delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
-            ca, sa = cos_sin(delta_phi_deg * i)
-            x1 = radius * ca
-            y1 = radius * sa
-            ca, sa = cos_sin(delta_phi_deg * (i+1))
-            x2 = radius * ca
-            y2 = radius * sa
-            obj.add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_diameter_mm / 2000)
+            ca, sa = _cos_sin(delta_phi_deg * i)
+            x1 = radius_m * ca
+            y1 = radius_m * sa
+            ca, sa = _cos_sin(delta_phi_deg * (i+1))
+            x2 = radius_m * ca
+            y2 = radius_m * sa
+            obj.add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
 
         return obj
 
@@ -82,6 +104,7 @@ class components:
 class GeometryObject:
     def __init__(self, wires):
         self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
+        self.units = units()
 
     def add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
         self.wires.append({"iTag":iTag, "nS":nS, "a":(x1, y1, z1), "b":(x2, y2, z2), "wr":wr})
@@ -89,10 +112,11 @@ class GeometryObject:
     def get_wires(self):
         return self.wires
 
-    def translate(self, dx, dy, dz):
+    def translate(self, **params):
+        params_m = self.units.from_suffixed_params(params)
         for w in self.wires:
-            w['a'] = tuple(map(float,np.array(w['a']) + np.array([dx, dy, dz])))
-            w['b'] = tuple(map(float,np.array(w['b']) + np.array([dx, dy, dz])))
+            w['a'] = tuple(map(float,np.array(w['a']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
+            w['b'] = tuple(map(float,np.array(w['b']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
 
     def rotate_ZtoY(self):
         R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
@@ -103,7 +127,7 @@ class GeometryObject:
         return self.rotate(R)
 
     def rotate_around_Z(self, angle_deg):
-        ca, sa = cos_sin(angle_deg)
+        ca, sa = _cos_sin(angle_deg)
         R = np.array([[ca, sa, 0], [-sa, ca, 0], [0,0,1]])
         return self.rotate(R)
 
@@ -132,7 +156,7 @@ class GeometryObject:
 # helper functions
 #=================
 
-def cos_sin(angle_deg):
+def _cos_sin(angle_deg):
     angle_rad = math.pi*angle_deg/180
     ca = math.cos(angle_rad)
     sa = math.sin(angle_rad)

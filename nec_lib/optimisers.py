@@ -24,9 +24,9 @@ class RandomOptimiser:
                 x_new[name] = max(min(x_new[name], maxv), minv)
         return x_new
 
-    def optimise(self, verbose=False):
+    def optimise(self, model,  verbose=False):
         best_params = self.x_baseline.copy()
-        best_model = self.build_fn(**best_params)
+        best_model = self.build_fn(model, **best_params)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -38,7 +38,7 @@ class RandomOptimiser:
 
         for i in range(self.max_iter):
             test_params = self.random_variation(best_params)
-            test_model = self.build_fn(**test_params)
+            test_model = self.build_fn(model, **test_params)
             test_model.write_nec()
             test_model.run_nec()
             result = self.cost_fn(test_model)
@@ -69,7 +69,7 @@ class RandomOptimiser:
                 print(f"[{i}] Reducing delta to {self.delta_x}")
 
 
-        best_model = self.build_fn(**best_params)
+        best_model = self.build_fn(model, **best_params)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
