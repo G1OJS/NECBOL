@@ -1,43 +1,13 @@
-"""
-This file is part of the "NECBOL Plain Language Python NEC Runner"
-Copyright (c) 2025 Alan Robinson G1OJS
-
-MIT License
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 
 """
   This is a minimal example of how to use the NECBOL library to model an antenna,
   with comments explaining how the NECBOL interface works.
 """
 
-# These first lines are necessary at the moment because NECBOL is not a package installed using pip install
-# They insert the location of this file into the system path so that the nec_wkg directory can be made in
-# an adjacent folder
-import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 # These lines import NECBOL from the folder nec_lib, which should be in the same folder as this file
-from nec_lib.nec_wrapper import NECModel
-from nec_lib import geometry_builder
-from nec_lib import wire_viewer
+from necbol.nec_wrapper import NECModel
+from necbol import geometry_builder
+from necbol import wire_viewer
 
 # Start an antenna model called model (it can be called anything acceptable as a Python variable),
 # specifying where the working folder should be made, and where the nec executable is on your system
@@ -102,4 +72,5 @@ print(gains, f"vswr:{vswr:.2f}")
 # but you'll have to close the geometry window if you want anything to happen afterwards)
 wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title=model.model_name)
 
+print(f"\n\nEnd of example {model.model_name}")
 

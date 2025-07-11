@@ -26,7 +26,7 @@ SOFTWARE.
 import subprocess
 import os
 import numpy as np
-from nec_lib.units import units
+from necbol.units import units
 
 class NECModel:
     def __init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):
@@ -51,13 +51,21 @@ class NECModel:
         self.segLength_m = 0
         self.units = units()
         self.write_runner_files()
-        
-        
+
     def write_runner_files(self):
-        with open(self.nec_bat, "w") as f:
-            f.write(f"{self.nec_exe} < {self.files_txt} \n")
-        with open(self.files_txt, "w") as f:
-            f.write(f"{self.nec_in}\n{self.nec_out}\n")
+        for filepath, content in [
+            (self.nec_bat, f"{self.nec_exe} < {self.files_txt} \n"),
+            (self.files_txt, f"{self.nec_in}\n{self.nec_out}\n")
+        ]:
+            directory = os.path.dirname(filepath)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)  # create directory if it doesn't exist
+            try:
+                with open(filepath, "w") as f:
+                    f.write(content)
+            except Exception as e:
+                print(f"Error writing file {filepath}: {e}")
+
 
     def set_wire_conductivity(self, sigma):
         self.LD_WIRECOND = f"LD 5 0 0 0 {sigma:.6f} \n"

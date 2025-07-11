@@ -47,6 +47,7 @@ def view_wires(wires, ex_tag, title, color='blue'):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
+    print("Drawing geometry. Please close the geometry window to continue.")
     fig = plt.figure(label = 'Please close this window to continue')
     ax = fig.add_subplot(111, projection='3d')
 

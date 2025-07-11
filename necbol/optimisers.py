@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import random
+import random, sys
 
 class RandomOptimiser:
     def __init__(self, build_fn, param_init, cost_fn,
@@ -43,6 +43,10 @@ class RandomOptimiser:
         for k, v in params.items():
             s = s + f"'{k}': {v:.2f}, "
         return s[0:-2]+"}"
+
+    def same_line_print(self,text):
+        sys.stdout.write(f"\r{text}        ")
+        sys.stdout.flush()
 
     def random_variation(self, x):
         x_new = x.copy()
@@ -64,45 +68,52 @@ class RandomOptimiser:
         best_cost = result['cost']
         best_info = result['info']
         stall_count = 0
+        print("\nSTARTING optimiser. Press CTRL-C to stop")
         initial_message = f"[] INITIAL: {best_info} with {self.format_params(best_params)}"
         print(initial_message)
 
-        for i in range(self.max_iter):
-            test_params = self.random_variation(best_params)
-            test_model = self.build_fn(model, **test_params)
-            test_model.write_nec()
-            test_model.run_nec()
-            result = self.cost_fn(test_model)
-            test_cost = result['cost']
-            test_info = result['info']
+        try:
+            for i in range(self.max_iter):
+                test_params = self.random_variation(best_params)
+                test_model = self.build_fn(model, **test_params)
+                test_model.write_nec()
+                test_model.run_nec()
+                result = self.cost_fn(test_model)
+                test_cost = result['cost']
+                test_info = result['info']
 
-            if test_cost < best_cost:
-                best_cost = test_cost
-                best_params = test_params
-                best_info = test_info
-                stall_count = 0
-                print(f"[{i}] IMPROVED: {best_info} with {self.format_params(best_params)}")
-            else:
-                stall_count += 1
-                if (verbose):
-                    print(f"[{i}] {test_info}")
+                if test_cost < best_cost:
+                    best_cost = test_cost
+                    best_params = test_params
+                    best_info = test_info
+                    stall_count = 0
+                    self.same_line_print(f"[{i}] IMPROVED: {best_info} with {self.format_params(best_params)}")
+                    print("")
+                else:
+                    stall_count += 1
+                    self.same_line_print(f"[{i}] {test_info}")
 
-            if stall_count >= self.stall_limit:
-                self.delta_x /= 2
-                if(self.delta_x < self.min_delta):
-                    print(f"[{i}] Delta below minimum")
-                    break
-                stall_count = 0
-                print(f"[{i}] Reducing delta to {self.delta_x}")
+                if stall_count >= self.stall_limit:
+                    self.delta_x /= 2
+                    if(self.delta_x < self.min_delta):
+                        self.same_line_print(f"[{i}] Delta below minimum")
+                        print("")
+                        break
+                    stall_count = 0
+                    self.same_line_print(f"[{i}] STALLED: Reducing delta to {self.delta_x}")
+                    print("")
 
-
+        except KeyboardInterrupt:
+            print("\nINTERRUPTED by user input")
+            
         best_model = self.build_fn(model, **best_params)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
         final_info = result['info']
-        print("# Optimiser Results (copy and paste into your antenna file for reference)")
+        print("\nFINISHED optimising\n")
+        print("# Optimiser Results (copy and paste into your antenna file for reference). \nNote that you can copy the information between the {} to paste in as your new starting parameters.)")
         print("# "+ initial_message)
         print(f"# []   FINAL: {final_info} with {self.format_params(best_params)}")
-
+        
         return best_params, final_info

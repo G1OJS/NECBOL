@@ -1,2 +1,2 @@
-..\nec_wkg\Vertical Dipole.nec
-..\nec_wkg\Vertical Dipole.out
+..\nec_wkg\Hentenna with reflector rectangle.nec
+..\nec_wkg\Hentenna with reflector rectangle.out

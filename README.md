@@ -25,30 +25,18 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
 - **More coming soon**: See next steps/future plans below.
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
-- **Example antennas**: Hentenna, hentenna with reflector, G1OJS Contraspiral, Circular version of Skeleton Slot Cube
-
-### ⚠️ **Note:** NECBOL is a very new project and the API is likely to change significantly in upcoming versions. Please expect some instability. And, note that I still have a lot to learn about Python and especially GitHub processes.
+- **Example files**: Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
 
 ![Capture](https://github.com/user-attachments/assets/1402e307-4db4-4362-afc4-cbeecfe81cee)
 
+### ⚠️ **Note:** NECBOL is a very new project, and my first released using pip. Code comments are work in progress, and I have yet to decide how to add a user guide.
 
 ## 🛠 Installation
 
-This is an early-stage project without a formal installer yet.
-
-For now, the easiest way to get started is:
-
-1. **Download or clone the repository**:
-   ```bash
-   git clone https://github.com/G1OJS/NECBOL.git
-   cd NECBOL
-
-2. **Use the files in:**
-   - nec_lib/ – the main library code
-   - examples/ – starting points you can adapt
+Install using pip: pip install necbol
 
 Open and modify the example scripts to suit your needs.
-**Tip:** Look inside nec_lib/geometry_builder.py to see which antenna components are currently available and how to use them. The goal is to make this library self-documenting in the future.
+**Tip:** Look inside necbol/geometry_builder.py to see which antenna components and modification methods are currently available. 
 
 ## User Guide
 See the file minimal_example_dipole_with_detailed_comments.py in the examples folder for a minimal explanation of how to use this framework. 

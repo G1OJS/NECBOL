@@ -23,13 +23,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import sys, os
-import math
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 import numpy as np
 import math
-from nec_lib.units import units
+from necbol.units import units
 
 #=================================================================================
 # Cannonical components
@@ -175,7 +171,6 @@ class components:
         params_m = self.units.from_suffixed_params(params, whitelist=['n_wires','arc_phi_deg'])
         radius_m = params_m.get('diameter_m')/2
         wire_radius_m = params_m.get('wire_diameter_m')/2    
-        sense = params.get("sense", "RH")
         arc_phi_deg = params.get("arc_phi_deg")
         n_wires = params.get("n_wires", 36)
 
@@ -217,14 +212,31 @@ class GeometryObject:
         return self.rotate(R)
     
     def rotate_ZtoX(self):
-        R = np.array([[0, 0, -1],[0,  1, 0],[1,  0, 0]])
+        R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
         return self.rotate(R)
 
     def rotate_around_Z(self, angle_deg):
         ca, sa = _cos_sin(angle_deg)
-        R = np.array([[ca, sa, 0], [-sa, ca, 0], [0,0,1]])
+        R = np.array([[ca, -sa, 0],
+                      [sa, ca, 0],
+                      [0, 0, 1]])
         return self.rotate(R)
 
+    def rotate_around_X(self, angle_deg):
+        ca, sa = _cos_sin(angle_deg)
+        R = np.array([[1, 0, 0],
+                      [0, ca, -sa],
+                      [0, sa, ca]])
+        return self.rotate(R)
+
+    def rotate_around_Y(self, angle_deg):
+        ca, sa = _cos_sin(angle_deg)
+        R = np.array([[ca, 0, sa],
+                      [0, 1, 0],
+                      [-sa, 0, ca]])
+        return self.rotate(R)
+
+    
     def rotate(self, R):
         for w in self.wires:
             a = np.array(w['a'])
