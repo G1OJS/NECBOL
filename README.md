@@ -48,6 +48,7 @@ Browse the other examples as needed, and see the comments in the nec_lib/*.py fi
 
 ## Next steps / future plans
 - add more geometry elements
+- **check through my implementation of NEC grounds to make sure I have the most useful ones covered and the card logic correct**
 - optimiser
     - polarisation purity
     - current on a certain segment
