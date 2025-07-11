@@ -42,7 +42,7 @@ from nec_lib import wire_viewer
 # Start an antenna model called model (it can be called anything acceptable as a Python variable),
 # specifying where the working folder should be made, and where the nec executable is on your system
 model = NECModel(working_dir="..\\nec_wkg",
-                 model_name = "FS Dipole",
+                 model_name = "Vertical Dipole",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
                  verbose=False)
 
