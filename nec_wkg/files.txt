@@ -1,2 +1,2 @@
-..\nec_wkg\2m Yagi 3 ele indep wire radii.nec
-..\nec_wkg\2m Yagi 3 ele indep wire radii.out
+..\nec_wkg\Vertical Dipole.nec
+..\nec_wkg\Vertical Dipole.out
