@@ -33,9 +33,13 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 
 ## 🛠 Installation
 
-Install using pip: pip install necbol
+Install using pip: open a command window and type
 
-Open and modify the example scripts to suit your needs.
+```
+pip install necbol
+```
+
+Copies of the files installed by pip are in the folders on this repository - see the Python files in the example folder and modify to suit your needs.
 **Tip:** Look inside necbol/geometry_builder.py to see which antenna components and modification methods are currently available. 
 
 ## User Guide
