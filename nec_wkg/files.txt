@@ -1,2 +1,2 @@
-..\nec_wkg\Hentenna with reflector rectangle.nec
-..\nec_wkg\Hentenna with reflector rectangle.out
+..\nec_wkg\Diamond AS144S5R.nec
+..\nec_wkg\Diamond AS144S5R.out

@@ -1,35 +1,11 @@
-"""
-This file is part of the "NECBOL Plain Language Python NEC Runner"
-Copyright (c) 2025 Alan Robinson G1OJS
-
-MIT License
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
 
 import sys, os
 import math
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from nec_lib.nec_wrapper import NECModel
-from nec_lib import geometry_builder
-from nec_lib import wire_viewer
+from necbol.nec_wrapper import NECModel
+from necbol import geometry_builder
+from necbol import wire_viewer
 
 def build_antenna(model, A_mm, B_mm, C_mm, D_mm, main_wire_diameter_mm):
 
@@ -79,7 +55,7 @@ def cost_function(model):
     return ({"cost":vcost*vcost + gcost*gcost, "info":f"VSWR:{vcost:.2f} Gain:{g:.2f}"})
 
 def optimise():
-    from nec_lib.optimisers import RandomOptimiser
+    from necbol.optimisers import RandomOptimiser
     param_init = params
     bounds = {"l0_mm":(800,1200),"l1_mm":(800,1200),"l2_mm":(800,1200),"y1_mm":(100,310),"y2_mm":(320,800)}
     best_params, best_info = RandomOptimiser(build_antenna, param_init, cost_function,
