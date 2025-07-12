@@ -23,7 +23,7 @@ model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 # Frequency in azimuth and elevation of gain point (leave at 0,0 if you only want vswr)
 model.set_gain_point(azimuth = 0, elevation = 3)
-# Ground type. Currently limited to simple choices. If eps_r = 1 and sigma = 0, or if you omit this line,
+# Ground type. Currently limited to simple choices. If eps_r = 1, or if you omit this line,
 # nec is told to use no ground. Othewise you should set the origin height so that the antenna reference
 # point X,Y,Z = (0,0,0) is set to be the specified distance above ground.
 # You can specify this in m, mm, cm, in, or ft (e.g. origin_height_ft = 30.33)
