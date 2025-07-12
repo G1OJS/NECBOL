@@ -1,0 +1,18 @@
+## Next steps / future plans/ideas
+- add more geometry elements
+- change GE default to 0 / -1 rather than 0 / +1
+- tidy up optimiser text output when not using tty
+- optimiser
+    - polarisation purity
+    - current on a certain segment
+    - feedline current (needs a feedline object tagged)
+    - stretch / warp / sheer the 3D geometry
+    - bandwidth
+- Add gamma feeds? Does this need a component? Look at adding squalo maybe.
+    - this links to adding models for feedline and common mode current minimisation in optimiser.
+- Wireframe viewer
+    - arrow pointing to specified gain direction
+    - arrow pointing to max gain direction (with dBi & maybe F/B)
+- Clutter / environment objects
+    - dielectric slab (for brick walls, GRP panels etc)
+    - other antennas
