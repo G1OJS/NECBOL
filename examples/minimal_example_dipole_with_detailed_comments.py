@@ -4,7 +4,7 @@
   with comments explaining how the NECBOL interface works.
 """
 
-# These lines import NECBOL from the folder nec_lib, which should be in the same folder as this file
+# These lines import NECBOL 
 from necbol.nec_wrapper import NECModel
 from necbol import geometry_builder
 from necbol import wire_viewer
