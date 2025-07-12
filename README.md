@@ -23,7 +23,7 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 - **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
 - **Easy to place**: feedpoint, series RLC load(s), prarallel RLC load(s) specified in ohms, uH and pF
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
-- **More coming soon**: See next steps/future plans below.
+- **More coming soon**: See [next steps/future plans below.](https://github.com/G1OJS/NECBOL/blob/main/TO_DO.md)
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
 - **Example files**: Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
 
@@ -46,23 +46,6 @@ Copies of the files installed by pip are in the folders on this repository - see
 See the file minimal_example_dipole_with_detailed_comments.py in the examples folder for a minimal explanation of how to use this framework. 
 Browse the other examples as needed, and see the comments in the nec_lib/*.py files which are currently being written. 
 
-## Next steps / future plans
-- add more geometry elements
-- **check through my implementation of NEC grounds to make sure I have the most useful ones covered and the card logic correct**
-- tidy up optimiser text output when not using tty
-- optimiser
-    - polarisation purity
-    - current on a certain segment
-    - feedline current (needs a feedline object tagged)
-    - stretch / warp / sheer the 3D geometry
-- Add gamma feeds? Does this need a component? Look at adding squalo maybe.
-    - this links to adding models for feedline and common mode current minimisation in optimiser.
-- Wireframe viewer
-    - arrow pointing to specified gain direction
-    - arrow pointing to max gain direction (with dBi & maybe F/B)
-- Clutter / environment objects
-    - dielectric slab (for brick walls, GRP panels etc)
-    - other antennas
 - Automated A/B compares
     - Over ground vs free space
     - With / without specified feature
