@@ -23,7 +23,7 @@ I wrote it primarily for my own use for the reasons below, but I think it's good
 - **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
 - **Easy to place**: feedpoint, series RLC load(s), prarallel RLC load(s) specified in ohms, uH and pF
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
-- **More coming soon**: See [next steps/future plans below.](https://github.com/G1OJS/NECBOL/blob/main/TO_DO.md)
+- **More coming soon**: See [next steps/future plans](https://github.com/G1OJS/NECBOL/blob/main/TO_DO.md)
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
 - **Example files**: Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
 
