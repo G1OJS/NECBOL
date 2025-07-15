@@ -1,29 +1,33 @@
-
-## Restructuring
-Restructured library modules to clarify module purposes, create 'components.py' holding *only* components, and avoid need for passing parameters between nec_wrapper and geometry_builder
-
+## Changes to API
+```
 If you have been using V1.0.0 with your own model files, you will need to make the following changes:
 
 Replace the necbol import statements at the top with:
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file
+   from necbol.modeller import NECModel
+   from necbol.components import components 
+   from necbol.gui import show_wires_from_file
 
-replace 	view_wires(model.nec_in, model.EX_TAG, title = model.model_name)
-with 		show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
+replace
+   view_wires(model.nec_in, model.EX_TAG, title = model.model_name)
 
+with
+   show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
+
+```
 
 ## New components
 Added flexi-helix (experimental)
 
+Added dielectric / conductive sheets.
+
+## Minor changes
 Tidied up optimiser screen output when using non-tty apps to run the code
    (use the tty=False keyword argument when calling optimiser)
 
 Changed default ground in GE to -1. Corrected docstring (removed 'and conductivity = 0')
 
-Added dielectric / conductive sheets.
-
-## Detailed changes
+## Restructuring
+Restructured library modules to clarify module purposes, create 'components.py' holding *only* components, and avoid need for passing parameters between nec_wrapper and geometry_builder. Details below.
 
 ----------------------------
 file "nec_wrapper.py"
