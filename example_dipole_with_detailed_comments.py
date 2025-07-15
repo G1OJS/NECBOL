@@ -11,10 +11,9 @@ from necbol.gui import show_wires_from_file
 
 # Start an antenna model called model (it can be called anything acceptable as a Python variable),
 # specifying where the working folder should be made, and where the nec executable is on your system
-model = NECModel(working_dir="..\\nec_wkg",
+model = NECModel(working_dir="nec_wkg",
                  model_name = "Vertical Dipole",
-                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
-                 verbose=False)
+                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe")
 
 # These lines set the basic parameters for the model
 # Wire conductivity. Can be omitted if perfect conductivity is OK to assume

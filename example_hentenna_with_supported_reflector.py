@@ -40,10 +40,10 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
 
     return model
 
-model = NECModel(working_dir="..\\nec_wkg",
+model = NECModel(working_dir="nec_wkg",
                  model_name = "Hentenna with reflector rectangle",
-                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
-                 verbose=False)
+                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe")
+
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 model.set_gain_point(azimuth = 90, elevation = 5)

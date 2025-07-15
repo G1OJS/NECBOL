@@ -55,10 +55,9 @@ def optimise():
     param_init = params
     best_params, best_info = RandomOptimiser(build_csc, param_init, cost_function).optimise(model, verbose=False)
 
-model = NECModel(working_dir="..\\nec_wkg",
+model = NECModel(working_dir="nec_wkg",
                  model_name="Circular slot cube",
-                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
-                 verbose=False)
+                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe")
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 model.set_gain_point(azimuth = 90, elevation = 5)

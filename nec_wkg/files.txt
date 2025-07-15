@@ -1,2 +1,2 @@
-..\nec_wkg\Moxon example.nec
-..\nec_wkg\Moxon example.out
+nec_wkg\Hentenna with reflector rectangle.nec
+nec_wkg\Hentenna with reflector rectangle.out
