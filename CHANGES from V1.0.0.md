@@ -32,6 +32,8 @@ Tidied up optimiser screen output when using non-tty apps to run the code
 
 Changed default ground in GE to -1. Corrected docstring (removed 'and conductivity = 0')
 
+Added azimuth pattern plotting and example of dipole with nearby metal / dielectric sheet (V2.0.1)
+
 ## Restructuring
 Restructured library modules to clarify module purposes, create 'components.py' holding *only* components, and avoid need for passing parameters between nec_wrapper and geometry_builder. Details below.
 
