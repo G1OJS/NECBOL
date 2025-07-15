@@ -108,8 +108,8 @@ class components:
             obj (GeometryObject): The constructed geometry object with the defined wire.
         """
         iTag, obj = self.new_geometry_object()
-        from_point = _point_on_object(from_object, from_wire_index, from_alpha_wire)
-        to_point = _point_on_object(to_object, to_wire_index, to_alpha_wire)
+        from_point = obj.point_on_object(from_object, from_wire_index, from_alpha_wire)
+        to_point = obj.point_on_object(to_object, to_wire_index, to_alpha_wire)
         obj.add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
@@ -255,10 +255,10 @@ class components:
 
         delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
-            ca, sa = _cos_sin(delta_phi_deg * i)
+            ca, sa = obj.cos_sin(delta_phi_deg * i)
             x1 = radius_m * ca
             y1 = radius_m * sa
-            ca, sa = _cos_sin(delta_phi_deg * (i+1))
+            ca, sa = obj.cos_sin(delta_phi_deg * (i+1))
             x2 = radius_m * ca
             y2 = radius_m * sa
             obj.add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
@@ -309,3 +309,5 @@ class components:
             model.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {1e12} {CD}\n")
                     
         return obj
+
+
