@@ -39,8 +39,3 @@ Copies of the files installed by pip are in the folders on this repository - see
 See the file example_minimal_example_dipole_with_detailed_comments.py for a minimal explanation of how to use this framework. 
 Browse the other examples as needed, and see the comments in the necbol/*.py files which are currently being written. 
 
-- Automated A/B compares
-    - Over ground vs free space
-    - With / without specified feature
-- Advanced graphing:
-    - A minus B graphs
