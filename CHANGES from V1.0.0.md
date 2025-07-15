@@ -20,7 +20,7 @@ with
    antenna_components = components()
 
 ```
-
+Also note that if you have been using positional arguments for antenna components, the order of some of them has changed in order to group non-length associated arguments together. If you have used named arguments, these should still work. Check the function definitions in components.py in case of issues.
 
 ## New components
 Added flexi-helix (experimental)
