@@ -13,6 +13,12 @@ replace
 with
    show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
 
+replace
+   antenna_components = geometry_builder.components()
+
+with
+   antenna_components = components()
+
 ```
 
 
