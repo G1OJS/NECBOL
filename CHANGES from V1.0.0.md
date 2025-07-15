@@ -1,7 +1,7 @@
 ## Changes to API
-```
 If you have been using V1.0.0 with your own model files, you will need to make the following changes:
 
+```
 Replace the necbol import statements at the top with:
    from necbol.modeller import NECModel
    from necbol.components import components 
@@ -18,9 +18,8 @@ replace
 
 with
    antenna_components = components()
-
 ```
-
+Also note that if you have been using positional arguments for antenna components, the order of some of them has changed in order to group non-length associated arguments together. If you have used named arguments, these should still work. Check the function definitions in components.py in case of issues.
 
 ## New components
 Added flexi-helix (experimental)
