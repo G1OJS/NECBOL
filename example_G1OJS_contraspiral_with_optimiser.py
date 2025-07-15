@@ -10,7 +10,8 @@ def cost_function(model):
     gcost = 15-g
     return ({"cost":vcost*vcost + gcost*gcost, "info":f"VSWR:{vcost:.2f} Gain:{g:.2f}"})
 
-def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
+def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm,
+                       helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
 
     model.start_geometry()
     antenna_components = components()
@@ -32,7 +33,8 @@ def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, c
                                      wire_diameter_mm = main_wire_diameter_mm)
     top_helix.translate(dx_m = 0, dy_m=0, dz_mm = l_mm + helix_sep_mm)
 
-    link = antenna_components.connector(bottom_helix, 71, 1, top_helix, 0, 0, wire_diameter_mm = main_wire_diameter_mm)
+    link = antenna_components.connector(bottom_helix, 71, 1, top_helix, 0, 0,
+                                        wire_diameter_mm = main_wire_diameter_mm)
     
     coupling_loop = antenna_components.circular_arc(diameter_mm = cld_mm,
                                                     arc_phi_deg = 360,

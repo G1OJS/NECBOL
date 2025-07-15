@@ -277,7 +277,7 @@ class components:
                 length_, height_, thickness_, grid_pitch_
             
         """
-        print("NOTE: The thin_sheet model has been tested functionally but not validated quantitavely"
+        print("NOTE: The thin_sheet model has been tested functionally but not validated quantitavely")
         iTag, obj = self.new_geometry_object()
         dimensions_m = self.units.from_suffixed_dimensions(dimensions)
         length_m = dimensions_m.get('length_m')
