@@ -75,10 +75,10 @@ show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
 opt = RandomOptimiser(
     build_fn = build_contraspiral,
     param_init = param_init,
-    cost_fn = cost_function,
+    cost_fn = cost_function
 )
 
-best_params, best_info = opt.optimise(model, verbose=False)
+best_params, best_info = opt.optimise(model, tty = False)
 
 
 

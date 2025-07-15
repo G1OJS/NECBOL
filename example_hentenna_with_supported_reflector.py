@@ -33,6 +33,7 @@ def build_hentenna_yagi(model, h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
 
 
     nearby_metal = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
+#    nearby_metal = antenna_components.thin_sheet(model, 0, 2.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
     nearby_metal.translate(dx_m=1.0, dy_m=0.0, dz_m = 0.0)       
 
     model.place_feed(feed_rod, feed_wire_index=0, feed_alpha_wire=0.5)
@@ -46,7 +47,7 @@ def build_hentenna_yagi(model, h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     return model
 
 model = NECModel(working_dir="nec_wkg",
-                 model_name = "Hentenna with reflector rectangle",
+                 model_name = "Hentenna with reflector rectangle and nearby metal sheet",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe")
 
 model.set_wire_conductivity(sigma = 58000000)

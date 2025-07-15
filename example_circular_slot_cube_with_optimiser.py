@@ -53,7 +53,7 @@ def cost_function(model):
 def optimise():
     from necbol.optimisers import RandomOptimiser
     param_init = params
-    best_params, best_info = RandomOptimiser(build_csc, param_init, cost_function).optimise(model, verbose=False)
+    best_params, best_info = RandomOptimiser(build_csc, param_init, cost_function).optimise(model, tty=False)
 
 model = NECModel(working_dir="nec_wkg",
                  model_name="Circular slot cube",

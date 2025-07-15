@@ -277,6 +277,7 @@ class components:
                 length_, height_, thickness_, grid_pitch_
             
         """
+        print("NOTE: The thin_sheet model has been tested functionally but not validated quantitavely"
         iTag, obj = self.new_geometry_object()
         dimensions_m = self.units.from_suffixed_dimensions(dimensions)
         length_m = dimensions_m.get('length_m')
@@ -313,7 +314,7 @@ class components:
         else:
             R_Ohms = dG / sigma
             C_F = 0.0
-        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms} {1e-12} {CD}\n")
+        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.8f} {1e-12:.8f} {CD:.8f}\n")
                     
         return obj
 

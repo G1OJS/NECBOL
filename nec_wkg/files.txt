@@ -1,2 +1,2 @@
-nec_wkg\Hentenna with reflector rectangle.nec
-nec_wkg\Hentenna with reflector rectangle.out
+nec_wkg\Hentenna with reflector rectangle and nearby metal sheet.nec
+nec_wkg\Hentenna with reflector rectangle and nearby metal sheet.out
