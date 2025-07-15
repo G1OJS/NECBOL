@@ -57,7 +57,7 @@ class components:
 
         The wire extends from -length/2 to +length/2 on the Z-axis, with the specified diameter.
 
-        Parameters:
+        dimensions:
             length_{units_string} (float): Length of the wire. 
             wire_diameter_{units_string} (float): Diameter of the wire.
             In each case, the unit suffix (e.g., _mm, _m) must be present in the units class dictionary '_UNIT_FACTORS' (see units.py)
@@ -76,7 +76,7 @@ class components:
         Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
         The 'side' wires extend from Z=-length/2 to Z=+length/2 at X = +/- width/2.
         The 'top/bottom' wires extend from X=-width/2 to X=+width/2 at Z = +/- length/2.
-        Parameters:
+        dimensions:
             length_{units_string} (float): 'Length' (extension along Z) of the rectangle. 
             width_{units_string} (float): 'Width' (extension along X) of the rectangle. 
             wire_diameter_{units_string} (float): Diameter of the wires.
@@ -101,7 +101,7 @@ class components:
         The point on an object is specified as {ftom|to}_wire_index AND {ftom|to}_alpha_wire, which specify respectively:
               the i'th wire in the n wires in the object, and
               the distance along that wire divided by that wire's length
-        Parameters:
+        Arguments:
             from_object (GeometryObject), from_wire_index (int, 0 .. n_wires_in_from_object - 1), from_alpha_wire (float, 0 .. 1)
             to_object (GeometryObject), to_wire_index (int, 0 .. n_wires_in_to_object - 1), to_alpha_wire (float, 0 .. 1)
         Returns:
@@ -116,25 +116,24 @@ class components:
     def helix(self,  wires_per_turn, sense, **dimensions):
         """
         Create a single helix with axis = Z axis
-        Parameters:
-            radius_{units} (float) - helix radius 
-            length_{units} (float) - helix length along Z 
-            pitch_{units} (float)  - helix length along Z per whole turn
-            wire_diameter_{units} (float) - diameter of wire making the helix
-            In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary '_UNIT_FACTORS' (see units.py)
-            wires_per_turn (int) - the number of wires to use to represent the helix, per turn
+        Arguments_
             sense ("LH"|"RH") - the handedness of the helix          
+            wires_per_turn (int) - the number of wires to use to represent the helix, per turn
+            dimensions:
+                radius_{units} (float) - helix radius 
+                length_{units} (float) - helix length along Z 
+                pitch_{units} (float)  - helix length along Z per whole turn
+                wire_diameter_{units} (float) - diameter of wire making the helix
+                In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary '_UNIT_FACTORS' (see units.py)
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
         """
         iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions, whitelist=['sense','wires_per_turn'])
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get('diameter_m')/2
         length_m = dimensions_m.get('length_m')
         pitch_m = dimensions_m.get('pitch_m')
         wire_radius_m = dimensions_m.get('wire_diameter_m')/2
-        sense = dimensions.get("sense", "RH")
-        wires_per_turn = dimensions.get("wires_per_turn", 36)
 
         turns = length_m / pitch_m
         n_wires = int(turns * wires_per_turn)
@@ -155,7 +154,7 @@ class components:
 
         return obj
 
-    def flexi_helix(self, **dimensions):
+    def flexi_helix(self, sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):
         """
         Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
 
@@ -166,15 +165,16 @@ class components:
         as functions of normalized φ (mapped to Z via cumulative pitch integration).
 
         Parameters:
-            l_{units} (float): Approximate helix length along Z
-            r0_{units} (float): Base radius scale factor
-            p0_{units} (float): Base pitch scale factor (length per full turn)
+            sense (str): "RH" or "LH" handedness
+            wires_per_turn (int): Resolution (segments per full turn)
             n_cos (int): Number of cosine terms
             r_cos_params (list of tuples): [(RA0, RP0), ...] radius amplitudes and phases
             p_cos_params (list of tuples): [(PA0, PP0), ...] pitch amplitudes and phases
-            wire_diameter_{units} (float): Wire thickness
-            wires_per_turn (int): Resolution (segments per full turn)
-            sense (str): "RH" or "LH" handedness
+            dimensions:
+                l_{units} (float): Approximate helix length along Z
+                r0_{units} (float): Base radius scale factor
+                p0_{units} (float): Base pitch scale factor (length per full turn)
+                wire_diameter_{units} (float): Wire thickness
 
         Returns:
             GeometryObject: The constructed helix geometry object.
@@ -185,18 +185,12 @@ class components:
 
         # === Parameter unpacking and setup ===
         iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions, whitelist=['sense', 'wires_per_turn', 'n_cos','r_cos','p_cos'])
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
 
         l_m = dimensions_m.get('length_m')
         r0_m = dimensions_m.get('r0_m')
         p0_m = dimensions_m.get('p0_m')
         wire_radius_m = dimensions_m.get('wire_diameter_m') / 2
-        sense = dimensions.get("sense", "RH")
-        wires_per_turn = dimensions.get("wires_per_turn", 36)
-
-        r_cos_params = params.get('r_cos_params')
-        p_cos_params = params.get('p_cos_params')
-        n_cos = params.get('n_cos')
 
         phi_sign = 1 if sense.upper() == "RH" else -1
 
@@ -234,24 +228,23 @@ class components:
         return obj
 
 
-    def circular_arc(self, **dimensions):
+    def circular_arc(self, n_wires, arc_phi_deg, **dimensions):
         """
         Create a single circular arc in the XY plane centred on the origin
-        Parameters:
-            radius_{units} (float) - helix radius 
-            wire_diameter_{units} (float) - diameter of wire making the helix
-            In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary '_UNIT_FACTORS' (see units.py)
-            arc_phi_deg (float) - the angle subtended at the origin by the arc in degrees. Note that a continuous circular loop can be constructed by specifying arc_phi_deg = 360.
+        Arguments:
             n_wires (int) - the number of wires to use to represent the arc         
+            arc_phi_deg (float) - the angle subtended at the origin by the arc in degrees. Note that a continuous circular loop can be constructed by specifying arc_phi_deg = 360.
+            dimensions:
+                radius_{units} (float) - helix radius 
+                wire_diameter_{units} (float) - diameter of wire making the helix
+                In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary '_UNIT_FACTORS' (see units.py)
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
         """
         iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions, whitelist=['n_wires','arc_phi_deg'])
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get('diameter_m')/2
         wire_radius_m = dimensions_m.get('wire_diameter_m')/2    
-        arc_phi_deg = dimensions.get("arc_phi_deg")
-        n_wires = dimensions.get("n_wires", 36)
 
         delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
@@ -266,14 +259,23 @@ class components:
         return obj
 
 
-    def thin_sheet(self, model, conductivity_mhos_per_m, epsillon_r, **dimensions):
+    def thin_sheet(self, model, sigma, epsillon_r, **dimensions):
         """
-        Creates a grid of wires interconnected at segmnent level to economically model a grid
-        
-        # dimensions model, conductivity_mhos_per_m, epsillon_r, length_, height_, thickness_, grid_pitch_
-        # models *either* conductive or dielectric sheet, not both.
-        # set epsillon_r to 1.0 for conductive sheet
-        # set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
+        Creates a grid of wires interconnected at segmnent level to economically model a flat sheet
+        which is normal to the x axis and extends from z=0 to z= height, and y = -length/2 to length/2
+        Dimensions are length_, height_, thickness_, grid_pitch_
+        Length and height are adjusted to fit an integer number of grid cells of the specified pitch
+        One end's z wire is omitted so that the grid can be joined to other grids
+        Models *either* conductive or dielectric sheet, not both.
+        Set epsillon_r to 1.0 for conductive sheet
+        Set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
+        Arguments:
+            model - the object model being built
+            sigma - conductivity in mhos/metre
+            epsillon_r - relative dielectric constant
+            dimensions:
+                length_, height_, thickness_, grid_pitch_
+            
         """
         iTag, obj = self.new_geometry_object()
         dimensions_m = self.units.from_suffixed_dimensions(dimensions)
@@ -286,7 +288,7 @@ class components:
 
         nY = int(length_m / dG) + 1
         nZ = int(height_m / dG) + 1
-        D = (nY-1)*dG
+        L = (nY-1)*dG
         H = (nZ-1)*dG
         E0 = 8.854188 * 1e-12
         CD = E0*(E-1) * thickness_m
@@ -294,11 +296,11 @@ class components:
 
         # Create sheet
         for i in range(1, nY):
-            x1, y1, z1, x2, y2, z2 = [0, -D/2+i*dG, 0, 0, -D/2+i*dG, H]
+            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, 0, 0, -L/2+i*dG, H]
             nSegs = nZ-1
             obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
         for i in range(nZ):
-            x1, y1, z1, x2, y2, z2 = [0, -D/2, i*dG, 0, D/2, i*dG]
+            x1, y1, z1, x2, y2, z2 = [0, -L/2, i*dG, 0, L/2, i*dG]
             nSegs = nY-1
             obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
@@ -309,7 +311,7 @@ class components:
             R_Ohms = 1e12
             C_F = CD
         else:
-            R_Ohms = dG / conductivity_mhos_per_m
+            R_Ohms = dG / sigma
             C_F = 0.0
         model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms} {1e-12} {CD}\n")
                     
