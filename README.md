@@ -39,12 +39,12 @@ Install using pip: open a command window and type
 pip install necbol
 ```
 
-Copies of the files installed by pip are in the folders on this repository - see the Python files in the example folder and modify to suit your needs.
-**Tip:** Look inside necbol/geometry_builder.py to see which antenna components and modification methods are currently available. 
+Copies of the files installed by pip are in the folders on this repository - see the Python files example_ ... and modify to suit your needs.
+**Tip:** Look inside necbol/components.py to see which antenna components and modification methods are currently available. 
 
 ## User Guide
-See the file minimal_example_dipole_with_detailed_comments.py in the examples folder for a minimal explanation of how to use this framework. 
-Browse the other examples as needed, and see the comments in the nec_lib/*.py files which are currently being written. 
+See the file example_minimal_example_dipole_with_detailed_comments.py for a minimal explanation of how to use this framework. 
+Browse the other examples as needed, and see the comments in the necbol/*.py files which are currently being written. 
 
 - Automated A/B compares
     - Over ground vs free space
