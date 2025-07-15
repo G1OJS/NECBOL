@@ -299,11 +299,11 @@ class components:
         for i in range(1, nY):
             x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, 0, 0, -L/2+i*dG, H]
             nSegs = nZ-1
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
         for i in range(nZ):
             x1, y1, z1, x2, y2, z2 = [0, -L/2, i*dG, 0, L/2, i*dG]
             nSegs = nY-1
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         # add conductive / capacitive load to the iTag of this object
         # note we aren't ineserting a new segment specifically for the load, so there's no need to
@@ -314,7 +314,7 @@ class components:
         else:
             R_Ohms = dG / sigma
             C_F = 0.0
-        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.8f} {1e-12:.8f} {CD:.8f}\n")
+        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.6e} {1e-12:.6e} {CD:.6e}\n")
                     
         return obj
 

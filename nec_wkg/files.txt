@@ -1,2 +1,2 @@
-nec_wkg\Hentenna with reflector rectangle and nearby metal sheet.nec
-nec_wkg\Hentenna with reflector rectangle and nearby metal sheet.out
+nec_wkg\Vertical Dipole with nearby sheet.nec
+nec_wkg\Vertical Dipole with nearby sheet.out

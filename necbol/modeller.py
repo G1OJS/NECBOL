@@ -236,6 +236,12 @@ class NECModel:
         self.units = units()
         self.write_runner_files()
 
+    def set_name(self, name):
+        self.model_name = name
+        self.nec_in = self.working_dir + "\\" + self.model_name +  ".nec"
+        self.nec_out = self.working_dir + "\\" + self.model_name +  ".out"
+        self.write_runner_files()
+
     def write_runner_files(self):
         for filepath, content in [
             (self.nec_bat, f"{self.nec_exe} < {self.files_txt} \n"),
@@ -266,7 +272,7 @@ class NECModel:
         if(nPoints<2):
             nPoints=2
         dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
-        self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth:.2f} 0 {dAz:.2f}\n"
+        self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n"
 
     def set_ground(self, eps_r, sigma, **params):
         """
@@ -380,23 +386,20 @@ class NECModel:
                 self.model_text += f"{v:.3f} "
             self.model_text += f"{w['wr']}\n"
 
-    def finalise(self):
-        self.model_text += self.GM_CARD
-        self.model_text += self.GE_CARD
-        self.model_text += self.GN_CARD
-        self.model_text += "EK\n"
-        self.model_text += self.LD_WIRECOND
-        for LD in self.LOADS:
-            self.model_text += LD
-        self.model_text += f"EX 0 {self.EX_TAG} 1 0 1 0\n"
-        self.model_text += self.FR_CARD
-        self.model_text += self.RP_CARD
-        self.model_text += "EN"
-
     def write_nec(self):
-        self.finalise()
+        tail_text = self.GM_CARD
+        tail_text += self.GE_CARD
+        tail_text += self.GN_CARD
+        tail_text += "EK\n"
+        tail_text += self.LD_WIRECOND
+        for LD in self.LOADS:
+            tail_text += LD
+        tail_text += f"EX 0 {self.EX_TAG} 1 0 1 0\n"
+        tail_text += self.FR_CARD
+        tail_text += self.RP_CARD
+        tail_text += "EN"
         with open(self.nec_in, "w") as f:
-            f.write(self.model_text)
+            f.write(self.model_text + tail_text)
 
     def run_nec(self):
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
@@ -447,4 +450,50 @@ class NECModel:
         gamma = (z_in - z0) / (z_in + z0)
         return (1 + abs(gamma)) / (1 - abs(gamma))
 
+    def read_radiation_pattern(self):
+        data = []
+        in_data = False
+        start_lineNo = 1e9
+        with open(self.nec_out) as f:
+            lines = f.readlines()
+        for lineNo, line in enumerate(lines):
+            if ('RADIATION PATTERNS' in line):
+                in_data = True
+                start_lineNo = lineNo + 5
+
+            if (lineNo > start_lineNo and line=="\n"):
+                in_data = False
+                
+            if (in_data and lineNo >= start_lineNo):
+                theta = float(line[0:9])
+                phi = float(line[9:18])
+                gain_vert = float(line[18:28])
+                gain_horz = float(line[28:36])
+                gain_total = float(line[36:45])
+                axial_ratio = float(line[45:55])
+                tilt_deg = float(line[55:63])
+                # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
+                sense = line[63:72].strip()
+                e_theta_mag = float(line[72:87])
+                e_theta_phase = float(line[87:96])
+                e_phi_mag = float(line[96:111])
+                e_phi_phase = float(line[111:119])
+
+                data.append({
+                    'theta': theta,
+                    'phi': phi,
+                    'gain_vert_db': gain_vert,
+                    'gain_horz_db': gain_horz,
+                    'gain_total_db': gain_total,
+                    'axial_ratio': axial_ratio,
+                    'tilt_deg': tilt_deg,
+                    'sense': sense,
+                    'E_theta_mag': e_theta_mag,
+                    'E_theta_phase_deg': e_theta_phase,
+                    'E_phi_mag': e_phi_mag,
+                    'E_phi_phase_deg': e_phi_phase
+                })
+
+
+        return data
 

@@ -8,4 +8,7 @@ build/
 __pycache__/
 *.pyc
 
+#nec folders
+nec_wkg/
 NECBOL-dev.lnk
+

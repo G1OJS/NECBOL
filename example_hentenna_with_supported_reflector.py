@@ -31,18 +31,12 @@ def build_hentenna_yagi(model, h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     support_rod.connect_ends(hentenna_outer_loop)
     support_rod.connect_ends(reflector_loop)
 
-
-    nearby_metal = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
-#    nearby_metal = antenna_components.thin_sheet(model, 0, 2.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
-    nearby_metal.translate(dx_m=1.0, dy_m=0.0, dz_m = 0.0)       
-
     model.place_feed(feed_rod, feed_wire_index=0, feed_alpha_wire=0.5)
     
     model.add(feed_rod)
     model.add(reflector_loop)
     model.add(hentenna_outer_loop)
     model.add(support_rod)
-    model.add(nearby_metal)
 
     return model
 

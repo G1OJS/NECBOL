@@ -28,7 +28,8 @@ def show_wires(wires, ex_tag, title, color='blue'):
     from mpl_toolkits.mplot3d import Axes3D
 
     print("Drawing geometry. Please close the geometry window to continue.")
-    fig = plt.figure(label = 'Please close this window to continue')
+    fig = plt.figure()
+ #   fig.canvas.manager.set_window_title('Please close this window to continue')
     ax = fig.add_subplot(111, projection='3d')
 
     for start, end, tag in wires:
@@ -69,3 +70,72 @@ def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):
                     tag = int(parts[1])
                     wires.append(((x1, y1, z1), (x2, y2, z2), tag))
     show_wires(wires, ex_tag, title, color=color)
+
+
+def plot_gain(pattern_data, elevation_deg, component, polar=True):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Filter data for fixed elevation (theta)
+    theta_cut = 90 - elevation_deg
+    az_cut = [d for d in pattern_data if abs(d['theta'] - theta_cut) < 0.1]
+
+    # Sort by phi (just in case)
+    az_cut.sort(key=lambda d: d['phi'])
+
+    # Extract azimuth (phi) and gain
+    phi_deg = [d['phi'] for d in az_cut]
+    gain_db = [d[component] for d in az_cut]
+
+    title = f'{component} at elevation = {theta_cut}°'
+
+    if polar:
+        phi_rad = np.radians(phi_deg)
+        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+        ax.plot(phi_rad, gain_db, label=title)
+        ax.set_title(title)
+        ax.grid(True)
+        ax.set_theta_zero_location("N")  # 0° at top
+        ax.set_theta_direction(-1)       # clockwise
+        ax.set_rlabel_position(90)
+        ax.legend(loc='lower right')
+    else:
+        plt.figure(figsize=(8, 4))
+        plt.plot(phi_deg, gain_db, label=title)
+        plt.xlabel('Azimuth φ (degrees)')
+        plt.ylabel('Gain (dB)')
+        plt.title('')
+        plt.grid(True)
+        plt.legend()
+        plt.tight_layout()
+
+    plt.show()
+
+
+
+def _plot_gain(pattern_data, elevation_deg, component):
+    import matplotlib.pyplot as plt
+
+    # Filter data for fixed elevation (theta)
+    theta_cut = 90 - elevation_deg
+    az_cut = [d for d in pattern_data if abs(d['theta'] - theta_cut) < 0.1]
+
+    # Sort by phi (just in case)
+    az_cut.sort(key=lambda d: d['phi'])
+
+    # Extract azimuth (phi) and vertical gain
+    phi_deg = [d['phi'] for d in az_cut]
+    v_gain_db = [d[component] for d in az_cut]
+
+    # Plot
+    plt.figure(figsize=(8, 4))
+    plt.plot(phi_deg, v_gain_db, label=f'{component} at elevation = {theta_cut}°')
+    plt.xlabel('Azimuth φ (degrees)')
+    plt.ylabel('Gain (dB)')
+    plt.title('')
+    plt.grid(True)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+
