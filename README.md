@@ -2,16 +2,9 @@
 
 **NECBOL** is a Python library that provides a geometry-first interface for building antenna models using the NEC (Numerical Electromagnetics Code) engine.
 
-I wrote it primarily for my own use for the reasons below, but I think it's good enough now to share so that other people can make use of it.
- - Not having to think about splitting wires into three-way junctions when I need to join one wire to another (e.g. feeding a hentenna)
- - Being able to view the geometry easily & in the same way whether it's in free space at Z=0 or 10m above a specified ground
- - Being able to re-use components easily (almost in the style of copy, paste, rotate, move, connect)
- - Being able to comment out entire components like loops, helices etc with one or two comment symbols
- - Being able to add and remove 'environment' components like dielectric slabs and conductive sheets, cylinders etc
- - Creating a core "NEC runner" to which I can add:
-     - code to optimise/sweep any parameter set based on any target parameter (gain, VSWR, segment current, feedline common mode current ....)
-     - bespoke plotting such as delta (B minus A) and resolving into custom polarisation definitions
-     - whatever else I think of
+# ⚠️ VERSION V2.0.0 has some limited function name and module name changes
+If you have used V1.0.0 with your own python files, you'll need to change the import statements and the name of the wire viewer function.
+See the file [CHANGES from V1.0.0.md](https://github.com/G1OJS/NECBOL/blob/22d1231ab0b61628b26277852affff68ede150da/CHANGES%20from%20V1.0.0.md) for details.
 
 ## Features
 
