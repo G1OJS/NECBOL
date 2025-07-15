@@ -23,27 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
-def parse_nec_wires(file_path):
-    wires = []
-    with open(file_path, 'r') as f:
-        for line in f:
-            if line.startswith("GW"):
-                parts = line.strip().split()
-                if len(parts) >= 9:
-                    # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
-                    x1, y1, z1 = map(float, parts[3:6])
-                    x2, y2, z2 = map(float, parts[6:9])
-                    tag = int(parts[1])
-                    wires.append(((x1, y1, z1), (x2, y2, z2), tag))
-    return wires
-
-def view_nec_input(file_path, ex_tag, color='blue', title = "3D Viewer"):
-    wires = parse_nec_wires(file_path)
-    view_wires(wires, ex_tag, title, color=color)
-
-
-def view_wires(wires, ex_tag, title, color='blue'):
+def show_wires(wires, ex_tag, title, color='blue'):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
@@ -74,4 +54,18 @@ def view_wires(wires, ex_tag, title, color='blue'):
     
     plt.tight_layout()
     plt.show()
+    
 
+def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):
+    wires = []
+    with open(file_path, 'r') as f:
+        for line in f:
+            if line.startswith("GW"):
+                parts = line.strip().split()
+                if len(parts) >= 9:
+                    # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
+                    x1, y1, z1 = map(float, parts[3:6])
+                    x2, y2, z2 = map(float, parts[6:9])
+                    tag = int(parts[1])
+                    wires.append(((x1, y1, z1), (x2, y2, z2), tag))
+    show_wires(wires, ex_tag, title, color=color)

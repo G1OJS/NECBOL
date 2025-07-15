@@ -25,7 +25,7 @@ SOFTWARE.
 
 import numpy as np
 import math
-from necbol.units import units
+from necbol.modeller import GeometryObject,units
 
 #=================================================================================
 # Cannonical components
@@ -108,8 +108,8 @@ class components:
             obj (GeometryObject): The constructed geometry object with the defined wire.
         """
         iTag, obj = self.new_geometry_object()
-        from_point = _point_on_object(from_object, from_wire_index, from_alpha_wire)
-        to_point = _point_on_object(to_object, to_wire_index, to_alpha_wire)
+        from_point = obj.point_on_object(from_object, from_wire_index, from_alpha_wire)
+        to_point = obj.point_on_object(to_object, to_wire_index, to_alpha_wire)
         obj.add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
@@ -255,141 +255,59 @@ class components:
 
         delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
-            ca, sa = _cos_sin(delta_phi_deg * i)
+            ca, sa = obj.cos_sin(delta_phi_deg * i)
             x1 = radius_m * ca
             y1 = radius_m * sa
-            ca, sa = _cos_sin(delta_phi_deg * (i+1))
+            ca, sa = obj.cos_sin(delta_phi_deg * (i+1))
             x2 = radius_m * ca
             y2 = radius_m * sa
             obj.add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
 
         return obj
 
-#=================================================================================
-# The geometry object that holds a single component plus its methods
-#=================================================================================
 
-class GeometryObject:
-    def __init__(self, wires):
-        self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
-        self.units = units()
+        def thin_sheet(self, model, conductivity_mhos_per_m, epsillon_r, **params):
+            # params model, conductivity_mhos_per_m, epsillon_r, length_, height_, thickness_, grid_pitch_
+            # models *either* conductive or dielectric sheet, not both (add error trap)
+            # Follows method used in https://lso.fe.uni-lj.si/literatura/Razno/SRK2020/SRK2020.10/NEC2/Dielectric_films_NEC2.pdf
+            iTag, obj = self.new_geometry_object()
+            params_m = self.units.from_suffixed_params(params)
+            length_m = params_m.get('length_m')
+            height_m = params_m.get('height_m')
+            grid_pitch_m = params_m.get('grid_pitch_m')
+            thickness_m = params_m.get('thickness_m')
+            E = epsillon_r     
+            dG = grid_pitch_m
 
-    def add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
-        self.wires.append({"iTag":iTag, "nS":nS, "a":(x1, y1, z1), "b":(x2, y2, z2), "wr":wr})
+            nY = int(length_m / dG) + 1
+            nZ = int(height_m / dG) + 1
+            L = (nY-1)*dG
+            H = (nZ-1)*dG
+            E0 = 8.854188 * 1e-12
+            CD = E0*(E-1) * thickness_m
+            wire_radius_m = thickness_m/2
 
-    def get_wires(self):
-        return self.wires
+            # Create sheet
+            for i in range(1, nY-1):
+                x1, y1, z1, x2, y2, z2 = [0, -D/2+i*dG, 0, 0, -D/2+i*dG, H]
+                nSegs = nZ-1
+                obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            for i in range(nZ):
+                x1, y1, z1, x2, y2, z2 = [0, -D/2, i*dG, 0, D/2, i*dG]
+                nSegs = nY-1
+                obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
-    def translate(self, **params):
-        params_m = self.units.from_suffixed_params(params)
-        for w in self.wires:
-            w['a'] = tuple(map(float,np.array(w['a']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
-            w['b'] = tuple(map(float,np.array(w['b']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
-
-    def rotate_ZtoY(self):
-        R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
-        return self.rotate(R)
-    
-    def rotate_ZtoX(self):
-        R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
-        return self.rotate(R)
-
-    def rotate_around_Z(self, angle_deg):
-        ca, sa = _cos_sin(angle_deg)
-        R = np.array([[ca, -sa, 0],
-                      [sa, ca, 0],
-                      [0, 0, 1]])
-        return self.rotate(R)
-
-    def rotate_around_X(self, angle_deg):
-        ca, sa = _cos_sin(angle_deg)
-        R = np.array([[1, 0, 0],
-                      [0, ca, -sa],
-                      [0, sa, ca]])
-        return self.rotate(R)
-
-    def rotate_around_Y(self, angle_deg):
-        ca, sa = _cos_sin(angle_deg)
-        R = np.array([[ca, 0, sa],
-                      [0, 1, 0],
-                      [-sa, 0, ca]])
-        return self.rotate(R)
-
-    
-    def rotate(self, R):
-        for w in self.wires:
-            a = np.array(w['a'])
-            b = np.array(w['b'])
-            w['a'] = tuple(map(float, R @ a))
-            w['b'] = tuple(map(float, R @ b))
-
-    def connect_ends(self, other, tol=1e-3):
-        wires_to_add=[]
-        for ws in self.wires:
-            for es in [ws["a"], ws["b"]]:
-                for wo in other.wires:
-                    if (_point_should_connect_to_wire(es,wo['a'],wo['b'],tol)):
-                        b = wo["b"]
-                        wo['b']=tuple(es)
-                        wires_to_add.append( (wo['iTag'], 0, *es, *b, wo['wr']) )
-                        break #(for efficiency only)
-        for params in wires_to_add:
-            other.add_wire(*params)
-               
-
-#=================
-# helper functions
-#=================
-
-def _cos_sin(angle_deg):
-    angle_rad = math.pi*angle_deg/180
-    ca = math.cos(angle_rad)
-    sa = math.sin(angle_rad)
-    return ca, sa
-
-def _point_should_connect_to_wire(P, A, B, tol=1e-6):
-    P = np.array(P, dtype=float)
-    A = np.array(A, dtype=float)
-    B = np.array(B, dtype=float)
-    AB = B - A
-    AP = P - A
-    AB_len = np.linalg.norm(AB)
-    # can't connect to a zero length wire using the splitting method
-    # but maybe should allow connecting by having the same co-ordinates
-    if AB_len == 0:
-        return False
-    
-    # Check perpendicular distance from wire axis
-    # if we aren't close enough to the wire axis to need to connect, return false
-    # NOTE: need to align tol with nec's check of volumes intersecting
-    perp_dist = np.linalg.norm(np.cross(AP, AB)) / AB_len
-    if perp_dist > tol: 
-        return False    
-
-    # We *are* close enough to the wire axis but if we're not between the ends, return false
-    t = np.dot(AP, AB) / (AB_len ** 2)
-    if (t<0 or t>1):
-        return False
-    
-    # if we are within 1mm of either end (wires are written to 3dp in m), return false
-    if ((np.linalg.norm(AP) < 0.001) or (np.linalg.norm(B-P) < 0.001)):
-        return False
-
-    return True
-
-
-def _point_on_object(geom_object, wire_index, alpha_wire):
-    if(wire_index> len(geom_object.wires)):
-        wire_index = len(geom_object.wires)
-        alpha_wire = 1.0
-    w = geom_object.wires[wire_index]
-    A = np.array(w["a"], dtype=float)
-    B = np.array(w["b"], dtype=float)
-    P = A + alpha_wire * (B-A)
-    return P
-
-
-
-
+            # add conductive / capacitive load to the iTag of this object
+            # note we aren't ineserting a new segment specifically for the load, so there's no need to
+            # increment model.LOAD_iTag
+            if(epsillon_r > 1.0):
+                R_Ohms = 1e12
+                C_F = CD
+            else:
+                R_Ohms = dG / conductivity_mhos_per_m
+                C_F = 0.0
+            model.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {1e12} {CD}\n")
+                    
+        return obj
 
 

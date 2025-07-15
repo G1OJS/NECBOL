@@ -1,13 +1,13 @@
 
-from necbol.nec_wrapper import NECModel
-from necbol import geometry_builder
-from necbol import wire_viewer
+from necbol.modeller import NECModel
+from necbol.components import components 
+from necbol.gui import show_wires_from_file
 
 def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
 
     model.start_geometry()
-
-    antenna_components = geometry_builder.components()   
+    antenna_components = components()
+    
     feed_rod = antenna_components.wire_Z(length_m = w_m,
                                            wire_diameter_mm = wd_mm)
     feed_rod.rotate_ZtoX()
@@ -65,7 +65,7 @@ for i in range(-5, 5):
     vswr = model.vswr()
     print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
 
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title=model.model_name)
+show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 
 print(f"\n\nEnd of example {model.model_name}")
 

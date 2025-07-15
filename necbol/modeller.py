@@ -23,10 +23,194 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import numpy as np
+import math
+import warnings
 import subprocess
 import os
-import numpy as np
-from necbol.units import units
+
+#=================================================================================
+# The geometry object that holds a single component plus its methods
+#=================================================================================
+
+class GeometryObject:
+    def __init__(self, wires):
+        self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
+        self.units = units()
+
+    def add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
+        self.wires.append({"iTag":iTag, "nS":nS, "a":(x1, y1, z1), "b":(x2, y2, z2), "wr":wr})
+
+    def get_wires(self):
+        return self.wires
+
+    def translate(self, **params):
+        params_m = self.units.from_suffixed_params(params)
+        for w in self.wires:
+            w['a'] = tuple(map(float,np.array(w['a']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
+            w['b'] = tuple(map(float,np.array(w['b']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
+
+    def rotate_ZtoY(self):
+        R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
+        return self.rotate(R)
+    
+    def rotate_ZtoX(self):
+        R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
+        return self.rotate(R)
+
+    def rotate_around_Z(self, angle_deg):
+        ca, sa = self.cos_sin(angle_deg)
+        R = np.array([[ca, -sa, 0],
+                      [sa, ca, 0],
+                      [0, 0, 1]])
+        return self.rotate(R)
+
+    def rotate_around_X(self, angle_deg):
+        ca, sa = self.cos_sin(angle_deg)
+        R = np.array([[1, 0, 0],
+                      [0, ca, -sa],
+                      [0, sa, ca]])
+        return self.rotate(R)
+
+    def rotate_around_Y(self, angle_deg):
+        ca, sa = self.cos_sin(angle_deg)
+        R = np.array([[ca, 0, sa],
+                      [0, 1, 0],
+                      [-sa, 0, ca]])
+        return self.rotate(R)
+
+    def cos_sin(self,angle_deg):
+        angle_rad = math.pi*angle_deg/180
+        ca = math.cos(angle_rad)
+        sa = math.sin(angle_rad)
+        return ca, sa
+    
+    def rotate(self, R):
+        for w in self.wires:
+            a = np.array(w['a'])
+            b = np.array(w['b'])
+            w['a'] = tuple(map(float, R @ a))
+            w['b'] = tuple(map(float, R @ b))
+
+    def connect_ends(self, other, tol=1e-3):
+        wires_to_add=[]
+        for ws in self.wires:
+            for es in [ws["a"], ws["b"]]:
+                for wo in other.wires:
+                    if (self.point_should_connect_to_wire(es,wo['a'],wo['b'],tol)):
+                        b = wo["b"]
+                        wo['b']=tuple(es)
+                        wires_to_add.append( (wo['iTag'], 0, *es, *b, wo['wr']) )
+                        break #(for efficiency only)
+        for params in wires_to_add:
+            other.add_wire(*params)
+
+    def point_should_connect_to_wire(self,P, A, B, tol=1e-6):
+        P = np.array(P, dtype=float)
+        A = np.array(A, dtype=float)
+        B = np.array(B, dtype=float)
+        AB = B - A
+        AP = P - A
+        AB_len = np.linalg.norm(AB)
+        # can't connect to a zero length wire using the splitting method
+        # but maybe should allow connecting by having the same co-ordinates
+        if AB_len == 0:
+            return False
+        
+        # Check perpendicular distance from wire axis
+        # if we aren't close enough to the wire axis to need to connect, return false
+        # NOTE: need to align tol with nec's check of volumes intersecting
+        perp_dist = np.linalg.norm(np.cross(AP, AB)) / AB_len
+        if perp_dist > tol: 
+            return False    
+
+        # We *are* close enough to the wire axis but if we're not between the ends, return false
+        t = np.dot(AP, AB) / (AB_len ** 2)
+        if (t<0 or t>1):
+            return False
+        
+        # if we are within 1mm of either end (wires are written to 3dp in m), return false
+        if ((np.linalg.norm(AP) < 0.001) or (np.linalg.norm(B-P) < 0.001)):
+            return False
+
+        return True
+
+    def point_on_object(self,geom_object, wire_index, alpha_wire):
+        if(wire_index> len(geom_object.wires)):
+            wire_index = len(geom_object.wires)
+            alpha_wire = 1.0
+        w = geom_object.wires[wire_index]
+        A = np.array(w["a"], dtype=float)
+        B = np.array(w["b"], dtype=float)
+        P = A + alpha_wire * (B-A)
+        return P
+
+
+
+#=================================================================================
+# Units processor
+#=================================================================================
+
+class units:
+    
+    _UNIT_FACTORS = {
+        "m": 1.0,
+        "mm": 1000.0,
+        "cm": 100.0,
+        "in": 39.3701,
+        "ft": 3.28084,
+    }
+
+    def __init__(self, default_unit: str = "m"):
+        if default_unit not in self._UNIT_FACTORS:
+            raise ValueError(f"Unsupported unit: {default_unit}")
+        self.default_unit = default_unit
+
+    def from_suffixed_params(self, params: dict, whitelist=[]) -> dict:
+        """Converts suffixed values like 'd_mm' to meters.
+
+        Output keys have '_m' suffix unless they already end with '_m',
+        in which case they are passed through unchanged (assumed meters).
+        """
+        
+        out = {}
+        names_seen = []
+        for key, value in params.items():
+    
+            if not isinstance(value, (int, float)):
+                continue  # skip nested dicts or other structures
+
+            name = key
+            suffix = ""
+            if "_" in name:
+                name, suffix = name.rsplit("_", 1)
+                
+            if(name in names_seen):
+                warnstr = f"Duplicate value of '{name}' seen: ignoring latest ({key} = {value})"
+                warnings.warn(warnstr)
+                continue
+
+            names_seen.append(name)
+
+            if suffix in self._UNIT_FACTORS:
+                # Convert value, output key with '_m' suffix
+                out[name + "_m"] = value / self._UNIT_FACTORS[suffix]
+                continue
+
+            if key in whitelist:
+                continue
+            
+            # fallback: no recognised suffix, assume metres
+            warnings.warn(f"No recognised units specified for {name}: '{suffix}' specified, metres assumed")
+            # output key gets '_m' suffix added
+            out[name + "_m"] = value
+
+        return out
+
+
+#=================================================================================
+# NEC Wrapper functions for writing .nec file and reading output
+#=================================================================================
 
 class NECModel:
     def __init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):
@@ -87,7 +271,7 @@ class NECModel:
     def set_ground(self, eps_r, sigma, **params):
         """
             Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
-            If eps_r = 1 and sigma = 0, nec is told to use no ground (free space model), and you may omit the origin height parameter
+            If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
             If you don't call this function, free space will be assumed.
             Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
             the specified distance above ground.
@@ -102,7 +286,7 @@ class NECModel:
             self.GM_CARD = "GM 0 0 0 0 0 0 0 0.000\n"
         else:
             origin_height_m = self.units.from_suffixed_params(params)['origin_height_m']
-            self.GE_CARD = "GE 1\n"
+            self.GE_CARD = "GE -1\n"
             self.GN_CARD = f"GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n"
             self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"
 
@@ -262,3 +446,5 @@ class NECModel:
         z0 = 50
         gamma = (z_in - z0) / (z_in + z0)
         return (1 + abs(gamma)) / (1 - abs(gamma))
+
+

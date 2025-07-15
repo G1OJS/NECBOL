@@ -5,9 +5,9 @@
 """
 
 # These lines import NECBOL 
-from necbol.nec_wrapper import NECModel
-from necbol import geometry_builder
-from necbol import wire_viewer
+from necbol.modeller import NECModel
+from necbol.components import components 
+from necbol.gui import show_wires_from_file
 
 # Start an antenna model called model (it can be called anything acceptable as a Python variable),
 # specifying where the working folder should be made, and where the nec executable is on your system
@@ -30,7 +30,7 @@ model.set_gain_point(azimuth = 0, elevation = 3)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0) 
 
 # Get a 'copy' of the geometry builder class called antenna_components (again, you can change this name if desired)
-antenna_components = geometry_builder.components()
+antenna_components = components ()
 
 # Tell the nec interface to clear any existing geometries and start a new one
 # This clears only geometry definitions, not the definitions made above
@@ -70,7 +70,7 @@ print(gains, f"vswr:{vswr:.2f}")
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards)
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title=model.model_name)
+show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 
 print(f"\n\nEnd of example {model.model_name}")
 

@@ -1,2 +1,2 @@
-..\nec_wkg\Diamond AS144S5R.nec
-..\nec_wkg\Diamond AS144S5R.out
+..\nec_wkg\Moxon example.nec
+..\nec_wkg\Moxon example.out

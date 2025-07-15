@@ -1,7 +1,7 @@
 
-from necbol.nec_wrapper import NECModel
-from necbol import geometry_builder
-from necbol import wire_viewer
+from necbol.modeller import NECModel
+from necbol.components import components 
+from necbol.gui import show_wires_from_file
 import math
 
 # note that everything from here down is user code to adapt
@@ -9,7 +9,7 @@ import math
 def build_csc(model, d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
 
     model.start_geometry()
-    antenna_components = geometry_builder.components()
+    antenna_components = components()
 
     feed_gap_angle_deg = 360*feed_gap_mm / (math.pi*d_mm)
 
@@ -67,7 +67,7 @@ model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 params = {'d_mm': 200, 'h_mm': 200, 'main_wire_diameter_mm': 5, 'feed_gap_mm': 10}
 model = build_csc(model, **params)
 model.write_nec()
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
+show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
 
 optimise()
 
