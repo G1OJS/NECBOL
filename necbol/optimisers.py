@@ -23,6 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+
 import random, sys
 
 class RandomOptimiser:
@@ -45,7 +46,7 @@ class RandomOptimiser:
         return s[0:-2]+"}"
 
     def same_line_print(self,text):
-        sys.stdout.write(f"\r{text}        ")
+        sys.stdout.write(f"\r{text}          ")
         sys.stdout.flush()
 
     def random_variation(self, x):
@@ -59,7 +60,7 @@ class RandomOptimiser:
                 x_new[name] = max(min(x_new[name], maxv), minv)
         return x_new
 
-    def optimise(self, model,  verbose=False):
+    def optimise(self, model,  verbose=False, tty=True):
         best_params = self.x_baseline.copy()
         best_model = self.build_fn(model, **best_params)
         best_model.write_nec()
@@ -87,19 +88,28 @@ class RandomOptimiser:
                     best_params = test_params
                     best_info = test_info
                     stall_count = 0
+                    if(not tty):
+                        print("")
                     self.same_line_print(f"[{i}] IMPROVED: {best_info} with {self.format_params(best_params)}")
                     print("")
                 else:
                     stall_count += 1
-                    self.same_line_print(f"[{i}] {test_info}")
+                    if(tty):
+                        self.same_line_print(f"[{i}] {test_info}")
+                    else:
+                        sys.stdout.write(".")
 
                 if stall_count >= self.stall_limit:
                     self.delta_x /= 2
                     if(self.delta_x < self.min_delta):
+                        if(not tty):
+                            print("")
                         self.same_line_print(f"[{i}] Delta below minimum")
                         print("")
                         break
                     stall_count = 0
+                    if(not tty):
+                        print("")
                     self.same_line_print(f"[{i}] STALLED: Reducing delta to {self.delta_x}")
                     print("")
 

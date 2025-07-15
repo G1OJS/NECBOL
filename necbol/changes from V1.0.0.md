@@ -5,15 +5,19 @@ Changes made
 2. Tidied up optimiser screen output when using non-tty apps to run the code
    (use the tty=False keyword argument when calling optimiser)
 
+3. Changed default ground in GE to -1. Corrected docstring (removed 'and conductivity = 0')
+
+4. Added dielectric / conductive sheets.
+
+5. Restructured library modules to clarify module purposes, create 'components.py' holding *only* components, and avoid need for passing parameters between nec_wrapper and geometry_builder
 
 To Do
-0. Change default ground in GE to -1.
 
 1. Show height above ground on the XY plane in wire viewer, also identify loads.
 
 2. Add warning if lowest part of antenna is below ground.
 
-3. Add dielectric and metal sheets. Make an example with copy & rotate, make an aircon duct or something with a 2m loft antenna nearby.
+ Make an example with copy & rotate, make an aircon duct or something with a 2m loft antenna nearby.
 
 
 
