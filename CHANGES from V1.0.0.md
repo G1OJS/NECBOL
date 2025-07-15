@@ -24,7 +24,7 @@ Also note that if you have been using positional arguments for antenna component
 ## New components
 Added flexi-helix (experimental)
 
-Added dielectric / conductive sheets.
+Added dielectric / conductive sheets. (Note that this sheet model has been checked functionally but not quantitavely)
 
 ## Minor changes
 Tidied up optimiser screen output when using non-tty apps to run the code
