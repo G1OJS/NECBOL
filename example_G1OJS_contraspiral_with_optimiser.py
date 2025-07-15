@@ -1,10 +1,8 @@
 
-import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from necbol.nec_wrapper import NECModel
-from necbol import geometry_builder
-from necbol import wire_viewer
+from necbol.modeller import NECModel
+from necbol.components import components 
+from necbol.gui import show_wires_from_file
 
 def cost_function(model):
     vcost = model.vswr()
@@ -15,7 +13,7 @@ def cost_function(model):
 def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm, helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
 
     model.start_geometry()
-    antenna_components = geometry_builder.components()
+    antenna_components = components()
 
     coupling_loop_wire_diameter_mm = 2.0
     
@@ -72,7 +70,7 @@ param_init = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":
 
 model=build_contraspiral(model, **param_init)
 model.write_nec()
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
+show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
 
 opt = RandomOptimiser(
     build_fn = build_contraspiral,

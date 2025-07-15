@@ -3,7 +3,7 @@ from necbol.modeller import NECModel
 from necbol.components import components 
 from necbol.gui import show_wires_from_file
 
-def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
+def build_hentenna_yagi(model, h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
 
     model.start_geometry()
     antenna_components = components()
@@ -31,12 +31,17 @@ def build_hentenna_yagi(h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
     support_rod.connect_ends(hentenna_outer_loop)
     support_rod.connect_ends(reflector_loop)
 
+
+    nearby_metal = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
+    nearby_metal.translate(dx_m=1.0, dy_m=0.0, dz_m = 0.0)       
+
     model.place_feed(feed_rod, feed_wire_index=0, feed_alpha_wire=0.5)
     
     model.add(feed_rod)
     model.add(reflector_loop)
     model.add(hentenna_outer_loop)
     model.add(support_rod)
+    model.add(nearby_metal)
 
     return model
 
@@ -50,20 +55,17 @@ model.set_gain_point(azimuth = 90, elevation = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
-for i in range(-5, 5):
-    hen_height_m = 0.97
-    hen_width_m = 0.271
-    feed_height_m = 0.12
-    refl_scale = 0.985
-    refl_sep = 0.33
-    parameter = feed_height_m *(1 + 0.01 *i)
-    feed_height_m = parameter
-    model = build_hentenna_yagi(hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
-    model.write_nec()
-    model.run_nec()
-    gains = model.gains()
-    vswr = model.vswr()
-    print(f"parameter {parameter:.3f}", gains, f"vswr:{vswr:.2f}")
+hen_height_m = 0.97
+hen_width_m = 0.271
+feed_height_m = 0.12
+refl_scale = 0.985
+refl_sep = 0.33
+model = build_hentenna_yagi(model, hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
+model.write_nec()
+model.run_nec()
+gains = model.gains()
+vswr = model.vswr()
+print(gains, f"vswr:{vswr:.2f}")
 
 show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 

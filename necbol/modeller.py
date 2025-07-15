@@ -45,7 +45,7 @@ class GeometryObject:
         return self.wires
 
     def translate(self, **params):
-        params_m = self.units.from_suffixed_params(params)
+        params_m = self.units.from_suffixed_dimensions(params)
         for w in self.wires:
             w['a'] = tuple(map(float,np.array(w['a']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
             w['b'] = tuple(map(float,np.array(w['b']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
@@ -166,7 +166,7 @@ class units:
             raise ValueError(f"Unsupported unit: {default_unit}")
         self.default_unit = default_unit
 
-    def from_suffixed_params(self, params: dict, whitelist=[]) -> dict:
+    def from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:
         """Converts suffixed values like 'd_mm' to meters.
 
         Output keys have '_m' suffix unless they already end with '_m',
@@ -285,7 +285,7 @@ class NECModel:
             self.GN_CARD = ""
             self.GM_CARD = "GM 0 0 0 0 0 0 0 0.000\n"
         else:
-            origin_height_m = self.units.from_suffixed_params(params)['origin_height_m']
+            origin_height_m = self.units.from_suffixed_dimensions(params)['origin_height_m']
             self.GE_CARD = "GE -1\n"
             self.GN_CARD = f"GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n"
             self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"

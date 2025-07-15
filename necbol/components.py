@@ -51,7 +51,7 @@ class components:
             obj.add_wire(iTag, w['nS'], *w['a'], *w['b'], w['wr'])
         return obj
         
-    def wire_Z(self, **params):
+    def wire_Z(self, **dimensions):
         """
         Create a straight wire aligned along the Z-axis, centered at the origin.
 
@@ -65,13 +65,13 @@ class components:
             obj (GeometryObject): The constructed geometry object with the defined wire.
         """
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params)
-        half_length_m = params_m.get('length_m')/2
-        wire_radius_m = params_m.get('wire_diameter_m')/2
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        half_length_m = dimensions_m.get('length_m')/2
+        wire_radius_m = dimensions_m.get('wire_diameter_m')/2
         obj.add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
         return obj
     
-    def rect_loop_XZ(self, **params):
+    def rect_loop_XZ(self, **dimensions):
         """
         Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
         The 'side' wires extend from Z=-length/2 to Z=+length/2 at X = +/- width/2.
@@ -85,10 +85,10 @@ class components:
             obj (GeometryObject): The constructed geometry object with the defined wires.
         """
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params)
-        half_length_m = params_m.get('length_m')/2
-        half_width_m = params_m.get('width_m')/2
-        wire_radius_m = params_m.get('wire_diameter_m')/2        
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        half_length_m = dimensions_m.get('length_m')/2
+        half_width_m = dimensions_m.get('width_m')/2
+        wire_radius_m = dimensions_m.get('wire_diameter_m')/2        
         obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
         obj.add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
         obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
@@ -113,7 +113,7 @@ class components:
         obj.add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
-    def helix(self, **params):
+    def helix(self,  wires_per_turn, sense, **dimensions):
         """
         Create a single helix with axis = Z axis
         Parameters:
@@ -128,13 +128,13 @@ class components:
             obj (GeometryObject): The constructed geometry object representing the helix.
         """
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params, whitelist=['sense','wires_per_turn'])
-        radius_m = params_m.get('diameter_m')/2
-        length_m = params_m.get('length_m')
-        pitch_m = params_m.get('pitch_m')
-        wire_radius_m = params_m.get('wire_diameter_m')/2
-        sense = params.get("sense", "RH")
-        wires_per_turn = params.get("wires_per_turn", 36)
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions, whitelist=['sense','wires_per_turn'])
+        radius_m = dimensions_m.get('diameter_m')/2
+        length_m = dimensions_m.get('length_m')
+        pitch_m = dimensions_m.get('pitch_m')
+        wire_radius_m = dimensions_m.get('wire_diameter_m')/2
+        sense = dimensions.get("sense", "RH")
+        wires_per_turn = dimensions.get("wires_per_turn", 36)
 
         turns = length_m / pitch_m
         n_wires = int(turns * wires_per_turn)
@@ -155,7 +155,7 @@ class components:
 
         return obj
 
-    def flexi_helix(self, **params):
+    def flexi_helix(self, **dimensions):
         """
         Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
 
@@ -185,14 +185,14 @@ class components:
 
         # === Parameter unpacking and setup ===
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params, whitelist=['sense', 'wires_per_turn', 'n_cos','r_cos','p_cos'])
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions, whitelist=['sense', 'wires_per_turn', 'n_cos','r_cos','p_cos'])
 
-        l_m = params_m.get('length_m')
-        r0_m = params_m.get('r0_m')
-        p0_m = params_m.get('p0_m')
-        wire_radius_m = params_m.get('wire_diameter_m') / 2
-        sense = params.get("sense", "RH")
-        wires_per_turn = params.get("wires_per_turn", 36)
+        l_m = dimensions_m.get('length_m')
+        r0_m = dimensions_m.get('r0_m')
+        p0_m = dimensions_m.get('p0_m')
+        wire_radius_m = dimensions_m.get('wire_diameter_m') / 2
+        sense = dimensions.get("sense", "RH")
+        wires_per_turn = dimensions.get("wires_per_turn", 36)
 
         r_cos_params = params.get('r_cos_params')
         p_cos_params = params.get('p_cos_params')
@@ -234,7 +234,7 @@ class components:
         return obj
 
 
-    def circular_arc(self, **params):
+    def circular_arc(self, **dimensions):
         """
         Create a single circular arc in the XY plane centred on the origin
         Parameters:
@@ -247,11 +247,11 @@ class components:
             obj (GeometryObject): The constructed geometry object representing the helix.
         """
         iTag, obj = self.new_geometry_object()
-        params_m = self.units.from_suffixed_params(params, whitelist=['n_wires','arc_phi_deg'])
-        radius_m = params_m.get('diameter_m')/2
-        wire_radius_m = params_m.get('wire_diameter_m')/2    
-        arc_phi_deg = params.get("arc_phi_deg")
-        n_wires = params.get("n_wires", 36)
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions, whitelist=['n_wires','arc_phi_deg'])
+        radius_m = dimensions_m.get('diameter_m')/2
+        wire_radius_m = dimensions_m.get('wire_diameter_m')/2    
+        arc_phi_deg = dimensions.get("arc_phi_deg")
+        n_wires = dimensions.get("n_wires", 36)
 
         delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
@@ -266,47 +266,52 @@ class components:
         return obj
 
 
-        def thin_sheet(self, model, conductivity_mhos_per_m, epsillon_r, **params):
-            # params model, conductivity_mhos_per_m, epsillon_r, length_, height_, thickness_, grid_pitch_
-            # models *either* conductive or dielectric sheet, not both (add error trap)
-            # Follows method used in https://lso.fe.uni-lj.si/literatura/Razno/SRK2020/SRK2020.10/NEC2/Dielectric_films_NEC2.pdf
-            iTag, obj = self.new_geometry_object()
-            params_m = self.units.from_suffixed_params(params)
-            length_m = params_m.get('length_m')
-            height_m = params_m.get('height_m')
-            grid_pitch_m = params_m.get('grid_pitch_m')
-            thickness_m = params_m.get('thickness_m')
-            E = epsillon_r     
-            dG = grid_pitch_m
+    def thin_sheet(self, model, conductivity_mhos_per_m, epsillon_r, **dimensions):
+        """
+        Creates a grid of wires interconnected at segmnent level to economically model a grid
+        
+        # dimensions model, conductivity_mhos_per_m, epsillon_r, length_, height_, thickness_, grid_pitch_
+        # models *either* conductive or dielectric sheet, not both.
+        # set epsillon_r to 1.0 for conductive sheet
+        # set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
+        """
+        iTag, obj = self.new_geometry_object()
+        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        length_m = dimensions_m.get('length_m')
+        height_m = dimensions_m.get('height_m')
+        grid_pitch_m = dimensions_m.get('grid_pitch_m')
+        thickness_m = dimensions_m.get('thickness_m')
+        E = epsillon_r     
+        dG = grid_pitch_m
 
-            nY = int(length_m / dG) + 1
-            nZ = int(height_m / dG) + 1
-            L = (nY-1)*dG
-            H = (nZ-1)*dG
-            E0 = 8.854188 * 1e-12
-            CD = E0*(E-1) * thickness_m
-            wire_radius_m = thickness_m/2
+        nY = int(length_m / dG) + 1
+        nZ = int(height_m / dG) + 1
+        D = (nY-1)*dG
+        H = (nZ-1)*dG
+        E0 = 8.854188 * 1e-12
+        CD = E0*(E-1) * thickness_m
+        wire_radius_m = thickness_m/2
 
-            # Create sheet
-            for i in range(1, nY-1):
-                x1, y1, z1, x2, y2, z2 = [0, -D/2+i*dG, 0, 0, -D/2+i*dG, H]
-                nSegs = nZ-1
-                obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
-            for i in range(nZ):
-                x1, y1, z1, x2, y2, z2 = [0, -D/2, i*dG, 0, D/2, i*dG]
-                nSegs = nY-1
-                obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+        # Create sheet
+        for i in range(1, nY):
+            x1, y1, z1, x2, y2, z2 = [0, -D/2+i*dG, 0, 0, -D/2+i*dG, H]
+            nSegs = nZ-1
+            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+        for i in range(nZ):
+            x1, y1, z1, x2, y2, z2 = [0, -D/2, i*dG, 0, D/2, i*dG]
+            nSegs = nY-1
+            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
-            # add conductive / capacitive load to the iTag of this object
-            # note we aren't ineserting a new segment specifically for the load, so there's no need to
-            # increment model.LOAD_iTag
-            if(epsillon_r > 1.0):
-                R_Ohms = 1e12
-                C_F = CD
-            else:
-                R_Ohms = dG / conductivity_mhos_per_m
-                C_F = 0.0
-            model.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {1e12} {CD}\n")
+        # add conductive / capacitive load to the iTag of this object
+        # note we aren't ineserting a new segment specifically for the load, so there's no need to
+        # increment model.LOAD_iTag
+        if(epsillon_r > 1.0):
+            R_Ohms = 1e12
+            C_F = CD
+        else:
+            R_Ohms = dG / conductivity_mhos_per_m
+            C_F = 0.0
+        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms} {1e-12} {CD}\n")
                     
         return obj
 
