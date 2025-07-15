@@ -1,7 +1,7 @@
 ## Changes to API
-```
 If you have been using V1.0.0 with your own model files, you will need to make the following changes:
 
+```
 Replace the necbol import statements at the top with:
    from necbol.modeller import NECModel
    from necbol.components import components 
