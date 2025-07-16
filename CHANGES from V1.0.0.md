@@ -1,3 +1,24 @@
+# V2.0.2
+Revised sheet grid model to 
+```
+thin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_end = True, **dimensions)
+```
+where 
+- force_odd forces an odd number of wires, ensuring one central z wire and one central y wire cross at x=0, to make attaching other objects easier
+- close_end creates a final end z wire - use close_end=False to allow copying and joining meshes together without wires overlapping
+- model now has height symmetric around zero (as was the case for width)
+  
+Created example of dipole with capacity end points for loading, using the grid model
+
+Updated plotting functions a little (gain range)
+
+# V2.0.1
+Added azimuth pattern specification and plotting
+Fixed .nec file write format issue and nSegs issue in writing sheet model grid
+Created example of dipole with nearby sheet
+Allowed model to be updated after nec_write & nec_run, to allow easier A/B comparisons (see dipole with sheet example)
+
+# V2.0.0
 ## Changes to API
 If you have been using V1.0.0 with your own model files, you will need to make the following changes:
 
@@ -67,4 +88,6 @@ file "wire_viewer.py"
 -----------------------------------
 file "optimisers.py" 
 - no changes
+
+# V1.0.0 initial MVP
 
