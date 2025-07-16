@@ -33,7 +33,7 @@ Install using pip: open a command window and type
 pip install necbol
 ```
 ## User Guide
-Copies of the files installed by pip are in the necbol folder on this repository. There are several example files intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
+Copies of the files installed by pip are in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/d22ee40ef966d9abb778667cd5b5979a98ed287b/necbol) on this repository. There are several example files intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
 
 **Tip:** Look inside necbol/components.py to see which antenna components and modification methods are currently available. I'm planning to make an automated help file from the comments inside this file (and then the others).
 
