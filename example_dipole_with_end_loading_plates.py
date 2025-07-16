@@ -30,7 +30,7 @@ model.write_nec()
 show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 model.run_nec()
 data_dipole = model.read_radiation_pattern()
-plot_gain(data_dipole, 3, 'gain_vert_db')
+plot_gain(data_dipole, 3, 'gain_horz_db')
 
 
 

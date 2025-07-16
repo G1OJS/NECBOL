@@ -259,13 +259,16 @@ class components:
         return obj
 
 
-    def thin_sheet(self, model, sigma, epsillon_r, **dimensions):
+    def thin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_end = True, **dimensions):
         """
         Creates a grid of wires interconnected at segmnent level to economically model a flat sheet
-        which is normal to the x axis and extends from z=0 to z= height, and y = -length/2 to length/2
+        which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
+        force_odd = true ensures wires cross at y=z=0
+        close_end = true completes the grid with a final end wire. Setting this to False omitts this
+             wire so that the grid can be joined to other grids without wires overlapping
         Dimensions are length_, height_, thickness_, grid_pitch_
         Length and height are adjusted to fit an integer number of grid cells of the specified pitch
-        One end's z wire is omitted so that the grid can be joined to other grids
+        
         Models *either* conductive or dielectric sheet, not both.
         Set epsillon_r to 1.0 for conductive sheet
         Set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
@@ -287,10 +290,11 @@ class components:
         E = epsillon_r     
         dG = grid_pitch_m
 
-        nY = int(length_m / dG) 
-        nZ = int(height_m / dG) 
-        nY += (nY % 2) + 1  # ensure odd
-        nZ += (nZ % 2) + 1
+        nY = int(length_m / dG) + 1
+        nZ = int(height_m / dG) + 1
+        if (force_odd):
+            nY += (nY+1) % 2
+            nZ += (nZ+1) % 2
         L = (nY-1)*dG
         H = (nZ-1)*dG
         E0 = 8.854188 * 1e-12
@@ -298,7 +302,8 @@ class components:
         wire_radius_m = thickness_m/2
 
         # Create sheet
-        for i in range(1, nY):
+        i0 = 0 if close_end else 1
+        for i in range(i0, nY):
             x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, -H/2, 0, -L/2+i*dG, H/2]
             nSegs = nZ-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
