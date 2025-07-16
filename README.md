@@ -32,11 +32,10 @@ Install using pip: open a command window and type
 ```
 pip install necbol
 ```
-
-Copies of the files installed by pip are in the folders on this repository - see the Python files example_ ... and modify to suit your needs.
-**Tip:** Look inside necbol/components.py to see which antenna components and modification methods are currently available. 
-
 ## User Guide
-See the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework. 
-Browse the other examples as needed, and see the comments in the necbol/*.py files which are currently being written. 
+Copies of the files installed by pip are in the necbol folder on this repository. There are several example files intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
+
+**Tip:** Look inside necbol/components.py to see which antenna components and modification methods are currently available. I'm planning to make an automated help file from the comments inside this file (and then the others).
+
+For a quick and basic overview, see the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework. 
 
