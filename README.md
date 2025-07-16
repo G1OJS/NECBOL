@@ -37,6 +37,6 @@ Copies of the files installed by pip are in the folders on this repository - see
 **Tip:** Look inside necbol/components.py to see which antenna components and modification methods are currently available. 
 
 ## User Guide
-See the file example_minimal_example_dipole_with_detailed_comments.py for a minimal explanation of how to use this framework. 
+See the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework. 
 Browse the other examples as needed, and see the comments in the necbol/*.py files which are currently being written. 
 
