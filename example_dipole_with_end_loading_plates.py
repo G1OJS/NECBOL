@@ -12,9 +12,12 @@ model.set_frequency(MHz = 14)
 model.set_gain_az_arc(azimuth_start=0, azimuth_stop=360, nPoints=360, elevation=45)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 
-dplen_m = 5
-
 antenna_components = components ()
+
+
+dplen_m =4.5
+
+
 model.start_geometry()
 
 dipole = antenna_components.wire_Z(length_m = dplen_m, wire_diameter_mm = 10)
@@ -36,7 +39,8 @@ model.run_nec()
 data_dipole = model.read_radiation_pattern()
 plot_gain(data_dipole, 45, 'gain_horz_db')
 
-
+vswr = model.vswr()
+print(f"vswr:{vswr:.2f}")
 
 print(f"\n\nEnd of example {model.model_name}")
 
