@@ -1,2 +1,0 @@
-nec_wkg\Horizontal Dipole with end loading plates.nec
-nec_wkg\Horizontal Dipole with end loading plates.out
