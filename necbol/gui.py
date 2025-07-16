@@ -87,7 +87,7 @@ def plot_gain(pattern_data, elevation_deg, component, polar=True):
     phi_deg = [d['phi'] for d in az_cut]
     gain_db = [d[component] for d in az_cut]
 
-    title = f'{component} at elevation = {theta_cut}°'
+    title = f'{component} at elevation = {elevation_deg}°'
 
     if polar:
         phi_rad = np.radians(phi_deg)
@@ -112,30 +112,5 @@ def plot_gain(pattern_data, elevation_deg, component, polar=True):
     plt.show()
 
 
-
-def _plot_gain(pattern_data, elevation_deg, component):
-    import matplotlib.pyplot as plt
-
-    # Filter data for fixed elevation (theta)
-    theta_cut = 90 - elevation_deg
-    az_cut = [d for d in pattern_data if abs(d['theta'] - theta_cut) < 0.1]
-
-    # Sort by phi (just in case)
-    az_cut.sort(key=lambda d: d['phi'])
-
-    # Extract azimuth (phi) and vertical gain
-    phi_deg = [d['phi'] for d in az_cut]
-    v_gain_db = [d[component] for d in az_cut]
-
-    # Plot
-    plt.figure(figsize=(8, 4))
-    plt.plot(phi_deg, v_gain_db, label=f'{component} at elevation = {theta_cut}°')
-    plt.xlabel('Azimuth φ (degrees)')
-    plt.ylabel('Gain (dB)')
-    plt.title('')
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.show()
 
 

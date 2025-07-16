@@ -287,8 +287,10 @@ class components:
         E = epsillon_r     
         dG = grid_pitch_m
 
-        nY = int(length_m / dG) + 1
-        nZ = int(height_m / dG) + 1
+        nY = int(length_m / dG) 
+        nZ = int(height_m / dG) 
+        nY += (nY % 2) + 1  # ensure odd
+        nZ += (nZ % 2) + 1
         L = (nY-1)*dG
         H = (nZ-1)*dG
         E0 = 8.854188 * 1e-12
@@ -297,11 +299,11 @@ class components:
 
         # Create sheet
         for i in range(1, nY):
-            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, 0, 0, -L/2+i*dG, H]
+            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, -H/2, 0, -L/2+i*dG, H/2]
             nSegs = nZ-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
         for i in range(nZ):
-            x1, y1, z1, x2, y2, z2 = [0, -L/2, i*dG, 0, L/2, i*dG]
+            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+i*dG, 0, L/2, -H/2+i*dG]
             nSegs = nY-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 

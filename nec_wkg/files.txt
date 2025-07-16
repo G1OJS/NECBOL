@@ -1,2 +1,2 @@
-nec_wkg\Vertical Dipole with nearby sheet.nec
-nec_wkg\Vertical Dipole with nearby sheet.out
+nec_wkg\Horizontal Dipole with end loading plates.nec
+nec_wkg\Horizontal Dipole with end loading plates.out

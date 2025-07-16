@@ -4,7 +4,7 @@ from necbol.components import components
 from necbol.gui import show_wires_from_file, plot_gain
 
 model = NECModel(working_dir="nec_wkg",
-                 model_name = "Vertical Dipole",
+                 model_name = "A: Vertical Dipole in free space",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe")
 
 #model.set_wire_conductivity(sigma = 58000000)
@@ -24,11 +24,11 @@ model.write_nec()
 show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 model.run_nec()
 data_dipole = model.read_radiation_pattern()
-plot_gain(data_dipole, 87, 'gain_vert_db')
+plot_gain(data_dipole, 3, 'gain_vert_db')
 
-#nearby_sheet = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 50 )
-nearby_sheet = antenna_components.thin_sheet(model, 0, 2.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
-model.set_name(f"{model.model_name} with nearby sheet")
+nearby_sheet = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 50 )
+#nearby_sheet = antenna_components.thin_sheet(model, 0, 2.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 100 )
+model.set_name(f"B: Vertical Dipole with nearby conducting sheet")
 model.add(nearby_sheet)
 model.write_nec()
 show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
