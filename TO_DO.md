@@ -1,7 +1,7 @@
 ## Issues noted
 1. _place_feed_or_load needs extra logic to determine if one of the three new wires has a very small length, in which case just grow the centre segment a little
 2. It would be a good idea to pre-empt NEC warnings such as segment length< diameter / n etc as these could be explained/handled better
-3. parametrise the starting tag of LOADS, and add error trap if main wires encroach. Potentially change the default starting tag for *wires* to say 1000 and put feed and loads below.
+3. Duplicated feed / load specifications may silently produce unexpected results (overwrite, sum etc). Need to revise the way cards are accumulated to capture intent once and then write the appropriate card(s) at the end.
 4. Sometimes when nec reports errors, necbol stalls silently - check error trapping
 
 ## To Do
