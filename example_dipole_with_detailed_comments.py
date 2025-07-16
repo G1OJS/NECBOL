@@ -4,29 +4,43 @@
   with comments explaining how the NECBOL interface works.
 """
 
+#-------------------------------------------------------------------------------------------------------------------
 # These lines import NECBOL 
+#-------------------------------------------------------------------------------------------------------------------
 from necbol.modeller import NECModel
 from necbol.components import components 
 from necbol.gui import show_wires_from_file
 
+#-------------------------------------------------------------------------------------------------------------------
 # Start an antenna model called model (it can be called anything acceptable as a Python variable),
 # specifying where the working folder should be made, and where the nec executable is on your system
+#-------------------------------------------------------------------------------------------------------------------
 model = NECModel(working_dir="nec_wkg",
                  model_name = "Vertical Dipole",
                  nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe")
 
+#-------------------------------------------------------------------------------------------------------------------
 # These lines set the basic parameters for the model
+#-------------------------------------------------------------------------------------------------------------------
 # Wire conductivity. Can be omitted if perfect conductivity is OK to assume
 model.set_wire_conductivity(sigma = 58000000)
+
 # Frequency in MHz
 model.set_frequency(MHz = 144.2)
-# Frequency in azimuth and elevation of gain point (leave at 0,0 if you only want vswr)
+
+# Azimuth and elevation of the gain point (leave at 0,0 if you only want vswr)
 model.set_gain_point(azimuth = 0, elevation = 3)
+
 # Ground type. Currently limited to simple choices. If eps_r = 1, or if you omit this line,
 # nec is told to use no ground. Othewise you should set the origin height so that the antenna reference
 # point X,Y,Z = (0,0,0) is set to be the specified distance above ground.
 # You can specify this in m, mm, cm, in, or ft (e.g. origin_height_ft = 30.33)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0) 
+
+
+#-------------------------------------------------------------------------------------------------------------------
+# Now we define the antenna geometry
+#-------------------------------------------------------------------------------------------------------------------
 
 # Get a 'copy' of the geometry builder class called antenna_components (again, you can change this name if desired)
 antenna_components = components ()
@@ -45,7 +59,7 @@ model.start_geometry()
 dipole = antenna_components.wire_Z(length_mm = 1040, wire_diameter_mm = 10)
 
 # Now tell the nec interface where you're going to feed the antenna from
-# This line says you want to feed on the geometry object called dipole,
+# This example line below says you want to feed on the geometry object called dipole,
 # on the first wire in that structure, and halfway along that wire
 # If you know about nec segmentation, this automatically inserts a segment
 # to contain the feed, resulting in the previously 1-wire geometry object becoming a
@@ -57,6 +71,10 @@ model.place_feed(dipole, feed_wire_index=0, feed_alpha_wire=0.5)
 # "I've done defining the dipole, please add it to the model"
 model.add(dipole)
 
+#-------------------------------------------------------------------------------------------------------------------
+# Time to run NEC and extract some basic parameters from the results file
+#-------------------------------------------------------------------------------------------------------------------
+
 # now write all of the above definitions into the nec input file
 model.write_nec()
 # now ask nec to analyse the nec input file and produce a nec output file
@@ -64,12 +82,24 @@ model.run_nec()
 # get gains (H, V and Total) and vswr(calculated from impedance) from the nec output file
 gains = model.gains()
 vswr = model.vswr()
+
+#-------------------------------------------------------------------------------------------------------------------
+# And now a very minimal way of returning the extracted results for you to see
+#-------------------------------------------------------------------------------------------------------------------
+
 # print the results
 print(gains, f"vswr:{vswr:.2f}")
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
-# but you'll have to close the geometry window if you want anything to happen afterwards)
+# but you'll have to close the geometry window if you want anything to happen afterwards). Also
+# you don't *have* to call this at all, if you're happy that the antenna geometry is correct and you're just
+# optimising parameters or doing frequency sweeps (there's no harm in putting a big loop around all of the above,
+# apart from the import statements, and stepping through frequency as you wish and printing the results).
 show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
+
+#-------------------------------------------------------------------------------------------------------------------
+# That's it!
+#-------------------------------------------------------------------------------------------------------------------
 
 print(f"\n\nEnd of example {model.model_name}")
 
