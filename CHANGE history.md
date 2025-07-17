@@ -1,4 +1,4 @@
-# V2.0.3
+# V2.1.0
 Changes forced by 'stretching test case' of building a model of a car passenger cell with a handheld transmitter inside. This requires meshed grids to connect cleanly, which requires 0,1,2,3 or 4 edges to be left 'open' *and* requires changes to the wire connection decision functions:
 
 Revised sheet grid model to 
@@ -7,7 +7,7 @@ thin_sheet(self, model, sigma, epsillon_r, force_odd = True,
                    close_start = True, close_end = True,
                    close_bottom = True, close_top = True,
                    enforce_exact_pitch = True,
-                   **dimensions):
+                   **dimensions)
 ```
 where 
 - force_odd forces an odd number of wires, ensuring one central z wire and one central y wire cross at x=0, to make attaching other objects easier
@@ -18,10 +18,6 @@ The four 'close_' parameters determine whether or not the edges are 'sealed' wit
             close_bottom = True starts the grid with a y wire at z = -height/2 
 
 If enforce_exact_pitch is True, length and height are adjusted to fit an integer number of grid cells of the specified pitch. If False, length and height remain as specified and the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
-
-"point_on_object()" deleted (not used)
-
-
 
 "point_should_connect_to_wire" now also checks if wire to be connected is near a segment boundary, and preserves the wire (doesn't split it) if true
 
