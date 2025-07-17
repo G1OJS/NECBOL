@@ -259,13 +259,17 @@ class components:
         return obj
 
 
-    def thin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_end = True, **dimensions):
+    def thin_sheet(self, model, sigma, epsillon_r, force_odd = True,
+                   close_start = True, close_end = True,
+                   close_bottom = True, close_top = True,
+                   **dimensions):
         """
         Creates a grid of wires interconnected at segmnent level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         force_odd = true ensures wires cross at y=z=0
         close_end = true completes the grid with a final end wire. Setting this to False omitts this
              wire so that the grid can be joined to other grids without wires overlapping
+        close_start, close_bottom, close_top = true has the same effect as close_end
         Dimensions are length_, height_, thickness_, grid_pitch_
         Length and height are adjusted to fit an integer number of grid cells of the specified pitch
         
@@ -302,13 +306,17 @@ class components:
         wire_radius_m = thickness_m/2
 
         # Create sheet
-        i0 = 0 if close_end else 1
-        for i in range(i0, nY):
+        i0 = 0 if close_start else 1
+        i1 = nY if close_end else nY-1
+        j0 = 0 if close_bottom else 1
+        j1 = nZ if close_top else nZ-1
+        for i in range(i0, i1):     # make z wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, -H/2, 0, -L/2+i*dG, H/2]
             nSegs = nZ-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
-        for i in range(nZ):
-            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+i*dG, 0, L/2, -H/2+i*dG]
+
+        for j in range(j0, j1):     # make y wires
+            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dG, 0, L/2, -H/2+j*dG]
             nSegs = nY-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 

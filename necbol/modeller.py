@@ -92,28 +92,43 @@ class GeometryObject:
             w['a'] = tuple(map(float, R @ a))
             w['b'] = tuple(map(float, R @ b))
 
-    def connect_ends(self, other, tol=1e-3):
+    def connect_ends(self, other, tol=1e-3, verbose = True):
         wires_to_add=[]
         for ws in self.wires:
+            if(verbose):
+                print(f"Checking if ends of wire from {ws['a']} to {ws['b']} should connect to any of {len(other.wires)} other wires:")
             for es in [ws["a"], ws["b"]]:
                 for wo in other.wires:
-                    if (self.point_should_connect_to_wire(es,wo['a'],wo['b'],tol)):
+                    if (self.point_should_connect_to_wire(es,wo,tol)):
+                        print(np.array(ws["a"]))
+                        length_orig = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
+                        if(verbose):
+                            print(f"Inserting end of wire at {es} into {wo['nS']} segment {length_orig}m wire from {wo['a']} to {wo['b']}:")
                         b = wo["b"]
                         wo['b']=tuple(es)
-                        wires_to_add.append( (wo['iTag'], 0, *es, *b, wo['wr']) )
+                        length_shortened = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
+                        nS_shortened = max(1, int(wo['nS']*length_shortened/length_orig))
+                        nS_orig = wo['nS']
+                        wo['nS'] = nS_shortened
+                        nS_remainder = max(1,nS_orig - nS_shortened)
+                        if(verbose):
+                            print(f"    shortening wire to end at {wo['b']}: {length_shortened}m, using {nS_shortened} segments")
+                        wires_to_add.append( (wo['iTag'], nS_remainder, *wo['b'], *b, wo['wr']) )
+                        length_remainder = np.linalg.norm(np.array(wo["b"]) - np.array(b))
+                        if(verbose):
+                            print(f"    adding wire from {es} to {b}:  {length_remainder}m using {nS_remainder} segments")
                         break #(for efficiency only)
         for params in wires_to_add:
             other.add_wire(*params)
 
-    def point_should_connect_to_wire(self,P, A, B, tol=1e-6):
+    def point_should_connect_to_wire(self,P, wire, tol=1e-6):
         P = np.array(P, dtype=float)
-        A = np.array(A, dtype=float)
-        B = np.array(B, dtype=float)
+        A = np.array(wire['a'], dtype=float)
+        B = np.array(wire['b'], dtype=float)
         AB = B - A
         AP = P - A
         AB_len = np.linalg.norm(AB)
         # can't connect to a zero length wire using the splitting method
-        # but maybe should allow connecting by having the same co-ordinates
         if AB_len == 0:
             return False
         
@@ -124,16 +139,24 @@ class GeometryObject:
         if perp_dist > tol: 
             return False    
 
-        # We *are* close enough to the wire axis but if we're not between the ends, return false
-        t = np.dot(AP, AB) / (AB_len ** 2)
-        if (t<0 or t>1):
-            return False
-        
-        # if we are within 1mm of either end (wires are written to 3dp in m), return false
-        if ((np.linalg.norm(AP) < 0.001) or (np.linalg.norm(B-P) < 0.001)):
-            return False
+        # Project point onto the wire to get fractional position
+        alpha = np.dot(AP, AB) / (AB_len**2)
+        if not (0 <= alpha <= 1):
+            return False  # point is on the wire axis but not between the wire ends 
 
-        return True
+        # Check how far from the *nearest* segment boundary this projected alpha is
+        # Note: if the wire isn't already segmented, then a connection is required
+        if(wire['nS'] >0):
+            segment_pitch = 1 / wire['nS']
+            nearest_alpha = round(alpha / segment_pitch) * segment_pitch
+            alpha_dist = abs(alpha - nearest_alpha)
+            alpha_tol = tol / AB_len  # convert spatial tol to alpha-space
+
+            if alpha_dist < alpha_tol:
+                return False  # near a segment end — NEC will handle this as a normal junction
+
+        return True  
+
 
     def point_on_object(self,geom_object, wire_index, alpha_wire):
         if(wire_index> len(geom_object.wires)):
@@ -145,8 +168,7 @@ class GeometryObject:
         P = A + alpha_wire * (B-A)
         return P
 
-
-
+         
 #=================================================================================
 # Units processor
 #=================================================================================
@@ -372,12 +394,13 @@ class NECModel:
             w['nS'] = nS1
             geomObj.add_wire(item_iTag , 1, *C, *D, w["wr"])
             geomObj.add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
+            
                 
     def add(self, geomObj):
         for w in geomObj.get_wires():
             A = np.array(w["a"], dtype=float)
             B = np.array(w["b"], dtype=float)
-            if(w['nS'] == 0): # preserve pre-calculated segments
+            if(w['nS'] == 0): # calculate and update number of segments only if not already present
                 w['nS'] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
             self.model_text += f"GW {w['iTag']} {w['nS']} "
             for v in A:
