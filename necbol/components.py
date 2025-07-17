@@ -262,28 +262,34 @@ class components:
     def thin_sheet(self, model, sigma, epsillon_r, force_odd = True,
                    close_start = True, close_end = True,
                    close_bottom = True, close_top = True,
+                   enforce_exact_pitch = True,
                    **dimensions):
         """
-        Creates a grid of wires interconnected at segmnent level to economically model a flat sheet
+        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
-        force_odd = true ensures wires cross at y=z=0
-        close_end = true completes the grid with a final end wire. Setting this to False omitts this
-             wire so that the grid can be joined to other grids without wires overlapping
-        close_start, close_bottom, close_top = true has the same effect as close_end
-        Dimensions are length_, height_, thickness_, grid_pitch_
-        Length and height are adjusted to fit an integer number of grid cells of the specified pitch
-        
         Models *either* conductive or dielectric sheet, not both.
         Set epsillon_r to 1.0 for conductive sheet
         Set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
+
         Arguments:
             model - the object model being built
             sigma - conductivity in mhos/metre
             epsillon_r - relative dielectric constant
-            dimensions:
-                length_, height_, thickness_, grid_pitch_
-            
+            force_odd = true ensures wires cross at y=z=0
+            The four 'close_' parameters determine whether or not the edges are 'sealed' with a final wire (if True) or
+            not (if False) so that the grid can be joined to other grids without wires overlapping:
+                close_end = True completes the grid with a final end z wire at y = length/2 
+                close_start = True starts the grid with a z wire at y = -length/2 
+                close_top = True completes the grid with a y wire at z = height/2 
+                close_bottom = True starts the grid with a y wire at z = -height/2 
+            enforce_exact_pitch: if True, length and height are adjusted to fit an integer number
+            of grid cells of the specified pitch. If False, length and height remain as specified and
+            the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the
+            grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
+
+        Dimensions are length_, height_, thickness_, grid_pitch_
         """
+        
         print("NOTE: The thin_sheet model has been tested functionally but not validated quantitavely")
         iTag, obj = self.new_geometry_object()
         dimensions_m = self.units.from_suffixed_dimensions(dimensions)
@@ -299,8 +305,12 @@ class components:
         if (force_odd):
             nY += (nY+1) % 2
             nZ += (nZ+1) % 2
-        L = (nY-1)*dG
-        H = (nZ-1)*dG
+        if (enforce_exact_pitch):
+            L = (nY-1)*dG
+            H = (nZ-1)*dG
+        else:
+            dY = L/(nY-1)
+            dZ = H/(nz-1)
         E0 = 8.854188 * 1e-12
         CD = E0*(E-1) * thickness_m
         wire_radius_m = thickness_m/2
@@ -311,12 +321,12 @@ class components:
         j0 = 0 if close_bottom else 1
         j1 = nZ if close_top else nZ-1
         for i in range(i0, i1):     # make z wires
-            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dG, -H/2, 0, -L/2+i*dG, H/2]
+            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dY, -H/2, 0, -L/2+i*dY, H/2]
             nSegs = nZ-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         for j in range(j0, j1):     # make y wires
-            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dG, 0, L/2, -H/2+j*dG]
+            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dZ, 0, L/2, -H/2+j*dZ]
             nSegs = nY-1
             obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
