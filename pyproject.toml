@@ -22,7 +22,6 @@ classifiers = [
     "Intended Audience :: Telecommunications Industry",
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Visualization",
-    "License :: OSI Approved :: MIT License"
 ]
 
 keywords = ["nec", "antenna", "wire editor", "3D", "electromagnetics", "ham radio", "radio", "optimisation"]
