@@ -21,7 +21,7 @@ def build_csc(model, d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
 
     # with new treatment of wire splitting for connections, this has to come before connecting wires
     # otherwise a zero-length wire is created
-    model.place_feed(top_loop, feed_alpha_object = 1)
+ #  model.place_feed(top_loop, feed_alpha_object = 1)
        
     slot_wire1 = antenna_components.wire_Z(length_mm = h_mm, wire_diameter_mm = main_wire_diameter_mm)
     slot_wire1.translate(dx_mm = d_mm / 2, dy_m = 0, dz_mm = h_mm /2)
@@ -70,7 +70,7 @@ model = build_csc(model, **params)
 model.write_nec()
 show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
 
-#optimise()
+optimise()
 
 print(f"\n\nEnd of example {model.model_name}")
 
