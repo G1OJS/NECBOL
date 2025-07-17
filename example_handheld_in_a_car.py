@@ -8,7 +8,7 @@ from necbol.gui import show_wires_from_file, plot_gain
  the moment, just the passenger cell) using necbol. But note that no claims are made for
  the suitability of this geometry for generating accurate results from NEC.
 
- Provided that the sheet models join at their *ends*, and appropriate use is made of the
+ Provided that the sheet models join at their *edges*, and appropriate use is made of the
  close_* options so that end wires from two joining grids don't overlap,
  as in the code below, this produces a nec.inp file that runs in nec with no errors, allowing
  far field distortion and currents on the car's surfaces to be seen.
