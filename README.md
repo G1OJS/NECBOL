@@ -2,7 +2,7 @@
 
 **NECBOL** is a Python library that provides a geometry-first interface for building antenna models using the NEC (Numerical Electromagnetics Code) engine.
 
-### ⚠️ some function name and module name changes were made at version V2.0.0
+#### ⚠️ some function name and module name changes were made at version V2.0.0
 If you have been using previous versions with your own python files, you'll need to change the import statements and the name of the wire viewer function.
 See the file [CHANGES from V1.0.0.md](https://github.com/G1OJS/NECBOL/blob/22d1231ab0b61628b26277852affff68ede150da/CHANGES%20from%20V1.0.0.md) for details.
 
