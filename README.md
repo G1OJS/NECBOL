@@ -10,7 +10,7 @@ See the file [CHANGES from V1.0.0.md](https://github.com/G1OJS/NECBOL/blob/22d12
 
 - **Component-based antenna construction**: Easily create antennas using predefined components.
 - **Flexible length units**: Specify antenna dimensions in mm, m, cm, ft or in as needed.
-- **Automatic wire joining**: Automatically connects wires that intersect, simplifying model creation.
+- **Automatic wire joining**: Automatically connects wires that intentionally intersect via the connector object, simplifying model creation.
 - **Flexible connector placement**: Add connectors between specific points on different objects.
 - **Configurable simulation parameters**: Set frequency, ground type, and pattern observation points.
 - **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
