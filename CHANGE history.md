@@ -7,7 +7,7 @@ thin_sheet(self, model, sigma, epsillon_r, force_odd = True,
                    close_start = True, close_end = True,
                    close_bottom = True, close_top = True,
                    enforce_exact_pitch = True,
-                   **dimensions):
+                   **dimensions)
 ```
 where 
 - force_odd forces an odd number of wires, ensuring one central z wire and one central y wire cross at x=0, to make attaching other objects easier
