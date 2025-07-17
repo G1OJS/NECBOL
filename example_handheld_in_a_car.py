@@ -9,9 +9,9 @@ from necbol.gui import show_wires_from_file, plot_gain
  the suitability of this geometry for generating accurate results from NEC.
 
  Provided that the sheet models join at their *ends*, and appropriate use is made of the
- close_end and close_start options so that end z wires from two joining grids don't overlap,
+ close_* options so that end wires from two joining grids don't overlap,
  as in the code below, this produces a nec.inp file that runs in nec with no errors, allowing
- far field distortion and currents on car surfaces to be seen.
+ far field distortion and currents on the car's surfaces to be seen.
 
  The code below models a passenger cell with the specified dimensions, with a 25cm long antenna
  in the front right seat, operating at 144.2 MHz.
