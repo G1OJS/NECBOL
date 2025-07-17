@@ -92,7 +92,7 @@ class GeometryObject:
             w['a'] = tuple(map(float, R @ a))
             w['b'] = tuple(map(float, R @ b))
 
-    def connect_ends(self, other, tol=1e-3, verbose = True):
+    def connect_ends(self, other, tol=1e-3, verbose = False):
         wires_to_add=[]
         for ws in self.wires:
             if(verbose):
@@ -157,9 +157,17 @@ class GeometryObject:
             if alpha_dist < alpha_tol:
                 return False  # near a segment end — NEC will handle this as a normal junction
 
-        return True  
+        return True  # wire needs to be split to allow the connection
 
-
+    def point_on_object(self,geom_object, wire_index, alpha_wire):
+        if(wire_index> len(geom_object.wires)):
+            wire_index = len(geom_object.wires)
+            alpha_wire = 1.0
+        w = geom_object.wires[wire_index]
+        A = np.array(w["a"], dtype=float)
+        B = np.array(w["b"], dtype=float)
+        P = A + alpha_wire * (B-A)
+        return P
          
 #=================================================================================
 # Units processor

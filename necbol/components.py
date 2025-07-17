@@ -308,6 +308,8 @@ class components:
         if (enforce_exact_pitch):
             L = (nY-1)*dG
             H = (nZ-1)*dG
+            dY = dG
+            dZ = dG
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
