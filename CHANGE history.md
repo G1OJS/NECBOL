@@ -1,4 +1,4 @@
-# V2.0.3
+# V2.1.0
 Changes forced by 'stretching test case' of building a model of a car passenger cell with a handheld transmitter inside. This requires meshed grids to connect cleanly, which requires 0,1,2,3 or 4 edges to be left 'open' *and* requires changes to the wire connection decision functions:
 
 Revised sheet grid model to 
