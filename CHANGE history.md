@@ -21,8 +21,6 @@ If enforce_exact_pitch is True, length and height are adjusted to fit an integer
 
 "point_on_object()" deleted (not used)
 
-
-
 "point_should_connect_to_wire" now also checks if wire to be connected is near a segment boundary, and preserves the wire (doesn't split it) if true
 
 
