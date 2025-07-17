@@ -19,8 +19,6 @@ The four 'close_' parameters determine whether or not the edges are 'sealed' wit
 
 If enforce_exact_pitch is True, length and height are adjusted to fit an integer number of grid cells of the specified pitch. If False, length and height remain as specified and the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
 
-"point_on_object()" deleted (not used)
-
 "point_should_connect_to_wire" now also checks if wire to be connected is near a segment boundary, and preserves the wire (doesn't split it) if true
 
 
