@@ -4,14 +4,22 @@
 3. Duplicated feed / load specifications may silently produce unexpected results (overwrite, sum etc). Need to revise the way cards are accumulated to capture intent once and then write the appropriate card(s) at the end.
 4. Sometimes when nec reports errors, necbol stalls silently - check error trapping
 
-## To Do
-1. Show height above ground on the XY plane in wire viewer, also identify loads.
-2. Add warning if lowest part of antenna is below ground.
-3. Wireframe viewer - arrow pointing to specified gain direction (possibly also max gain? would need to specify a phi cut rather than single point)
-4. Modify "gains" getter to report max gain by default when a Phi cut is specified
-5. Add vswr and gains to pattern plots
+## To DO
+### Wireframe viewer
+- Show height above ground on the XY plane
+- Highlight loads
+- Add warning if lowest part of antenna is below ground
+- Add vswr
+- arrow pointing to specified gain direction
+- arrow pointing to max gain direction (needs a phi cut)
 
-## Next steps / future plans/ideas
+### NEC runner
+- Modify "gains" getter to report max gain by default when a Phi cut is specified
+
+### Geometry
+- Add a 'bend' method
+
+## Future plans/ideas
 - further restructuring to enable load segment deconfliction (ensure nec doesn't silently overwrite loads). Store required loads in NECmodel as variables for later checking instead of just writing the LD card strings to LOADS.
 - optimiser
     - polarisation purity
