@@ -15,6 +15,7 @@ See the file [CHANGES from V1.0.0.md](https://github.com/G1OJS/NECBOL/blob/22d12
 - **Configurable simulation parameters**: Set frequency, ground type, and pattern observation points.
 - **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
 - **Easy to place**: feedpoint, series RLC load(s), prarallel RLC load(s) specified in ohms, uH and pF
+- **Easy to define meshed grids** which can also be joined edge to edge to create box structures (see the [car model](https://github.com/G1OJS/NECBOL/blob/main/example_handheld_in_a_car.py))
 - **Dielectric sheet model**: currently experimental, not validated, built in to a flat sheet geometry component
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
 - **More coming soon**: See [next steps/future plans](https://github.com/G1OJS/NECBOL/blob/main/TO_DO.md)
