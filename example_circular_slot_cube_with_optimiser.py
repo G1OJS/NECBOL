@@ -18,7 +18,11 @@ def build_csc(model, d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
     bottom_loop = antenna_components.circular_arc(diameter_mm = d_mm, arc_phi_deg = 360-feed_gap_angle_deg,  n_wires=36, wire_diameter_mm = main_wire_diameter_mm)
     
     top_loop.translate(dx_m = 0, dy_m = 0, dz_mm = h_mm)
-    
+
+    # with new treatment of wire splitting for connections, this has to come before connecting wires
+    # otherwise a zero-length wire is created
+ #  model.place_feed(top_loop, feed_alpha_object = 1)
+       
     slot_wire1 = antenna_components.wire_Z(length_mm = h_mm, wire_diameter_mm = main_wire_diameter_mm)
     slot_wire1.translate(dx_mm = d_mm / 2, dy_m = 0, dz_mm = h_mm /2)
     slot_wire1.connect_ends(top_loop)
@@ -29,8 +33,6 @@ def build_csc(model, d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
     slot_wire2.rotate_around_Z(angle_deg = -feed_gap_angle_deg)
     slot_wire2.connect_ends(top_loop, tol = 0.1)
     slot_wire2.connect_ends(bottom_loop, tol = 0.1)
-
-    model.place_feed(top_loop, feed_alpha_object = 1)
 
     model.add(top_loop)
     model.add(bottom_loop)
