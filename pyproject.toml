@@ -16,7 +16,15 @@ dependencies = [
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Telecommunications Industry",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Visualization"
 ]
+
+keywords = ["nec", "antenna", "wire editor", "3D", "electromagnetics", "ham radio", "radio", "optimisation"]
 
 [project.urls]
 Homepage = "https://github.com/G1OJS/NECBOL"
