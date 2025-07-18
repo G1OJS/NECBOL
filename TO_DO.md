@@ -5,6 +5,9 @@
 4. Sometimes when nec reports errors, necbol stalls silently - check error trapping
 
 ## To DO
+### Examples
+- Turn some of these into case studies with screenshots and narrative
+
 ### Update gain collection
 - delete gains
 - rewrite  h_gain, v_gain, tot_gain, to call read_radiation_pattern and get gains at single gain az,el from there
