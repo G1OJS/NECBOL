@@ -38,5 +38,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/outline.html docs/user_functions.html
           git diff --cached --quiet || git commit -m "Update outline files"
-    #      git push
+          git push
 
