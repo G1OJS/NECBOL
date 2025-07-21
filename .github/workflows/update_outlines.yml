@@ -35,9 +35,8 @@ jobs:
       - name: Commit docu-lite outputs if changed
         run: |
           git config user.name "github-actions[bot]"
-          # this is the default GitHub email
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/outline.html docs/user_functions.html
-          git diff --cached --quiet || git commit -m "Update outline files"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/G1OJS/NECBOL.git
+    #      git diff --cached --quiet || git commit -m "Update outline files"
+    #      git push
 
