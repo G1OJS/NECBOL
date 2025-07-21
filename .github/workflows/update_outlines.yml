@@ -1,0 +1,45 @@
+name: Generate docu-lite outline
+
+on:
+  push:
+    paths:
+      - '**.py'
+      
+  workflow_dispatch:
+      
+jobs:
+  outline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          persist-credentials: true  # ← this is critical
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install docu-lite
+        run: |
+          python -m pip install docu-lite 
+
+      - name: Run docu-lite
+        run: |
+          docu-lite
+
+      - name: Run docu-lite in docmode
+        run: |
+          docu-lite --config docu-lite-docmode.ini
+
+#      - name: Commit docu-lite outputs if changed
+#        run: |
+#          git config user.name "github-actions[bot]"
+#          # this is the default GitHub email
+#          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+#          # .ini file is also an output if auto-generated
+#          git add docu-lite*
+#          git diff --cached --quiet || git commit -m "Update outline files"
+#          git push
