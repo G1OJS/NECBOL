@@ -26,12 +26,10 @@ jobs:
         run: |
           python -m pip install docu-lite 
 
-      - name: Run docu-lite
-        run: |
-          docu-lite
-
       - name: Run docu-lite in docmode
         run: |
+          cd docs
+          docu-lite
           docu-lite --config docu-lite-docmode.ini
 
 #      - name: Commit docu-lite outputs if changed
