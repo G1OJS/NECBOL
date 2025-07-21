@@ -38,3 +38,4 @@ Copies of the files installed by pip are in the [necbol folder](https://github.c
 
 For a quick and basic overview, see the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework. 
 
+**NEW** Automatic documentation is [here](https://g1ojs.github.io/NECBOL/user_functions.html)
