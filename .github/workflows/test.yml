@@ -1,4 +1,4 @@
-name: Generate docu-lite outline
+name: Generate docu-lite outline no commit
 
 on:
   push:
