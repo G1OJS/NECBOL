@@ -8,6 +8,10 @@ build/
 __pycache__/
 *.pyc
 
+# Dynamic
+outline.html
+user_functions.html
+
 #nec folders
 nec_wkg/
 NECBOL-dev.lnk
