@@ -19,7 +19,7 @@
 <hr><div><span class ='class signature'>class units:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, default_unit: str = "m"):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspfrom_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:</span></div>
-<pre class ='docstring content'>         Converts suffixed values like 'd_mm' to meters.
+<pre class ='docstring content'>        Converts suffixed values like &#x27;d_mm&#x27; to meters.
 
         Output keys have &#x27;_m&#x27; suffix unless they already end with &#x27;_m&#x27;,
         in which case they are passed through unchanged (assumed meters).
@@ -33,7 +33,7 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(self, azimuth, elevation):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(self, eps_r, sigma, **params):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
             Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
             If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
             If you don&#x27;t call this function, free space will be assumed.
@@ -46,22 +46,22 @@
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspstart_geometry(self, comments="No comments specified"):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
             inserts a single segment containing a series RLC load into an existing geometry object
             see _place_feed_or_load for how to specify the position of the segment within the object
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
             inserts a single segment containing a parakllel RLC load into an existing geometry object
             see _place_feed_or_load for how to specify the position of the segment within the object
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
             inserts a single segment containing the excitation point into an existing geometry object
             see _place_feed_or_load for how to specify the position of the segment within the object
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsp_place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
             inserts a single segment with a specified iTag into an existing geometry object
             position within the object is specied as
             EITHER:
@@ -93,16 +93,29 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(pattern_data, elevation_deg, component, polar=True):</span></div>
 <span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, starting_tag_nr = 0):</span></div>
-<pre class ='docstring content'>         Sets object_counter to starting_tag_nr (tags number identifies an object)
-        and loads the units module class units() body 
+<pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
+        and loads the units module class units()body 
         self.object_counter = starting_tag_nr
         self.units = units()
 
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspnew_geometry_object(self):</span></div>
+<pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value body 
+        self.object_counter += 1
+        iTag = self.object_counter
+        return iTag, GeometryObject([])
+
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspcopy_of(self, existing_obj):</span></div>
+<pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag body 
+        iTag, obj = self.new_geometry_object()
+        for w in existing_obj.wires:
+            obj.add_wire(iTag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
+        return obj
+        
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspwire_Z(self, **dimensions):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Create a straight wire aligned along the Z-axis, centered at the origin.
 
         The wire extends from -length/2 to +length/2 on the Z-axis, with the specified diameter.
@@ -115,7 +128,7 @@
             obj (GeometryObject): The constructed geometry object with the defined wire.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprect_loop_XZ(self, **dimensions):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
         The &#x27;side&#x27; wires extend from Z=-length/2 to Z=+length/2 at X = +/- width/2.
         The &#x27;top/bottom&#x27; wires extend from X=-width/2 to X=+width/2 at Z = +/- length/2.
@@ -128,7 +141,7 @@
             obj (GeometryObject): The constructed geometry object with the defined wires.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Create a single wire from a specified point on the from_object to a specified point on the to_object.
         The point on an object is specified as {ftom|to}_wire_index AND {ftom|to}_alpha_wire, which specify respectively:
               the i&#x27;th wire in the n wires in the object, and
@@ -140,7 +153,7 @@
             obj (GeometryObject): The constructed geometry object with the defined wire.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsphelix(self,  wires_per_turn, sense, **dimensions):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Create a single helix with axis = Z axis
         Arguments_
             sense (&quot;LH&quot;|&quot;RH&quot;) - the handedness of the helix          
@@ -155,7 +168,7 @@
             obj (GeometryObject): The constructed geometry object representing the helix.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspflexi_helix(self, sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
 
             r(Z) = r0 * Σ [RA_i * cos(i * π * Z / l + RP_i)] for i=0..n-1
@@ -181,7 +194,7 @@
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspcosine_series(s, terms):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspcircular_arc(self, n_wires, arc_phi_deg, **dimensions):</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Create a single circular arc in the XY plane centred on the origin
         Arguments:
             n_wires (int) - the number of wires to use to represent the arc         
@@ -194,7 +207,7 @@
             obj (GeometryObject): The constructed geometry object representing the helix.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(self, model, sigma, epsillon_r, force_odd = True,</span></div>
-<pre class ='docstring content'>         
+<pre class ='docstring content'>        
         Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         Models *either* conductive or dielectric sheet, not both.
@@ -220,4 +233,4 @@
         Dimensions are length_, height_, thickness_, grid_pitch_
 </pre>
 
-<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v0.8.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
+<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v0.9.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
