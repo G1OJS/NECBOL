@@ -94,25 +94,13 @@
 <span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, starting_tag_nr = 0):</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
-        and loads the units module class units()body 
-        self.object_counter = starting_tag_nr
-        self.units = units()
-
+        and loads the units module class units()
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspnew_geometry_object(self):</span></div>
-<pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value body 
-        self.object_counter += 1
-        iTag = self.object_counter
-        return iTag, GeometryObject([])
-
+<pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspcopy_of(self, existing_obj):</span></div>
-<pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag body 
-        iTag, obj = self.new_geometry_object()
-        for w in existing_obj.wires:
-            obj.add_wire(iTag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
-        return obj
-        
+<pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspwire_Z(self, **dimensions):</span></div>
 <pre class ='docstring content'>        
@@ -233,4 +221,4 @@
         Dimensions are length_, height_, thickness_, grid_pitch_
 </pre>
 
-<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.0.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
+<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.2.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
