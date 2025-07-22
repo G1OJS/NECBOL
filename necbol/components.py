@@ -34,18 +34,21 @@ from necbol.modeller import GeometryObject,units
 class components:
     def __init__(self, starting_tag_nr = 0):
         """Sets object_counter to starting_tag_nr (tags number identifies an object)
-        and loads the units module class units()"""
+        and loads the units module class units()
+        """
         self.object_counter = starting_tag_nr
         self.units = units()
 
     def new_geometry_object(self):
-        """increment the object counter and return a GeometryObject with the counter's new value """
+        """increment the object counter and return a GeometryObject with the counter's new value
+        """
         self.object_counter += 1
         iTag = self.object_counter
         return iTag, GeometryObject([])
 
     def copy_of(self, existing_obj):
-        """Returns a clone of existing_obj with a new iTag """
+        """Returns a clone of existing_obj with a new iTag
+        """
         iTag, obj = self.new_geometry_object()
         for w in existing_obj.wires:
             obj.add_wire(iTag, w['nS'], *w['a'], *w['b'], w['wr'])
