@@ -1,14 +1,14 @@
 import sys, os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, r"C:\Users\drala\Documents\Projects\GitHub\NECBOL")
 
-from necbol.nec_wrapper import NECModel
-from necbol import wire_viewer
-from necbol import geometry_builder
+from necbol.modeller import NECModel
+from necbol.components import components 
+from necbol.gui import show_wires_from_file, plot_gain
 
 def build_antenna(model, l_mm, ra1,rp1,ra2,rp2,ra3,rp3, pa1,pp1,pa2,pp2,pa3,pp3):
 
     model.start_geometry()
-    antenna_components = geometry_builder.components()
+    antenna_components = components()
     
     helix = antenna_components.flexi_helix(
                                 length_mm=l_mm,
@@ -60,7 +60,7 @@ bounds = {'l_mm':(10,200)}
 
 model=build_antenna(model,**params)
 model.write_nec()
-wire_viewer.view_nec_input(model.nec_in, model.EX_TAG, title = model.model_name)
+show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 
 
 optimise()

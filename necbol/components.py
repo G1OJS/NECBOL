@@ -25,7 +25,7 @@ SOFTWARE.
 
 import numpy as np
 import math
-from necbol.modeller import GeometryObject,units
+from necbol.modeller import GeometryObject,_units
 
 #=================================================================================
 # Cannonical components
@@ -34,12 +34,12 @@ from necbol.modeller import GeometryObject,units
 class components:
     def __init__(self, starting_tag_nr = 0):
         """Sets object_counter to starting_tag_nr (tags number identifies an object)
-        and loads the units module class units()
+        and loads the _units module class _units()
         """
         self.object_counter = starting_tag_nr
-        self.units = units()
+        self._units = _units()
 
-    def new_geometry_object(self):
+    def _new_geometry_object(self):
         """increment the object counter and return a GeometryObject with the counter's new value
         """
         self.object_counter += 1
@@ -49,9 +49,9 @@ class components:
     def copy_of(self, existing_obj):
         """Returns a clone of existing_obj with a new iTag
         """
-        iTag, obj = self.new_geometry_object()
+        iTag, obj = self._new_geometry_object()
         for w in existing_obj.wires:
-            obj.add_wire(iTag, w['nS'], *w['a'], *w['b'], w['wr'])
+            obj._add_wire(iTag, w['nS'], *w['a'], *w['b'], w['wr'])
         return obj
         
     def wire_Z(self, **dimensions):
@@ -67,11 +67,11 @@ class components:
         Returns:
             obj (GeometryObject): The constructed geometry object with the defined wire.
         """
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         half_length_m = dimensions_m.get('length_m')/2
         wire_radius_m = dimensions_m.get('wire_diameter_m')/2
-        obj.add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
         return obj
     
     def rect_loop_XZ(self, **dimensions):
@@ -87,15 +87,15 @@ class components:
         Returns:
             obj (GeometryObject): The constructed geometry object with the defined wires.
         """
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         half_length_m = dimensions_m.get('length_m')/2
         half_width_m = dimensions_m.get('width_m')/2
         wire_radius_m = dimensions_m.get('wire_diameter_m')/2        
-        obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
-        obj.add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
-        obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
-        obj.add_wire(iTag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
         return obj
 
     def connector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):
@@ -110,10 +110,10 @@ class components:
         Returns:
             obj (GeometryObject): The constructed geometry object with the defined wire.
         """
-        iTag, obj = self.new_geometry_object()
-        from_point = obj.point_on_object(from_object, from_wire_index, from_alpha_wire)
-        to_point = obj.point_on_object(to_object, to_wire_index, to_alpha_wire)
-        obj.add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
+        iTag, obj = self._new_geometry_object()
+        from_point = obj._point_on_object(from_object, from_wire_index, from_alpha_wire)
+        to_point = obj._point_on_object(to_object, to_wire_index, to_alpha_wire)
+        obj._add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
     def helix(self,  wires_per_turn, sense, **dimensions):
@@ -131,8 +131,8 @@ class components:
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
         """
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get('diameter_m')/2
         length_m = dimensions_m.get('length_m')
         pitch_m = dimensions_m.get('pitch_m')
@@ -153,7 +153,7 @@ class components:
             x2 = radius_m * math.cos(phi2)
             y2 = radius_m * math.sin(phi2)
             z2 = delta_z_m * (i + 1)
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
@@ -183,12 +183,12 @@ class components:
             GeometryObject: The constructed helix geometry object.
         """
 
-        def cosine_series(s, terms):
+        def _cosine_series(s, terms):
             return sum(A * math.cos(i * math.pi * s + P) for i, (A, P) in enumerate(terms))
 
         # === Parameter unpacking and setup ===
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
 
         l_m = dimensions_m.get('length_m')
         r0_m = dimensions_m.get('r0_m')
@@ -212,8 +212,8 @@ class components:
         for i, phi in enumerate(phi_list):
             s = phi / total_phi  # Normalize φ to [0, +1]
 
-            radius = r0_m * cosine_series(s, r_cos_params)
-            pitch = p0_m * cosine_series(s, p_cos_params)
+            radius = r0_m * _cosine_series(s, r_cos_params)
+            pitch = p0_m * _cosine_series(s, p_cos_params)
             delta_phi = total_phi / n_segments
 
             if i > 0:
@@ -226,7 +226,7 @@ class components:
         for i in range(n_segments):
             x1, y1, z1 = points[i]
             x2, y2, z2 = points[i + 1]
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
@@ -244,20 +244,20 @@ class components:
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
         """
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get('diameter_m')/2
         wire_radius_m = dimensions_m.get('wire_diameter_m')/2    
 
         delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
-            ca, sa = obj.cos_sin(delta_phi_deg * i)
+            ca, sa = obj._cos_sin(delta_phi_deg * i)
             x1 = radius_m * ca
             y1 = radius_m * sa
-            ca, sa = obj.cos_sin(delta_phi_deg * (i+1))
+            ca, sa = obj._cos_sin(delta_phi_deg * (i+1))
             x2 = radius_m * ca
             y2 = radius_m * sa
-            obj.add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
+            obj._add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
 
         return obj
 
@@ -294,8 +294,8 @@ class components:
         """
         
         print("NOTE: The thin_sheet model has been tested functionally but not validated quantitavely")
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         length_m = dimensions_m.get('length_m')
         height_m = dimensions_m.get('height_m')
         grid_pitch_m = dimensions_m.get('grid_pitch_m')
@@ -328,12 +328,12 @@ class components:
         for i in range(i0, i1):     # make z wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dY, -H/2, 0, -L/2+i*dY, H/2]
             nSegs = nZ-1
-            obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         for j in range(j0, j1):     # make y wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dZ, 0, L/2, -H/2+j*dZ]
             nSegs = nY-1
-            obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         # add conductive / capacitive load to the iTag of this object
         # note we aren't ineserting a new segment specifically for the load, so there's no need to
@@ -344,7 +344,7 @@ class components:
         else:
             R_Ohms = dG / sigma
             C_F = 0.0
-        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.6e} {1e-12:.6e} {CD:.6e}\n")
+        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.6e} 0 {CD:.6e}\n")
                     
         return obj
 

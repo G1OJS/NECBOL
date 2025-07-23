@@ -36,90 +36,94 @@ import os
 class GeometryObject:
     def __init__(self, wires):
         self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
-        self.units = units()
-
-    def add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
-        self.wires.append({"iTag":iTag, "nS":nS, "a":(x1, y1, z1), "b":(x2, y2, z2), "wr":wr})
-
-    def get_wires(self):
-        return self.wires
+        self._units = _units()
 
     def translate(self, **params):
-        params_m = self.units.from_suffixed_dimensions(params)
+        params_m = self._units._from_suffixed_dimensions(params)
         for w in self.wires:
             w['a'] = tuple(map(float,np.array(w['a']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
             w['b'] = tuple(map(float,np.array(w['b']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
 
     def rotate_ZtoY(self):
         R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
-        return self.rotate(R)
+        return self._rotate(R)
     
     def rotate_ZtoX(self):
         R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
-        return self.rotate(R)
+        return self._rotate(R)
 
     def rotate_around_Z(self, angle_deg):
-        ca, sa = self.cos_sin(angle_deg)
+        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[ca, -sa, 0],
                       [sa, ca, 0],
                       [0, 0, 1]])
-        return self.rotate(R)
+        return self._rotate(R)
 
     def rotate_around_X(self, angle_deg):
-        ca, sa = self.cos_sin(angle_deg)
+        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[1, 0, 0],
                       [0, ca, -sa],
                       [0, sa, ca]])
-        return self.rotate(R)
+        return self._rotate(R)
 
     def rotate_around_Y(self, angle_deg):
-        ca, sa = self.cos_sin(angle_deg)
+        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[ca, 0, sa],
                       [0, 1, 0],
                       [-sa, 0, ca]])
-        return self.rotate(R)
+        return self._rotate(R)
 
-    def cos_sin(self,angle_deg):
+    def connect_ends(self, other, tol=1e-3, verbose = False):
+    wires_to_add=[]
+    for ws in self.wires:
+        if(verbose):
+            print(f"\nChecking if ends of wire from {ws['a']} to {ws['b']} should connect to any of {len(other.wires)} other wires:")
+        for es in [ws["a"], ws["b"]]:
+            for wo in other.wires:
+                if (self._point_should_connect_to_wire(es,wo,tol)):
+                    wire_seg_status = f"{wo['nS']} segment" if wo['nS'] > 0 else 'unsegmented'
+                    length_orig = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
+                    b_orig = wo["b"]
+                    wo['b']=tuple(es)
+                    length_shortened = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
+                    nS_shortened = max(1, int(wo['nS']*length_shortened/length_orig))
+                    nS_orig = wo['nS']
+                    wo['nS'] = nS_shortened
+                    nS_remainder = max(1,nS_orig - nS_shortened)
+                    wires_to_add.append( (wo['iTag'], nS_remainder, *wo['b'], *b_orig, wo['wr']) )
+                    length_remainder = np.linalg.norm(np.array(wo["b"]) - np.array(b_orig))
+                    if(verbose):
+                        print(f"Inserting end of wire at {wo['b']} into {wire_seg_status} wire {length_orig}m wire from {wo['a']} to {b_orig}:")
+                        print(f"    by shortening wire to end at {wo['b']}: {length_shortened}m, using {nS_shortened} segments")
+                        print(f"    and adding wire from {wo["b"]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments")
+                    break #(for efficiency only)
+    for params in wires_to_add:
+        other._add_wire(*params)
+
+#===============================================================
+# internal functions for class GeometryObject
+#===============================================================
+
+    def _cos_sin(self,angle_deg):
         angle_rad = math.pi*angle_deg/180
         ca = math.cos(angle_rad)
         sa = math.sin(angle_rad)
         return ca, sa
     
-    def rotate(self, R):
+    def _rotate(self, R):
         for w in self.wires:
             a = np.array(w['a'])
             b = np.array(w['b'])
             w['a'] = tuple(map(float, R @ a))
             w['b'] = tuple(map(float, R @ b))
 
-    def connect_ends(self, other, tol=1e-3, verbose = False):
-        wires_to_add=[]
-        for ws in self.wires:
-            if(verbose):
-                print(f"\nChecking if ends of wire from {ws['a']} to {ws['b']} should connect to any of {len(other.wires)} other wires:")
-            for es in [ws["a"], ws["b"]]:
-                for wo in other.wires:
-                    if (self.point_should_connect_to_wire(es,wo,tol)):
-                        wire_seg_status = f"{wo['nS']} segment" if wo['nS'] > 0 else 'unsegmented'
-                        length_orig = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
-                        b_orig = wo["b"]
-                        wo['b']=tuple(es)
-                        length_shortened = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
-                        nS_shortened = max(1, int(wo['nS']*length_shortened/length_orig))
-                        nS_orig = wo['nS']
-                        wo['nS'] = nS_shortened
-                        nS_remainder = max(1,nS_orig - nS_shortened)
-                        wires_to_add.append( (wo['iTag'], nS_remainder, *wo['b'], *b_orig, wo['wr']) )
-                        length_remainder = np.linalg.norm(np.array(wo["b"]) - np.array(b_orig))
-                        if(verbose):
-                            print(f"Inserting end of wire at {wo['b']} into {wire_seg_status} wire {length_orig}m wire from {wo['a']} to {b_orig}:")
-                            print(f"    by shortening wire to end at {wo['b']}: {length_shortened}m, using {nS_shortened} segments")
-                            print(f"    and adding wire from {wo["b"]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments")
-                        break #(for efficiency only)
-        for params in wires_to_add:
-            other.add_wire(*params)
+    def _add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
+        self.wires.append({"iTag":iTag, "nS":nS, "a":(x1, y1, z1), "b":(x2, y2, z2), "wr":wr})
 
-    def point_should_connect_to_wire(self,P, wire, tol=1e-3):
+    def _get_wires(self):
+        return self.wires
+
+    def _point_should_connect_to_wire(self,P, wire, tol=1e-3):
         P = np.array(P, dtype=float)
         A = np.array(wire['a'], dtype=float)
         B = np.array(wire['b'], dtype=float)
@@ -159,7 +163,7 @@ class GeometryObject:
 
         return True  # wire needs to be split to allow the connection
 
-    def point_on_object(self,geom_object, wire_index, alpha_wire):
+    def _point_on_object(self,geom_object, wire_index, alpha_wire):
         if(wire_index> len(geom_object.wires)):
             wire_index = len(geom_object.wires)
             alpha_wire = 1.0
@@ -173,7 +177,7 @@ class GeometryObject:
 # Units processor
 #=================================================================================
 
-class units:
+class _units:
     
     _UNIT_FACTORS = {
         "m": 1.0,
@@ -188,7 +192,7 @@ class units:
             raise ValueError(f"Unsupported unit: {default_unit}")
         self.default_unit = default_unit
 
-    def from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:
+    def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:
         """Converts suffixed values like 'd_mm' to meters.
 
         Output keys have '_m' suffix unless they already end with '_m',
@@ -255,29 +259,14 @@ class NECModel:
         self.EX_TAG = 999
         self.nSegs_per_wavelength = 40
         self.segLength_m = 0
-        self.units = units()
-        self.write_runner_files()
+        self._units = _units()
+        self._write_runner_files()
 
     def set_name(self, name):
         self.model_name = name
         self.nec_in = self.working_dir + "\\" + self.model_name +  ".nec"
         self.nec_out = self.working_dir + "\\" + self.model_name +  ".out"
-        self.write_runner_files()
-
-    def write_runner_files(self):
-        for filepath, content in [
-            (self.nec_bat, f"{self.nec_exe} < {self.files_txt} \n"),
-            (self.files_txt, f"{self.nec_in}\n{self.nec_out}\n")
-        ]:
-            directory = os.path.dirname(filepath)
-            if directory and not os.path.exists(directory):
-                os.makedirs(directory)  # create directory if it doesn't exist
-            try:
-                with open(filepath, "w") as f:
-                    f.write(content)
-            except Exception as e:
-                print(f"Error writing file {filepath}: {e}")
-
+        self._write_runner_files()
 
     def set_wire_conductivity(self, sigma):
         self.LD_WIRECOND = f"LD 5 0 0 0 {sigma:.6f} \n"
@@ -296,6 +285,9 @@ class NECModel:
         dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
         self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n"
 
+    def set_gain_sphere_1deg(self):
+        self.RP_CARD = "RP 0 181 361 1003 -180 0 1 1\n"
+
     def set_ground(self, eps_r, sigma, **params):
         """
             Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
@@ -313,7 +305,7 @@ class NECModel:
             self.GN_CARD = ""
             self.GM_CARD = "GM 0 0 0 0 0 0 0 0.000\n"
         else:
-            origin_height_m = self.units.from_suffixed_dimensions(params)['origin_height_m']
+            origin_height_m = self._units._from_suffixed_dimensions(params)['origin_height_m']
             self.GE_CARD = "GE -1\n"
             self.GN_CARD = f"GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n"
             self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"
@@ -352,52 +344,9 @@ class NECModel:
         """
         self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
 
-    def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
-        """
-            inserts a single segment with a specified iTag into an existing geometry object
-            position within the object is specied as
-            EITHER:
-              item_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-            OR:
-              item_wire_index AND item_alpha_wire
-              which specify the i'th wire in the n wires in the object, and the distance along that
-              wire divided by that wire's length
-        """
-        wires = geomObj.get_wires()
-        if(item_alpha_object >=0):
-            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
-            item_alpha_wire = item_alpha_object - item_wire_index
-        w = wires[item_wire_index]       
-
-        # calculate wire length vector AB, length a to b and distance from a to feed point
-        A = np.array(w["a"], dtype=float)
-        B = np.array(w["b"], dtype=float)
-        AB = B-A
-        wLen = np.linalg.norm(AB)
-        feedDist = wLen * item_alpha_wire
-
-        if (wLen <= self.segLength_m):
-            # feed segment is all of this wire, so no need to split
-            w['nS'] = 1
-            w['iTag'] = item_iTag
-        else:
-            # split the wire AB into three wires: A to C, CD (feed segment), D to B
-            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
-            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
-            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
-            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
-            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
-            # (nonzero nS field is preserved during segmentation in 'add')
-            w['b'] = tuple(C)
-            w['nS'] = nS1
-            geomObj.add_wire(item_iTag , 1, *C, *D, w["wr"])
-            geomObj.add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
-            
                 
     def add(self, geomObj):
-        for w in geomObj.get_wires():
+        for w in geomObj._get_wires():
             A = np.array(w["a"], dtype=float)
             B = np.array(w["b"], dtype=float)
             if(w['nS'] == 0): # calculate and update number of segments only if not already present
@@ -408,6 +357,7 @@ class NECModel:
             for v in B:
                 self.model_text += f"{v:.3f} "
             self.model_text += f"{w['wr']}\n"
+
 
     def write_nec(self):
         tail_text = self.GM_CARD
@@ -423,6 +373,8 @@ class NECModel:
         tail_text += "EN"
         with open(self.nec_in, "w") as f:
             f.write(self.model_text + tail_text)
+
+
 
     def run_nec(self):
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
@@ -474,49 +426,101 @@ class NECModel:
         return (1 + abs(gamma)) / (1 - abs(gamma))
 
     def read_radiation_pattern(self):
-        data = []
-        in_data = False
-        start_lineNo = 1e9
-        with open(self.nec_out) as f:
-            lines = f.readlines()
-        for lineNo, line in enumerate(lines):
-            if ('RADIATION PATTERNS' in line):
-                in_data = True
-                start_lineNo = lineNo + 5
+        return _read_rad_pattern(self.nec_out)
 
-            if (lineNo > start_lineNo and line=="\n"):
-                in_data = False
-                
-            if (in_data and lineNo >= start_lineNo):
-                theta = float(line[0:9])
-                phi = float(line[9:18])
-                gain_vert = float(line[18:28])
-                gain_horz = float(line[28:36])
-                gain_total = float(line[36:45])
-                axial_ratio = float(line[45:55])
-                tilt_deg = float(line[55:63])
-                # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
-                sense = line[63:72].strip()
-                e_theta_mag = float(line[72:87])
-                e_theta_phase = float(line[87:96])
-                e_phi_mag = float(line[96:111])
-                e_phi_phase = float(line[111:119])
+#===============================================================
+# internal functions for class NECModel
+#===============================================================
 
-                data.append({
-                    'theta': theta,
-                    'phi': phi,
-                    'gain_vert_db': gain_vert,
-                    'gain_horz_db': gain_horz,
-                    'gain_total_db': gain_total,
-                    'axial_ratio': axial_ratio,
-                    'tilt_deg': tilt_deg,
-                    'sense': sense,
-                    'E_theta_mag': e_theta_mag,
-                    'E_theta_phase_deg': e_theta_phase,
-                    'E_phi_mag': e_phi_mag,
-                    'E_phi_phase_deg': e_phi_phase
-                })
+    def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
+        """
+            inserts a single segment with a specified iTag into an existing geometry object
+            position within the object is specied as
+            EITHER:
+              item_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+            OR:
+              item_wire_index AND item_alpha_wire
+              which specify the i'th wire in the n wires in the object, and the distance along that
+              wire divided by that wire's length
+        """
+        wires = geomObj._get_wires()
+        if(item_alpha_object >=0):
+            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
+            item_alpha_wire = item_alpha_object - item_wire_index
+        w = wires[item_wire_index]       
+
+        # calculate wire length vector AB, length a to b and distance from a to feed point
+        A = np.array(w["a"], dtype=float)
+        B = np.array(w["b"], dtype=float)
+        AB = B-A
+        wLen = np.linalg.norm(AB)
+        feedDist = wLen * item_alpha_wire
+
+        if (wLen <= self.segLength_m):
+            # feed segment is all of this wire, so no need to split
+            w['nS'] = 1
+            w['iTag'] = item_iTag
+        else:
+            # split the wire AB into three wires: A to C, CD (feed segment), D to B
+            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
+            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
+            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
+            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
+            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
+            # (nonzero nS field is preserved during segmentation in 'add')
+            w['b'] = tuple(C)
+            w['nS'] = nS1
+            geomObj._add_wire(item_iTag , 1, *C, *D, w["wr"])
+            geomObj._add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
+            
+
+def _read_rad_pattern(filepath):        
+    data = []
+    in_data = False
+    start_lineNo = 1e9
+    with open(filepath) as f:
+        lines = f.readlines()
+    for lineNo, line in enumerate(lines):
+        if ('RADIATION PATTERNS' in line):
+            in_data = True
+            start_lineNo = lineNo + 5
+
+        if (lineNo > start_lineNo and line=="\n"):
+            in_data = False
+            
+        if (in_data and lineNo >= start_lineNo):
+            theta = float(line[0:9])
+            phi = float(line[9:18])
+            gain_vert = float(line[18:28])
+            gain_horz = float(line[28:36])
+            gain_total = float(line[36:45])
+            axial_ratio = float(line[45:55])
+            tilt_deg = float(line[55:63])
+            # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
+            sense = line[63:72].strip()
+            e_theta_mag = float(line[72:87])
+            e_theta_phase = float(line[87:96])
+            e_phi_mag = float(line[96:111])
+            e_phi_phase = float(line[111:119])
+
+            data.append({
+                'theta': theta,
+                'phi': phi,
+                'gain_vert_db': gain_vert,
+                'gain_horz_db': gain_horz,
+                'gain_total_db': gain_total,
+                'axial_ratio': axial_ratio,
+                'tilt_deg': tilt_deg,
+                'sense': sense,
+                'E_theta_mag': e_theta_mag,
+                'E_theta_phase_deg': e_theta_phase,
+                'E_phi_mag': e_phi_mag,
+                'E_phi_phase_deg': e_phi_phase
+            })
 
 
-        return data
+    return data
+
 
