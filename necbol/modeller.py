@@ -74,31 +74,31 @@ class GeometryObject:
         return self._rotate(R)
 
     def connect_ends(self, other, tol=1e-3, verbose = False):
-    wires_to_add=[]
-    for ws in self.wires:
-        if(verbose):
-            print(f"\nChecking if ends of wire from {ws['a']} to {ws['b']} should connect to any of {len(other.wires)} other wires:")
-        for es in [ws["a"], ws["b"]]:
-            for wo in other.wires:
-                if (self._point_should_connect_to_wire(es,wo,tol)):
-                    wire_seg_status = f"{wo['nS']} segment" if wo['nS'] > 0 else 'unsegmented'
-                    length_orig = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
-                    b_orig = wo["b"]
-                    wo['b']=tuple(es)
-                    length_shortened = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
-                    nS_shortened = max(1, int(wo['nS']*length_shortened/length_orig))
-                    nS_orig = wo['nS']
-                    wo['nS'] = nS_shortened
-                    nS_remainder = max(1,nS_orig - nS_shortened)
-                    wires_to_add.append( (wo['iTag'], nS_remainder, *wo['b'], *b_orig, wo['wr']) )
-                    length_remainder = np.linalg.norm(np.array(wo["b"]) - np.array(b_orig))
-                    if(verbose):
-                        print(f"Inserting end of wire at {wo['b']} into {wire_seg_status} wire {length_orig}m wire from {wo['a']} to {b_orig}:")
-                        print(f"    by shortening wire to end at {wo['b']}: {length_shortened}m, using {nS_shortened} segments")
-                        print(f"    and adding wire from {wo["b"]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments")
-                    break #(for efficiency only)
-    for params in wires_to_add:
-        other._add_wire(*params)
+        wires_to_add=[]
+        for ws in self.wires:
+            if(verbose):
+                print(f"\nChecking if ends of wire from {ws['a']} to {ws['b']} should connect to any of {len(other.wires)} other wires:")
+            for es in [ws["a"], ws["b"]]:
+                for wo in other.wires:
+                    if (self._point_should_connect_to_wire(es,wo,tol)):
+                        wire_seg_status = f"{wo['nS']} segment" if wo['nS'] > 0 else 'unsegmented'
+                        length_orig = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
+                        b_orig = wo["b"]
+                        wo['b']=tuple(es)
+                        length_shortened = np.linalg.norm(np.array(wo["a"]) - np.array(wo["b"]))
+                        nS_shortened = max(1, int(wo['nS']*length_shortened/length_orig))
+                        nS_orig = wo['nS']
+                        wo['nS'] = nS_shortened
+                        nS_remainder = max(1,nS_orig - nS_shortened)
+                        wires_to_add.append( (wo['iTag'], nS_remainder, *wo['b'], *b_orig, wo['wr']) )
+                        length_remainder = np.linalg.norm(np.array(wo["b"]) - np.array(b_orig))
+                        if(verbose):
+                            print(f"Inserting end of wire at {wo['b']} into {wire_seg_status} wire {length_orig}m wire from {wo['a']} to {b_orig}:")
+                            print(f"    by shortening wire to end at {wo['b']}: {length_shortened}m, using {nS_shortened} segments")
+                            print(f"    and adding wire from {wo["b"]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments")
+                        break #(for efficiency only)
+        for params in wires_to_add:
+            other._add_wire(*params)
 
 #===============================================================
 # internal functions for class GeometryObject
@@ -431,6 +431,19 @@ class NECModel:
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
+    def _write_runner_files(self):
+        for filepath, content in [
+            (self.nec_bat, f"{self.nec_exe} < {self.files_txt} \n"),
+            (self.files_txt, f"{self.nec_in}\n{self.nec_out}\n")
+        ]:
+            directory = os.path.dirname(filepath)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)  # create directory if it doesn't exist
+            try:
+                with open(filepath, "w") as f:
+                    f.write(content)
+            except Exception as e:
+                print(f"Error writing file {filepath}: {e}")
 
     def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
         """
@@ -476,7 +489,7 @@ class NECModel:
             geomObj._add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
             
 
-def _read_rad_pattern(filepath):        
+def _read_radiation_pattern(filepath):        
     data = []
     in_data = False
     start_lineNo = 1e9

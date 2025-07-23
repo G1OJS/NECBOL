@@ -172,10 +172,10 @@ def _get_complex_component(pat_data, component):
     return Z
 
 def _subtract_patterns(pat1, pat2):
-    Z_theta_1 = get_complex_component(pat1, 'E_theta')
-    Z_theta_2 = get_complex_component(pat2, 'E_theta')
-    Z_phi_1 = get_complex_component(pat1, 'E_phi')
-    Z_phi_2 = get_complex_component(pat2, 'E_phi')
+    Z_theta_1 = _get_complex_component(pat1, 'E_theta')
+    Z_theta_2 = _get_complex_component(pat2, 'E_theta')
+    Z_phi_1 = _get_complex_component(pat1, 'E_phi')
+    Z_phi_2 = _get_complex_component(pat2, 'E_phi')
 
     pat = copy.deepcopy(pat1)
     for i, d in enumerate(pat):
