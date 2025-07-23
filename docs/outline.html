@@ -658,7 +658,7 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def format_params(self, params):</span></summary>
+<details><summary><span class ='def signature'> def _format_params(self, params):</span></summary>
 <pre class ='def content'>        s=&quot;{&quot;
         for k, v in params.items():
             s = s + f&quot;&#x27;{k}&#x27;: {v:.2f}, &quot;
@@ -666,13 +666,13 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def same_line_print(self,text):</span></summary>
+<details><summary><span class ='def signature'> def _same_line_print(self,text):</span></summary>
 <pre class ='def content'>        sys.stdout.write(f&quot;\r{text}          &quot;)
         sys.stdout.flush()
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def random_variation(self, x):</span></summary>
+<details><summary><span class ='def signature'> def _random_variation(self, x):</span></summary>
 <pre class ='def content'>        x_new = x.copy()
         for name in self.param_names:
             factor = 1 + random.uniform(-self.delta_x, self.delta_x)
@@ -695,12 +695,12 @@ import random, sys
         best_info = result[&#x27;info&#x27;]
         stall_count = 0
         print(&quot;\nSTARTING optimiser. Press CTRL-C to stop&quot;)
-        initial_message = f&quot;[] INITIAL: {best_info} with {self.format_params(best_params)}&quot;
+        initial_message = f&quot;[] INITIAL: {best_info} with {self._format_params(best_params)}&quot;
         print(initial_message)
 
         try:
             for i in range(self.max_iter):
-                test_params = self.random_variation(best_params)
+                test_params = self._random_variation(best_params)
                 test_model = self.build_fn(model, **test_params)
                 test_model.write_nec()
                 test_model.run_nec()
@@ -715,12 +715,12 @@ import random, sys
                     stall_count = 0
                     if(not tty):
                         print(&quot;&quot;)
-                    self.same_line_print(f&quot;[{i}] IMPROVED: {best_info} with {self.format_params(best_params)}&quot;)
+                    self._same_line_print(f&quot;[{i}] IMPROVED: {best_info} with {self._format_params(best_params)}&quot;)
                     print(&quot;&quot;)
                 else:
                     stall_count += 1
                     if(tty):
-                        self.same_line_print(f&quot;[{i}] {test_info}&quot;)
+                        self._same_line_print(f&quot;[{i}] {test_info}&quot;)
                     else:
                         sys.stdout.write(&quot;.&quot;)
 
@@ -729,13 +729,13 @@ import random, sys
                     if(self.delta_x &lt; self.min_delta):
                         if(not tty):
                             print(&quot;&quot;)
-                        self.same_line_print(f&quot;[{i}] Delta below minimum&quot;)
+                        self._same_line_print(f&quot;[{i}] Delta below minimum&quot;)
                         print(&quot;&quot;)
                         break
                     stall_count = 0
                     if(not tty):
                         print(&quot;&quot;)
-                    self.same_line_print(f&quot;[{i}] STALLED: Reducing delta to {self.delta_x}&quot;)
+                    self._same_line_print(f&quot;[{i}] STALLED: Reducing delta to {self.delta_x}&quot;)
                     print(&quot;&quot;)
 
         except KeyboardInterrupt:
@@ -749,7 +749,7 @@ import random, sys
         print(&quot;\nFINISHED optimising\n&quot;)
         print(&quot;# Optimiser Results (copy and paste into your antenna file for reference). \nNote that you can copy the information between the {} to paste in as your new starting parameters.)&quot;)
         print(&quot;# &quot;+ initial_message)
-        print(f&quot;# []   FINAL: {final_info} with {self.format_params(best_params)}&quot;)
+        print(f&quot;# []   FINAL: {final_info} with {self._format_params(best_params)}&quot;)
         
         return best_params, final_info
 </pre>
