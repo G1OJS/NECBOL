@@ -426,6 +426,23 @@ class NECModel:
         return (1 + abs(gamma)) / (1 - abs(gamma))
 
     def read_radiation_pattern(self):
+        """
+            read the radiation pattern from the model.nec_out file
+            into a list of dictionaries with format:
+                {'theta': theta,
+                'phi': phi,
+                'gain_vert_db': gain_vert,
+                'gain_horz_db': gain_horz,
+                'gain_total_db': gain_total,
+                'axial_ratio': axial_ratio,
+                'tilt_deg': tilt_deg,
+                'sense': sense,
+                'E_theta_mag': e_theta_mag,
+                'E_theta_phase_deg': e_theta_phase,
+                'E_phi_mag': e_phi_mag,
+                'E_phi_phase_deg': e_phi_phase}
+        """
+
         return _read_radiation_pattern(self.nec_out)
 
 #===============================================================
