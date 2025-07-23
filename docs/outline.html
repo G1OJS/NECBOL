@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>outline.html</title><link rel='stylesheet' href='./outline.css' /><body>
-<span class = 'filename'>modeller.py</span><br><details><summary><span class ='body signature'> body</span></summary>
+<span class = 'filename'>__init__.py</span><br><span class = 'filename'>modeller.py</span><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
 import numpy as np
 import math
@@ -322,6 +322,11 @@ import os
 </pre>
 </details>
 <details><summary><span class ='def signature'> def set_gain_sphere_1deg(self):</span></summary>
+<pre class ='def content'>        self.RP_CARD = &quot;RP 0 361 361 1003 -180 0 1 1\n&quot;
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def set_gain_hemisphere_1deg(self):</span></summary>
 <pre class ='def content'>        self.RP_CARD = &quot;RP 0 181 361 1003 -180 0 1 1\n&quot;
 
 </pre>
@@ -527,6 +532,7 @@ import os
                 &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
                 &#x27;E_phi_mag&#x27;: e_phi_mag,
                 &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
+                
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
@@ -781,8 +787,17 @@ import random, sys
 <pre class ='body content'>
 </pre>
 </details>
-<details><summary><span class ='def signature'> def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></summary>
-<pre class ='def content'>    wires = []
+<details><summary><span class ='def signature'>🧾 def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>    
+        Opens the specified nec input file (*.nec) and reads the geometry,
+        then displays the geometry in a 3D projection. The feed is highligted in red.
+        Loads are highlighted in green.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>    wires = []
     with open(file_path, &#x27;r&#x27;) as f:
         for line in f:
             if line.startswith(&quot;GW&quot;):
@@ -796,6 +811,7 @@ import random, sys
     _show_wires(wires, ex_tag, title, color=color)
 
 </pre>
+</details>
 </details>
 <details><summary><span class ='def signature'> def plot_gain(pattern_data, elevation_deg, component, polar=True):</span></summary>
 <pre class ='def content'>    import matplotlib.pyplot as plt
@@ -852,8 +868,15 @@ import random, sys
  #   fig.canvas.manager.set_window_title(&#x27;Please close this window to continue&#x27;)
     ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
 
+    # LOAD highlighting depends on initial tag numbering scheme which needs revision
+
     for start, end, tag in wires:
-        ax.plot(*zip(start, end), color=color if (tag!=ex_tag) else &#x27;red&#x27;)
+        line_color = color
+        if (tag == ex_tag):
+            line_color = &#x27;red&#x27;
+        if (tag &gt;500 and tag &lt; ex_tag): # MAGIC NUMBER
+            line_color = &#x27;green&#x27;       
+        ax.plot(*zip(start, end), color=line_color if (tag!=ex_tag) else &#x27;red&#x27;)
 
     plt.draw()  # ensure autoscale limits are calculated
 
@@ -896,7 +919,7 @@ import random, sys
         phi_cut = azimuth_deg 
         print(f&quot;Plotting gain for azimuth = {azimuth_deg} i.e. phi = {phi_cut}&quot;)
         cut = [d for d in pattern_data if abs(d[&#x27;phi&#x27;] - phi_cut) &lt; 0.1]
-        angle_deg = [-d[&#x27;theta&#x27;] for d in cut]
+        angle_deg = [d[&#x27;theta&#x27;] for d in cut]
         title = f&#x27;azimuth = {azimuth_deg}°&#x27;
  
     fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})

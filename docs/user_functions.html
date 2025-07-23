@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>user_functions.html</title><link rel='stylesheet' href='./user_functions.css' /><body>
-<span class = 'filename'>modeller.py</span><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
+<span class = 'filename'>__init__.py</span><br><span class = 'filename'>modeller.py</span><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(self, **params):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY(self):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX(self):</span></div>
@@ -21,6 +21,7 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(self, azimuth, elevation):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_sphere_1deg(self):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_hemisphere_1deg(self):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(self, eps_r, sigma, **params):</span></div>
 <pre class ='docstring content'>        
             Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
@@ -73,10 +74,16 @@
                 &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
                 &#x27;E_phi_mag&#x27;: e_phi_mag,
                 &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
+                
 </pre>
 <span class = 'filename'>optimisers.py</span><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(self, model,  verbose=False, tty=True):</span></div>
 <span class = 'filename'>gui.py</span><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></div>
+<pre class ='docstring content'>    
+        Opens the specified nec input file (*.nec) and reads the geometry,
+        then displays the geometry in a 3D projection. The feed is highligted in red.
+        Loads are highlighted in green.
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(pattern_data, elevation_deg, component, polar=True):</span></div>
 <span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
