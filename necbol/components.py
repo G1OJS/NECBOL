@@ -262,11 +262,7 @@ class components:
         return obj
 
 
-    def thin_sheet(self, model, sigma, epsillon_r, force_odd = True,
-                   close_start = True, close_end = True,
-                   close_bottom = True, close_top = True,
-                   enforce_exact_pitch = True,
-                   **dimensions):
+    def thin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
         """
         Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
