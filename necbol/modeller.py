@@ -39,27 +39,33 @@ class GeometryObject:
         self._units = _units()
 
     def translate(self, **params):
+        """
+            Translate an object by dx, dy, dz
+            Arguments are dx_{units}, dy_{units}, dz_{units}
+        """
         params_m = self._units._from_suffixed_dimensions(params)
         for w in self.wires:
             w['a'] = tuple(map(float,np.array(w['a']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
             w['b'] = tuple(map(float,np.array(w['b']) + np.array([params_m.get('dx_m'), params_m.get('dy_m'), params_m.get('dz_m')])))
 
     def rotate_ZtoY(self):
+        """
+            Rotate the object through 90 degrees around X
+        """
         R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
         return self._rotate(R)
     
     def rotate_ZtoX(self):
+        """
+            Rotate the object through 90 degrees around Y
+        """
         R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
         return self._rotate(R)
 
-    def rotate_around_Z(self, angle_deg):
-        ca, sa = self._cos_sin(angle_deg)
-        R = np.array([[ca, -sa, 0],
-                      [sa, ca, 0],
-                      [0, 0, 1]])
-        return self._rotate(R)
-
     def rotate_around_X(self, angle_deg):
+        """
+            Rotate the object through angle_deg degrees around X
+        """
         ca, sa = self._cos_sin(angle_deg)
         R = np.array([[1, 0, 0],
                       [0, ca, -sa],
@@ -67,13 +73,39 @@ class GeometryObject:
         return self._rotate(R)
 
     def rotate_around_Y(self, angle_deg):
-        ca, sa = self._cos_sin(angle_deg)
+        """
+            Rotate the object through angle_deg degrees around Y
+        """        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[ca, 0, sa],
                       [0, 1, 0],
                       [-sa, 0, ca]])
         return self._rotate(R)
 
+    def rotate_around_Z(self, angle_deg):
+        """
+            Rotate the object through angle_deg degrees around Z
+        """
+        ca, sa = self._cos_sin(angle_deg)
+        R = np.array([[ca, -sa, 0],
+                      [sa, ca, 0],
+                      [0, 0, 1]])
+        return self._rotate(R)
+
     def connect_ends(self, other, tol=1e-3, verbose = False):
+        """
+            Check both ends of the wire to see if they lie on any wires in the specified object,
+            and if so, split the wires of the specified object so that NEC considers them to be
+            a valid T junction. Usage is:
+
+            wire.connect_ends(object, [tol in m], [verbose])
+
+            if verbose is True, details of the wire connection(s) are printed
+        """
+        ca, sa = self._cos_sin(angle_deg)
+        R = np.array([[ca, -sa, 0],
+                      [sa, ca, 0],
+                      [0, 0, 1]])
+        return self._rotate(R)
         wires_to_add=[]
         for ws in self.wires:
             if(verbose):
