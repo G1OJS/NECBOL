@@ -2,7 +2,6 @@
 <head>
 <title>user_functions.html</title><link rel='stylesheet' href='./user_functions.css' /><body>
 <span class = 'filename'>modeller.py</span><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, wires):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspget_wires(self):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(self, **params):</span></div>
@@ -17,7 +16,6 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsppoint_should_connect_to_wire(self,P, wire, tol=1e-3):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsppoint_on_object(self,geom_object, wire_index, alpha_wire):</span></div>
 <hr><div><span class ='class signature'>class units:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, default_unit: str = "m"):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspfrom_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:</span></div>
 <pre class ='docstring content'>        Converts suffixed values like &#x27;d_mm&#x27; to meters.
 
@@ -25,7 +23,6 @@
         in which case they are passed through unchanged (assumed meters).
 </pre>
 <hr><div><span class ='class signature'>class NECModel:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(self, name):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspwrite_runner_files(self):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(self, sigma):</span></div>
@@ -60,7 +57,6 @@
             inserts a single segment containing the excitation point into an existing geometry object
             see _place_feed_or_load for how to specify the position of the segment within the object
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsp_place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></div>
 <pre class ='docstring content'>        
             inserts a single segment with a specified iTag into an existing geometry object
             position within the object is specied as
@@ -83,7 +79,6 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspvswr(self):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspread_radiation_pattern(self):</span></div>
 <span class = 'filename'>optimisers.py</span><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, build_fn, param_init, cost_fn,</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspformat_params(self, params):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspsame_line_print(self,text):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprandom_variation(self, x):</span></div>
@@ -92,7 +87,6 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(pattern_data, elevation_deg, component, polar=True):</span></div>
 <span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsp__init__(self, starting_tag_nr = 0):</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
         and loads the units module class units()
 </pre>
@@ -221,4 +215,4 @@
         Dimensions are length_, height_, thickness_, grid_pitch_
 </pre>
 
-<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.2.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
+<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.2.1 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
