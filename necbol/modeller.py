@@ -75,7 +75,8 @@ class GeometryObject:
     def rotate_around_Y(self, angle_deg):
         """
             Rotate the object through angle_deg degrees around Y
-        """        ca, sa = self._cos_sin(angle_deg)
+        """
+        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[ca, 0, sa],
                       [0, 1, 0],
                       [-sa, 0, ca]])
@@ -101,11 +102,6 @@ class GeometryObject:
 
             if verbose is True, details of the wire connection(s) are printed
         """
-        ca, sa = self._cos_sin(angle_deg)
-        R = np.array([[ca, -sa, 0],
-                      [sa, ca, 0],
-                      [0, 0, 1]])
-        return self._rotate(R)
         wires_to_add=[]
         for ws in self.wires:
             if(verbose):
