@@ -9,8 +9,8 @@ __pycache__/
 *.pyc
 
 # Dynamic
-outline.html
-user_functions.html
+docs/outline.html
+docs/user_functions.html
 
 #nec folders
 nec_wkg/
