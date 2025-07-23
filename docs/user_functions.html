@@ -3,16 +3,39 @@
 <title>user_functions.html</title><link rel='stylesheet' href='./user_functions.css' /><body>
 <span class = 'filename'>__init__.py</span><br><span class = 'filename'>modeller.py</span><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(self, **params):</span></div>
+<pre class ='docstring content'>        
+            Translate an object by dx, dy, dz
+            Arguments are dx_{units}, dy_{units}, dz_{units}
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY(self):</span></div>
+<pre class ='docstring content'>        
+            Rotate the object through 90 degrees around X
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX(self):</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(self, angle_deg):</span></div>
+<pre class ='docstring content'>        
+            Rotate the object through 90 degrees around Y
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(self, angle_deg):</span></div>
+<pre class ='docstring content'>        
+            Rotate the object through angle_deg degrees around X
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(self, angle_deg):</span></div>
+<pre class ='docstring content'>        
+            Rotate the object through angle_deg degrees around Y
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(self, angle_deg):</span></div>
+<pre class ='docstring content'>        
+            Rotate the object through angle_deg degrees around Z
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(self, other, tol=1e-3, verbose = False):</span></div>
-<pre class ='docstring content'>        Converts suffixed values like &#x27;d_mm&#x27; to meters.
+<pre class ='docstring content'>        
+            Check both ends of the wire to see if they lie on any wires in the specified object,
+            and if so, split the wires of the specified object so that NEC considers them to be
+            a valid T junction. Usage is:
 
-        Output keys have &#x27;_m&#x27; suffix unless they already end with &#x27;_m&#x27;,
-        in which case they are passed through unchanged (assumed meters).
+            wire.connect_ends(object, [tol in m], [verbose])
+
+            if verbose is True, details of the wire connection(s) are printed
 </pre>
 <hr><div><span class ='class signature'>class NECModel:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(self, name):</span></div>

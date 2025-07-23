@@ -23,37 +23,60 @@ import os
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def translate(self, **params):</span></summary>
-<pre class ='def content'>        params_m = self._units._from_suffixed_dimensions(params)
+<details><summary><span class ='def signature'>🧾 def translate(self, **params):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Translate an object by dx, dy, dz
+            Arguments are dx_{units}, dy_{units}, dz_{units}
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        params_m = self._units._from_suffixed_dimensions(params)
         for w in self.wires:
             w[&#x27;a&#x27;] = tuple(map(float,np.array(w[&#x27;a&#x27;]) + np.array([params_m.get(&#x27;dx_m&#x27;), params_m.get(&#x27;dy_m&#x27;), params_m.get(&#x27;dz_m&#x27;)])))
             w[&#x27;b&#x27;] = tuple(map(float,np.array(w[&#x27;b&#x27;]) + np.array([params_m.get(&#x27;dx_m&#x27;), params_m.get(&#x27;dy_m&#x27;), params_m.get(&#x27;dz_m&#x27;)])))
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def rotate_ZtoY(self):</span></summary>
-<pre class ='def content'>        R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
+</details>
+<details><summary><span class ='def signature'>🧾 def rotate_ZtoY(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Rotate the object through 90 degrees around X
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
         return self._rotate(R)
     
 </pre>
 </details>
-<details><summary><span class ='def signature'> def rotate_ZtoX(self):</span></summary>
-<pre class ='def content'>        R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
+</details>
+<details><summary><span class ='def signature'>🧾 def rotate_ZtoX(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Rotate the object through 90 degrees around Y
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
         return self._rotate(R)
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def rotate_around_Z(self, angle_deg):</span></summary>
-<pre class ='def content'>        ca, sa = self._cos_sin(angle_deg)
-        R = np.array([[ca, -sa, 0],
-                      [sa, ca, 0],
-                      [0, 0, 1]])
-        return self._rotate(R)
-
+</details>
+<details><summary><span class ='def signature'>🧾 def rotate_around_X(self, angle_deg):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Rotate the object through angle_deg degrees around X
 </pre>
 </details>
-<details><summary><span class ='def signature'> def rotate_around_X(self, angle_deg):</span></summary>
-<pre class ='def content'>        ca, sa = self._cos_sin(angle_deg)
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[1, 0, 0],
                       [0, ca, -sa],
                       [0, sa, ca]])
@@ -61,17 +84,60 @@ import os
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def rotate_around_Y(self, angle_deg):</span></summary>
-<pre class ='def content'>        ca, sa = self._cos_sin(angle_deg)
-        R = np.array([[ca, 0, sa],
+</details>
+<details><summary><span class ='def signature'>🧾 def rotate_around_Y(self, angle_deg):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Rotate the object through angle_deg degrees around Y
+</pre>
+</details>
+<details><summary><span class ='body signature'> body         ca, sa = self._cos_sin(angle_deg)</span></summary>
+<pre class ='body content'>        R = np.array([[ca, 0, sa],
                       [0, 1, 0],
                       [-sa, 0, ca]])
         return self._rotate(R)
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def connect_ends(self, other, tol=1e-3, verbose = False):</span></summary>
-<pre class ='def content'>        wires_to_add=[]
+</details>
+<details><summary><span class ='def signature'>🧾 def rotate_around_Z(self, angle_deg):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Rotate the object through angle_deg degrees around Z
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        ca, sa = self._cos_sin(angle_deg)
+        R = np.array([[ca, -sa, 0],
+                      [sa, ca, 0],
+                      [0, 0, 1]])
+        return self._rotate(R)
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def connect_ends(self, other, tol=1e-3, verbose = False):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            Check both ends of the wire to see if they lie on any wires in the specified object,
+            and if so, split the wires of the specified object so that NEC considers them to be
+            a valid T junction. Usage is:
+
+            wire.connect_ends(object, [tol in m], [verbose])
+
+            if verbose is True, details of the wire connection(s) are printed
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        ca, sa = self._cos_sin(angle_deg)
+        R = np.array([[ca, -sa, 0],
+                      [sa, ca, 0],
+                      [0, 0, 1]])
+        return self._rotate(R)
+        wires_to_add=[]
         for ws in self.wires:
             if(verbose):
                 print(f&quot;\nChecking if ends of wire from {ws[&#x27;a&#x27;]} to {ws[&#x27;b&#x27;]} should connect to any of {len(other.wires)} other wires:&quot;)
@@ -102,6 +168,7 @@ import os
 #===============================================================
 
 </pre>
+</details>
 </details>
 <details><summary><span class ='def signature'> def _cos_sin(self,angle_deg):</span></summary>
 <pre class ='def content'>        angle_rad = math.pi*angle_deg/180
