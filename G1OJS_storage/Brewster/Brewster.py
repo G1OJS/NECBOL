@@ -1,9 +1,9 @@
 import sys
 sys.path.insert(0, r"C:\Users\drala\Documents\Projects\GitHub\NECBOL")
 
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file, plot_gains, subtract_patterns
+from necbol.modeller import *
+from necbol.components import *
+from necbol.gui import *
 
 model = NECModel(working_dir="nec_wkg",
                  model_name = "Ver_dip",
@@ -34,8 +34,8 @@ model.run_nec()
 #show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 data_dipole_sheet = model.read_radiation_pattern()
 
-diff = subtract_patterns(data_dipole, data_dipole_sheet)
+diff = _subtract_patterns(data_dipole, data_dipole_sheet)
 #plot_gains(data_dipole, azimuth_deg = 0)
 #plot_gains(data_dipole_sheet, azimuth_deg = 0)
-plot_gains(diff, azimuth_deg = 0)
+_plot_gains(diff, azimuth_deg = 0)
 

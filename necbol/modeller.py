@@ -426,7 +426,7 @@ class NECModel:
         return (1 + abs(gamma)) / (1 - abs(gamma))
 
     def read_radiation_pattern(self):
-        return _read_rad_pattern(self.nec_out)
+        return _read_radiation_pattern(self.nec_out)
 
 #===============================================================
 # internal functions for class NECModel
