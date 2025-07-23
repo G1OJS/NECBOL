@@ -71,31 +71,31 @@ import os
 </pre>
 </details>
 <details><summary><span class ='def signature'> def connect_ends(self, other, tol=1e-3, verbose = False):</span></summary>
-<pre class ='def content'>    wires_to_add=[]
-    for ws in self.wires:
-        if(verbose):
-            print(f&quot;\nChecking if ends of wire from {ws[&#x27;a&#x27;]} to {ws[&#x27;b&#x27;]} should connect to any of {len(other.wires)} other wires:&quot;)
-        for es in [ws[&quot;a&quot;], ws[&quot;b&quot;]]:
-            for wo in other.wires:
-                if (self._point_should_connect_to_wire(es,wo,tol)):
-                    wire_seg_status = f&quot;{wo[&#x27;nS&#x27;]} segment&quot; if wo[&#x27;nS&#x27;] &gt; 0 else &#x27;unsegmented&#x27;
-                    length_orig = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
-                    b_orig = wo[&quot;b&quot;]
-                    wo[&#x27;b&#x27;]=tuple(es)
-                    length_shortened = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
-                    nS_shortened = max(1, int(wo[&#x27;nS&#x27;]*length_shortened/length_orig))
-                    nS_orig = wo[&#x27;nS&#x27;]
-                    wo[&#x27;nS&#x27;] = nS_shortened
-                    nS_remainder = max(1,nS_orig - nS_shortened)
-                    wires_to_add.append( (wo[&#x27;iTag&#x27;], nS_remainder, *wo[&#x27;b&#x27;], *b_orig, wo[&#x27;wr&#x27;]) )
-                    length_remainder = np.linalg.norm(np.array(wo[&quot;b&quot;]) - np.array(b_orig))
-                    if(verbose):
-                        print(f&quot;Inserting end of wire at {wo[&#x27;b&#x27;]} into {wire_seg_status} wire {length_orig}m wire from {wo[&#x27;a&#x27;]} to {b_orig}:&quot;)
-                        print(f&quot;    by shortening wire to end at {wo[&#x27;b&#x27;]}: {length_shortened}m, using {nS_shortened} segments&quot;)
-                        print(f&quot;    and adding wire from {wo[&quot;b&quot;]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments&quot;)
-                    break #(for efficiency only)
-    for params in wires_to_add:
-        other._add_wire(*params)
+<pre class ='def content'>        wires_to_add=[]
+        for ws in self.wires:
+            if(verbose):
+                print(f&quot;\nChecking if ends of wire from {ws[&#x27;a&#x27;]} to {ws[&#x27;b&#x27;]} should connect to any of {len(other.wires)} other wires:&quot;)
+            for es in [ws[&quot;a&quot;], ws[&quot;b&quot;]]:
+                for wo in other.wires:
+                    if (self._point_should_connect_to_wire(es,wo,tol)):
+                        wire_seg_status = f&quot;{wo[&#x27;nS&#x27;]} segment&quot; if wo[&#x27;nS&#x27;] &gt; 0 else &#x27;unsegmented&#x27;
+                        length_orig = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
+                        b_orig = wo[&quot;b&quot;]
+                        wo[&#x27;b&#x27;]=tuple(es)
+                        length_shortened = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
+                        nS_shortened = max(1, int(wo[&#x27;nS&#x27;]*length_shortened/length_orig))
+                        nS_orig = wo[&#x27;nS&#x27;]
+                        wo[&#x27;nS&#x27;] = nS_shortened
+                        nS_remainder = max(1,nS_orig - nS_shortened)
+                        wires_to_add.append( (wo[&#x27;iTag&#x27;], nS_remainder, *wo[&#x27;b&#x27;], *b_orig, wo[&#x27;wr&#x27;]) )
+                        length_remainder = np.linalg.norm(np.array(wo[&quot;b&quot;]) - np.array(b_orig))
+                        if(verbose):
+                            print(f&quot;Inserting end of wire at {wo[&#x27;b&#x27;]} into {wire_seg_status} wire {length_orig}m wire from {wo[&#x27;a&#x27;]} to {b_orig}:&quot;)
+                            print(f&quot;    by shortening wire to end at {wo[&#x27;b&#x27;]}: {length_shortened}m, using {nS_shortened} segments&quot;)
+                            print(f&quot;    and adding wire from {wo[&quot;b&quot;]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments&quot;)
+                        break #(for efficiency only)
+        for params in wires_to_add:
+            other._add_wire(*params)
 
 #===============================================================
 # internal functions for class GeometryObject
@@ -515,6 +515,21 @@ import os
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _write_runner_files(self):</span></summary>
+<pre class ='def content'>        for filepath, content in [
+            (self.nec_bat, f&quot;{self.nec_exe} &lt; {self.files_txt} \n&quot;),
+            (self.files_txt, f&quot;{self.nec_in}\n{self.nec_out}\n&quot;)
+        ]:
+            directory = os.path.dirname(filepath)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)  # create directory if it doesn&#x27;t exist
+            try:
+                with open(filepath, &quot;w&quot;) as f:
+                    f.write(content)
+            except Exception as e:
+                print(f&quot;Error writing file {filepath}: {e}&quot;)
 
 </pre>
 </details>
@@ -570,7 +585,7 @@ import os
 </details>
 </details>
 </details>
-<details><summary><span class ='def signature'> def _read_rad_pattern(filepath):</span></summary>
+<details><summary><span class ='def signature'> def _read_radiation_pattern(filepath):</span></summary>
 <pre class ='def content'>    data = []
     in_data = False
     start_lineNo = 1e9
@@ -903,10 +918,10 @@ import copy
 </pre>
 </details>
 <details><summary><span class ='def signature'> def _subtract_patterns(pat1, pat2):</span></summary>
-<pre class ='def content'>    Z_theta_1 = get_complex_component(pat1, &#x27;E_theta&#x27;)
-    Z_theta_2 = get_complex_component(pat2, &#x27;E_theta&#x27;)
-    Z_phi_1 = get_complex_component(pat1, &#x27;E_phi&#x27;)
-    Z_phi_2 = get_complex_component(pat2, &#x27;E_phi&#x27;)
+<pre class ='def content'>    Z_theta_1 = _get_complex_component(pat1, &#x27;E_theta&#x27;)
+    Z_theta_2 = _get_complex_component(pat2, &#x27;E_theta&#x27;)
+    Z_phi_1 = _get_complex_component(pat1, &#x27;E_phi&#x27;)
+    Z_phi_2 = _get_complex_component(pat2, &#x27;E_phi&#x27;)
 
     pat = copy.deepcopy(pat1)
     for i, d in enumerate(pat):
