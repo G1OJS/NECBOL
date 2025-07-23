@@ -27,8 +27,10 @@ SOFTWARE.
 import random, sys
 
 class RandomOptimiser:
-    def __init__(self, build_fn, param_init, cost_fn,
-                 bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):
+    """
+        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
+    """
+    def __init__(self, build_fn, param_init, cost_fn, bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):
         self.build_fn = build_fn
         self.param_names = list(param_init.keys())
         self.x_baseline = param_init.copy()
@@ -61,6 +63,19 @@ class RandomOptimiser:
         return x_new
 
     def optimise(self, model,  verbose=False, tty=True):
+        """
+            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
+            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
+            cost, the test is adopted as the new baseline.
+
+            Note that of course this won't produce good results for any parameters that start off close to or at
+            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
+            specifications to make this work, but for now you should arrange for the input parameters and their
+            likely useful range to be away from zero, by using an offset.
+
+            If any parameters seem likely to drift into non-useful ranges, use the 'bounds' specification in the
+            initialisation to limit their max and min values.
+        """
         best_params = self.x_baseline.copy()
         best_model = self.build_fn(model, **best_params)
         best_model.write_nec()

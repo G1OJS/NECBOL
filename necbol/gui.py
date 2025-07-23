@@ -43,6 +43,12 @@ def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):
     _show_wires(wires, ex_tag, title, color=color)
 
 def plot_gain(pattern_data, elevation_deg, component, polar=True):
+    """
+        This is a very basic plot routine providing polar and rectangular plots
+        with gain range covering 40 dB max to min.
+        Later versions of necbol will include more customisable plot functions
+        and the ability to save output data in a suitable format for onward analysis
+    """
     import matplotlib.pyplot as plt
     import numpy as np
         
