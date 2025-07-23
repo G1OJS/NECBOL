@@ -188,7 +188,23 @@
                 
 </pre>
 <span class = 'filename'>optimisers.py</span><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
+<pre class ='docstring content'>    
+        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
+</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(self, model,  verbose=False, tty=True):</span></div>
+<pre class ='docstring content'>        
+            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
+            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
+            cost, the test is adopted as the new baseline.
+
+            Note that of course this won&#x27;t produce good results for any parameters that start off close to or at
+            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
+            specifications to make this work, but for now you should arrange for the input parameters and their
+            likely useful range to be away from zero, by using an offset.
+
+            If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
+            initialisation to limit their max and min values.
+</pre>
 <span class = 'filename'>gui.py</span><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></div>
 <pre class ='docstring content'>    
         Opens the specified nec input file (*.nec) and reads the geometry,
@@ -196,6 +212,12 @@
         Loads are highlighted in green.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(pattern_data, elevation_deg, component, polar=True):</span></div>
+<pre class ='docstring content'>    
+        This is a very basic plot routine providing polar and rectangular plots
+        with gain range covering 40 dB max to min.
+        Later versions of necbol will include more customisable plot functions
+        and the ability to save output data in a suitable format for onward analysis
+</pre>
 <span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
         and loads the _units module class _units()

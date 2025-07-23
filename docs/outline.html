@@ -903,11 +903,18 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='class signature'> class RandomOptimiser:</span></summary>
+<details><summary><span class ='class signature'>🧾 class RandomOptimiser:</span></summary>
 <pre class ='class content'></pre>
-<details><summary><span class ='def signature'> def __init__(self, build_fn, param_init, cost_fn,</span></summary>
-<pre class ='def content'>                 bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):
-        self.build_fn = build_fn
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>    
+        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'></pre>
+</details>
+<details><summary><span class ='def signature'> def __init__(self, build_fn, param_init, cost_fn, bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):</span></summary>
+<pre class ='def content'>        self.build_fn = build_fn
         self.param_names = list(param_init.keys())
         self.x_baseline = param_init.copy()
         self.bounds = bounds
@@ -946,8 +953,25 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def optimise(self, model,  verbose=False, tty=True):</span></summary>
-<pre class ='def content'>        best_params = self.x_baseline.copy()
+<details><summary><span class ='def signature'>🧾 def optimise(self, model,  verbose=False, tty=True):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
+            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
+            cost, the test is adopted as the new baseline.
+
+            Note that of course this won&#x27;t produce good results for any parameters that start off close to or at
+            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
+            specifications to make this work, but for now you should arrange for the input parameters and their
+            likely useful range to be away from zero, by using an offset.
+
+            If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
+            initialisation to limit their max and min values.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        best_params = self.x_baseline.copy()
         best_model = self.build_fn(model, **best_params)
         best_model.write_nec()
         best_model.run_nec()
@@ -1016,6 +1040,7 @@ import random, sys
 </pre>
 </details>
 </details>
+</details>
 <span class = 'filename'>gui.py</span><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
 </pre>
@@ -1046,8 +1071,18 @@ import random, sys
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'> def plot_gain(pattern_data, elevation_deg, component, polar=True):</span></summary>
-<pre class ='def content'>    import matplotlib.pyplot as plt
+<details><summary><span class ='def signature'>🧾 def plot_gain(pattern_data, elevation_deg, component, polar=True):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>    
+        This is a very basic plot routine providing polar and rectangular plots
+        with gain range covering 40 dB max to min.
+        Later versions of necbol will include more customisable plot functions
+        and the ability to save output data in a suitable format for onward analysis
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>    import matplotlib.pyplot as plt
     import numpy as np
         
     # Filter data for fixed elevation (theta)
@@ -1091,6 +1126,7 @@ import random, sys
 #==================================================================
 
 </pre>
+</details>
 </details>
 <details><summary><span class ='def signature'> def _show_wires(wires, ex_tag, title, color='blue'):</span></summary>
 <pre class ='def content'>    import matplotlib.pyplot as plt
