@@ -24,11 +24,11 @@
     - Add vswr
 
 ### NEC runner
-- add object name to end of nec GW line with a comment ' if possible
 - Modify "gains" getter to report max gain by default when a Phi cut is specified
 
 ### Geometry
 - Add a 'bend' method to allow the sheet grids to model rounded edges
+- Validate the dielectric sheet model
 
 ## Future plans/ideas
 - further restructuring to enable load segment deconfliction (ensure nec doesn't silently overwrite loads). Store required loads in NECmodel as variables for later checking instead of just writing the LD card strings to LOADS.
