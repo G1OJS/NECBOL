@@ -39,17 +39,17 @@ class RandomOptimiser:
         self.stall_limit = stall_limit
         self.max_iter = max_iter
 
-    def format_params(self, params):
+    def _format_params(self, params):
         s="{"
         for k, v in params.items():
             s = s + f"'{k}': {v:.2f}, "
         return s[0:-2]+"}"
 
-    def same_line_print(self,text):
+    def _same_line_print(self,text):
         sys.stdout.write(f"\r{text}          ")
         sys.stdout.flush()
 
-    def random_variation(self, x):
+    def _random_variation(self, x):
         x_new = x.copy()
         for name in self.param_names:
             factor = 1 + random.uniform(-self.delta_x, self.delta_x)
@@ -70,12 +70,12 @@ class RandomOptimiser:
         best_info = result['info']
         stall_count = 0
         print("\nSTARTING optimiser. Press CTRL-C to stop")
-        initial_message = f"[] INITIAL: {best_info} with {self.format_params(best_params)}"
+        initial_message = f"[] INITIAL: {best_info} with {self._format_params(best_params)}"
         print(initial_message)
 
         try:
             for i in range(self.max_iter):
-                test_params = self.random_variation(best_params)
+                test_params = self._random_variation(best_params)
                 test_model = self.build_fn(model, **test_params)
                 test_model.write_nec()
                 test_model.run_nec()
@@ -90,12 +90,12 @@ class RandomOptimiser:
                     stall_count = 0
                     if(not tty):
                         print("")
-                    self.same_line_print(f"[{i}] IMPROVED: {best_info} with {self.format_params(best_params)}")
+                    self._same_line_print(f"[{i}] IMPROVED: {best_info} with {self._format_params(best_params)}")
                     print("")
                 else:
                     stall_count += 1
                     if(tty):
-                        self.same_line_print(f"[{i}] {test_info}")
+                        self._same_line_print(f"[{i}] {test_info}")
                     else:
                         sys.stdout.write(".")
 
@@ -104,13 +104,13 @@ class RandomOptimiser:
                     if(self.delta_x < self.min_delta):
                         if(not tty):
                             print("")
-                        self.same_line_print(f"[{i}] Delta below minimum")
+                        self._same_line_print(f"[{i}] Delta below minimum")
                         print("")
                         break
                     stall_count = 0
                     if(not tty):
                         print("")
-                    self.same_line_print(f"[{i}] STALLED: Reducing delta to {self.delta_x}")
+                    self._same_line_print(f"[{i}] STALLED: Reducing delta to {self.delta_x}")
                     print("")
 
         except KeyboardInterrupt:
@@ -124,6 +124,6 @@ class RandomOptimiser:
         print("\nFINISHED optimising\n")
         print("# Optimiser Results (copy and paste into your antenna file for reference). \nNote that you can copy the information between the {} to paste in as your new starting parameters.)")
         print("# "+ initial_message)
-        print(f"# []   FINAL: {final_info} with {self.format_params(best_params)}")
+        print(f"# []   FINAL: {final_info} with {self._format_params(best_params)}")
         
         return best_params, final_info
