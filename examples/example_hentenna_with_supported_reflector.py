@@ -1,7 +1,5 @@
 
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file
+from necbol import *
 
 def build_hentenna_yagi(model, h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
 

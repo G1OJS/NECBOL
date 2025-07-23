@@ -286,6 +286,9 @@ class NECModel:
         self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n"
 
     def set_gain_sphere_1deg(self):
+        self.RP_CARD = "RP 0 361 361 1003 -180 0 1 1\n"
+
+    def set_gain_hemisphere_1deg(self):
         self.RP_CARD = "RP 0 181 361 1003 -180 0 1 1\n"
 
     def set_ground(self, eps_r, sigma, **params):
@@ -441,6 +444,7 @@ class NECModel:
                 'E_theta_phase_deg': e_theta_phase,
                 'E_phi_mag': e_phi_mag,
                 'E_phi_phase_deg': e_phi_phase}
+                
         """
 
         return _read_radiation_pattern(self.nec_out)

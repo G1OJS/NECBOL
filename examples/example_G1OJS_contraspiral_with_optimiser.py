@@ -1,8 +1,6 @@
 
 
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file
+from necbol import *
 
 def cost_function(model):
     vcost = model.vswr()

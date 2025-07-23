@@ -1,7 +1,5 @@
 
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file
+from necbol import *
 import math
 
 # note that everything from here down is user code to adapt

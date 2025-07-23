@@ -5,11 +5,9 @@
 """
 
 #-------------------------------------------------------------------------------------------------------------------
-# These lines import NECBOL 
+# Import NECBOL 
 #-------------------------------------------------------------------------------------------------------------------
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file
+from necbol import *
 
 #-------------------------------------------------------------------------------------------------------------------
 # Start an antenna model called model (it can be called anything acceptable as a Python variable),

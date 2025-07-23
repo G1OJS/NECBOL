@@ -1,8 +1,5 @@
 
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file, plot_gain
-
+from necbol import *
 """
  This file has been written to demonstrate how easy it is to build a model of a car (at
  the moment, just the passenger cell) using necbol. But note that no claims are made for

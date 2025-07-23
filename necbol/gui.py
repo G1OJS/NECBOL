@@ -24,6 +24,11 @@ SOFTWARE.
 """
 
 def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):
+    """
+        Opens the specified nec input file (*.nec) and reads the geometry,
+        then displays the geometry in a 3D projection. The feed is highligted in red.
+        Loads are highlighted in green.
+    """
     wires = []
     with open(file_path, 'r') as f:
         for line in f:
@@ -90,8 +95,15 @@ def _show_wires(wires, ex_tag, title, color='blue'):
  #   fig.canvas.manager.set_window_title('Please close this window to continue')
     ax = fig.add_subplot(111, projection='3d')
 
+    # LOAD highlighting depends on initial tag numbering scheme which needs revision
+
     for start, end, tag in wires:
-        ax.plot(*zip(start, end), color=color if (tag!=ex_tag) else 'red')
+        line_color = color
+        if (tag == ex_tag):
+            line_color = 'red'
+        if (tag >500 and tag < ex_tag): # MAGIC NUMBER
+            line_color = 'green'       
+        ax.plot(*zip(start, end), color=line_color if (tag!=ex_tag) else 'red')
 
     plt.draw()  # ensure autoscale limits are calculated
 
@@ -132,7 +144,7 @@ def _plot_gains(pattern_data, azimuth_deg = None, elevation_deg = None):
         phi_cut = azimuth_deg 
         print(f"Plotting gain for azimuth = {azimuth_deg} i.e. phi = {phi_cut}")
         cut = [d for d in pattern_data if abs(d['phi'] - phi_cut) < 0.1]
-        angle_deg = [-d['theta'] for d in cut]
+        angle_deg = [d['theta'] for d in cut]
         title = f'azimuth = {azimuth_deg}°'
  
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})

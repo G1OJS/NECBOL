@@ -1,7 +1,5 @@
 
-from necbol.modeller import NECModel
-from necbol.components import components 
-from necbol.gui import show_wires_from_file, plot_gain
+from necbol import *
 
 model = NECModel(working_dir="nec_wkg",
                  model_name = "A: Vertical Dipole in free space",
