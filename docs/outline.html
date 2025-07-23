@@ -509,13 +509,35 @@ import os
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def read_radiation_pattern(self):</span></summary>
-<pre class ='def content'>        return _read_radiation_pattern(self.nec_out)
+<details><summary><span class ='def signature'>🧾 def read_radiation_pattern(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            read the radiation pattern from the model.nec_out file
+            into a list of dictionaries with format:
+                {&#x27;theta&#x27;: theta,
+                &#x27;phi&#x27;: phi,
+                &#x27;gain_vert_db&#x27;: gain_vert,
+                &#x27;gain_horz_db&#x27;: gain_horz,
+                &#x27;gain_total_db&#x27;: gain_total,
+                &#x27;axial_ratio&#x27;: axial_ratio,
+                &#x27;tilt_deg&#x27;: tilt_deg,
+                &#x27;sense&#x27;: sense,
+                &#x27;E_theta_mag&#x27;: e_theta_mag,
+                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
+                &#x27;E_phi_mag&#x27;: e_phi_mag,
+                &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>
+        return _read_radiation_pattern(self.nec_out)
 
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
 </pre>
+</details>
 </details>
 <details><summary><span class ='def signature'> def _write_runner_files(self):</span></summary>
 <pre class ='def content'>        for filepath, content in [
