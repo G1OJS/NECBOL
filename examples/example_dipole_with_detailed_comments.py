@@ -78,7 +78,10 @@ model.write_nec()
 # now ask nec to analyse the nec input file and produce a nec output file
 model.run_nec()
 # get gains (H, V and Total) and vswr(calculated from impedance) from the nec output file
-gains = model.gains()
+h_gain = model.h_gain()
+v_gain = model.v_gain()
+tot_gain = model.tot_gain()
+
 vswr = model.vswr()
 
 #-------------------------------------------------------------------------------------------------------------------
@@ -86,7 +89,7 @@ vswr = model.vswr()
 #-------------------------------------------------------------------------------------------------------------------
 
 # print the results
-print(gains, f"vswr:{vswr:.2f}")
+print(f"H gain: {h_gain} dBi, V gain: {v_gain} dBi, Total gain: {tot_gain} dBi, vswr:{vswr:.2f}")
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards). Also

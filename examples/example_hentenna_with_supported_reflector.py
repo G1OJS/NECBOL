@@ -56,9 +56,11 @@ refl_sep = 0.33
 model = build_hentenna_yagi(model, hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
 model.write_nec()
 model.run_nec()
-gains = model.gains()
+h_gain = model.h_gain()
+v_gain = model.v_gain()
+tot_gain = model.tot_gain()
 vswr = model.vswr()
-print(gains, f"vswr:{vswr:.2f}")
+print(f"H gain: {h_gain} dBi, V gain: {v_gain} dBi, Total gain: {tot_gain} dBi, vswr:{vswr:.2f}")
 
 show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 

@@ -295,32 +295,63 @@ class NECModel:
         self._write_runner_files()
 
     def set_name(self, name):
+        """
+            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
+            output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
+            so that the analysis continues (with updated input parameters) and outputs more than one test case
+        """
         self.model_name = name
         self.nec_in = self.working_dir + "\\" + self.model_name +  ".nec"
         self.nec_out = self.working_dir + "\\" + self.model_name +  ".out"
         self._write_runner_files()
 
     def set_wire_conductivity(self, sigma):
+        """
+            Set wire conductivity for all wires.
+
+            NOTE that NEC achieves this by specifying a 'load' applicable to all wires, and addition
+            of further loads will interact with this. A future version of necbol will examine
+            this specification so that both wire conductivity and load parameters are accounted for in this case.
+        """
         self.LD_WIRECOND = f"LD 5 0 0 0 {sigma:.6f} \n"
 
     def set_frequency(self, MHz):
+        """
+            Request NEC to perform all analysis at the specified frequency. 
+        """
         self.FR_CARD = f"FR 0 1 0 0 {MHz:.3f} 0\n"
         lambda_m = 300/MHz
         self.segLength_m = lambda_m / self.nSegs_per_wavelength
         
     def set_gain_point(self, azimuth, elevation):
+        """
+            Request NEC to produce a gain pattern at a single specified azimuth and elevation
+            (Typically used when optimising gain in a fixed direction)
+        """
         self.RP_CARD = f"RP 0 1 1 1000 {90-elevation:.2f} {azimuth:.2f} 0 0\n"
 
     def set_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):
+        """
+            Request NEC to produce a gain pattern over a specified azimuth
+            range at a single elevation using nPoints points
+        """
         if(nPoints<2):
             nPoints=2
         dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
         self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n"
 
     def set_gain_sphere_1deg(self):
+        """
+            Request NEC to produce a full sphere's worth of data points,
+            using 1 degree steps in both azimuth and elevation
+        """
         self.RP_CARD = "RP 0 361 361 1003 -180 0 1 1\n"
 
     def set_gain_hemisphere_1deg(self):
+        """
+            Request NEC to produce a full half-sphere's worth of data points covering the 'above ground' half space,
+            using 1 degree steps in both azimuth and elevation
+        """
         self.RP_CARD = "RP 0 181 361 1003 -180 0 1 1\n"
 
     def set_ground(self, eps_r, sigma, **params):
@@ -346,8 +377,10 @@ class NECModel:
             self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"
 
     def start_geometry(self, comments="No comments specified"):
-        # effectively *resets* the model, except that all of the parameters
-        # set by set_ functions are still incorporated when the file is written
+        """
+            Effectively *resets* the model by deleting all wires, feed and loads.
+            All of the parameters set by "set_" functions are still incorporated when the file is written
+        """
         self.comments = comments
         self.model_text = "CM " + comments + "\nCE\n"
         # TO DO: decide if 500 is the right tag to start at, and whether to limit # of loads
@@ -357,7 +390,17 @@ class NECModel:
     def place_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
         """
             inserts a single segment containing a series RLC load into an existing geometry object
-            see _place_feed_or_load for how to specify the position of the segment within the object
+            Position within the object is specied as
+            EITHER:
+              load_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              load_wire_index AND load_alpha_wire
+              which specify the i'th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire's length
         """
         self.LOADS.append(f"LD 0 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
         self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
@@ -365,8 +408,18 @@ class NECModel:
         
     def place_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
         """
-            inserts a single segment containing a parakllel RLC load into an existing geometry object
-            see _place_feed_or_load for how to specify the position of the segment within the object
+            inserts a single segment containing a parallel RLC load into an existing geometry object
+            Position within the object is specied as
+            EITHER:
+              load_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              load_wire_index AND load_alpha_wire
+              which specify the i'th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire's length
         """
         self.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
         self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
@@ -374,13 +427,27 @@ class NECModel:
 
     def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
         """
-            inserts a single segment containing the excitation point into an existing geometry object
-            see _place_feed_or_load for how to specify the position of the segment within the object
+            Inserts a single segment containing the excitation point into an existing geometry object.
+            Position within the object is specied as
+            EITHER:
+              feed_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              feed_wire_index AND feed_alpha_wire
+              which specify the i'th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire's length
         """
         self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
 
                 
     def add(self, geomObj):
+        """
+            Add a completed component to the specified model: model_name.add(component_name). Any changes made
+            to the component after this point are ignored.
+        """
         for w in geomObj._get_wires():
             A = np.array(w["a"], dtype=float)
             B = np.array(w["b"], dtype=float)
@@ -395,6 +462,10 @@ class NECModel:
 
 
     def write_nec(self):
+        """
+            Write the entire model to the NEC input file ready for analysis. At this point, the function
+            "show_wires_from_file" may be used to see the specified geometry in a 3D view.
+        """
         tail_text = self.GM_CARD
         tail_text += self.GE_CARD
         tail_text += self.GN_CARD
@@ -409,39 +480,35 @@ class NECModel:
         with open(self.nec_in, "w") as f:
             f.write(self.model_text + tail_text)
 
-
-
     def run_nec(self):
+        """
+            Pass the model file to NEC for analysis and wait for the output.
+        """
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
-    def gains(self):
-        try:
-            with open(self.nec_out) as f:
-                while "RADIATION PATTERNS" not in f.readline():
-                    pass
-                for _ in range(5):
-                    l = f.readline()
-                if self.verbose:
-                    print("Gains line:", l.strip())
-        except (RuntimeError, ValueError):
-            raise ValueError(f"Something went wrong reading gains from {nec_out}")
-
-        return {
-            "v_gain": float(l[21:29]),
-            "h_gain": float(l[29:37]),
-            "total": float(l[37:45]),
-        }
-
     def h_gain(self):
-        return self.gains()['h_gain']
+        """
+            Return the horizontal polarisation gain at the specified single gain point
+        """
+        return self._get_single_point_gains()['h_gain']
 
     def v_gain(self):
-        return self.gains()['v_gain']
+        """
+            Return the vertical polarisation gain at the specified single gain point
+        """
+        return self._get_single_point_gains()['v_gain']
 
     def tot_gain(self):
-        return self.gains()['total']
+        """
+            Return the total gain at the specified single gain point
+        """
+        return self._get_single_point_gains()['total']
 
-    def vswr(self):
+    def vswr(self, Z0 = 50):
+        """
+            Return the antenna VSWR at the feed point assuming a 50 ohm system
+            Or another value if specified
+        """
         try:
             with open(self.nec_out) as f:
                 while "ANTENNA INPUT PARAMETERS" not in f.readline():
@@ -456,8 +523,7 @@ class NECModel:
             raise ValueError(f"Something went wrong reading input impedance from {nec_out}")
 
         z_in = r + x * 1j
-        z0 = 50
-        gamma = (z_in - z0) / (z_in + z0)
+        gamma = (z_in - Z0) / (z_in + Z0)
         return (1 + abs(gamma)) / (1 - abs(gamma))
 
     def read_radiation_pattern(self):
@@ -484,7 +550,34 @@ class NECModel:
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
+    def _get_single_point_gains(self):
+        # this will be refactored to call _read_radiation_pattern
+        # and store the result, so that if it is called again
+        # the read is not needed
+        # Also, either using interpolation or aligning a cut / sphere with the
+        # needed point may provide efficiencies (and maintainability, more importantly)
+        try:
+            with open(self.nec_out) as f:
+                while "RADIATION PATTERNS" not in f.readline():
+                    pass
+                for _ in range(5):
+                    l = f.readline()
+                if self.verbose:
+                    print("Gains line:", l.strip())
+        except (RuntimeError, ValueError):
+            raise ValueError(f"Something went wrong reading gains from {nec_out}")
+
+        return {
+            "v_gain": float(l[21:29]),
+            "h_gain": float(l[29:37]),
+            "total": float(l[37:45]),
+        }
+
+
     def _write_runner_files(self):
+        """
+            Write the .bat file to start NEC, and 'files.txt' to tell NEC the name of the input and output files
+        """
         for filepath, content in [
             (self.nec_bat, f"{self.nec_exe} < {self.files_txt} \n"),
             (self.files_txt, f"{self.nec_in}\n{self.nec_out}\n")
@@ -501,15 +594,8 @@ class NECModel:
     def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
         """
             inserts a single segment with a specified iTag into an existing geometry object
-            position within the object is specied as
-            EITHER:
-              item_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-            OR:
-              item_wire_index AND item_alpha_wire
-              which specify the i'th wire in the n wires in the object, and the distance along that
-              wire divided by that wire's length
+            position within the object is specied as either item_alpha_object or item_wire_index, item_alpha_wire
+            (see calling functions for more details)
         """
         wires = geomObj._get_wires()
         if(item_alpha_object >=0):
