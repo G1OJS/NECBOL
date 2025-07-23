@@ -74,18 +74,6 @@
                 &#x27;E_phi_mag&#x27;: e_phi_mag,
                 &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
 </pre>
-<pre class ='docstring content'>        
-            inserts a single segment with a specified iTag into an existing geometry object
-            position within the object is specied as
-            EITHER:
-              item_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-            OR:
-              item_wire_index AND item_alpha_wire
-              which specify the i&#x27;th wire in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
 <span class = 'filename'>optimisers.py</span><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(self, model,  verbose=False, tty=True):</span></div>
 <span class = 'filename'>gui.py</span><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></div>
@@ -93,8 +81,6 @@
 <span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
         and loads the _units module class _units()
-</pre>
-<pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspcopy_of(self, existing_obj):</span></div>
 <pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag
@@ -217,4 +203,4 @@
         Dimensions are length_, height_, thickness_, grid_pitch_
 </pre>
 
-<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.2.1 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
+<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.2.2 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
