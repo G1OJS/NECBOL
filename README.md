@@ -35,8 +35,8 @@ Documentation is work in progress. In the meantime:
 
 * For a quick and basic overview, see the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework.
 
-* There are several more example files in the [examples folder](https://github.com/G1OJS/NECBOL/tree/main/examples)) intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
+* There are several more example files in the [examples folder](https://github.com/G1OJS/NECBOL/tree/main/examples) intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
 
 * Automated documentation is [here](https://g1ojs.github.io/NECBOL/user_functions.html)
   
-* Copies of the files installed by pip are in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol)) on this repository. 
+* Copies of the files installed by pip are in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol) on this repository. 
