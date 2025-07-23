@@ -31,10 +31,12 @@ Install using pip: open a command window and type
 pip install necbol
 ```
 ## User Guide
-Copies of the files installed by pip are in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol)) on this repository. There are several example files intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
+Documentation is work in progress. In the meantime:
 
-**Tip:** Look inside necbol/components.py to see which antenna components and modification methods are currently available. I'm planning to make an automated help file from the comments inside this file (and then the others).
+* For a quick and basic overview, see the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework.
 
-For a quick and basic overview, see the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework. 
+* There are several more example files in the [examples folder](https://github.com/G1OJS/NECBOL/tree/main/examples)) intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
 
-**NEW** Automatic documentation is [here](https://g1ojs.github.io/NECBOL/user_functions.html)
+* Automated documentation is [here](https://g1ojs.github.io/NECBOL/user_functions.html)
+  
+* Copies of the files installed by pip are in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol)) on this repository. 
