@@ -19,22 +19,12 @@ import os
 <pre class ='class content'></pre>
 <details><summary><span class ='def signature'> def __init__(self, wires):</span></summary>
 <pre class ='def content'>        self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
-        self.units = units()
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):</span></summary>
-<pre class ='def content'>        self.wires.append({&quot;iTag&quot;:iTag, &quot;nS&quot;:nS, &quot;a&quot;:(x1, y1, z1), &quot;b&quot;:(x2, y2, z2), &quot;wr&quot;:wr})
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def get_wires(self):</span></summary>
-<pre class ='def content'>        return self.wires
+        self._units = _units()
 
 </pre>
 </details>
 <details><summary><span class ='def signature'> def translate(self, **params):</span></summary>
-<pre class ='def content'>        params_m = self.units.from_suffixed_dimensions(params)
+<pre class ='def content'>        params_m = self._units._from_suffixed_dimensions(params)
         for w in self.wires:
             w[&#x27;a&#x27;] = tuple(map(float,np.array(w[&#x27;a&#x27;]) + np.array([params_m.get(&#x27;dx_m&#x27;), params_m.get(&#x27;dy_m&#x27;), params_m.get(&#x27;dz_m&#x27;)])))
             w[&#x27;b&#x27;] = tuple(map(float,np.array(w[&#x27;b&#x27;]) + np.array([params_m.get(&#x27;dx_m&#x27;), params_m.get(&#x27;dy_m&#x27;), params_m.get(&#x27;dz_m&#x27;)])))
@@ -43,44 +33,77 @@ import os
 </details>
 <details><summary><span class ='def signature'> def rotate_ZtoY(self):</span></summary>
 <pre class ='def content'>        R = np.array([[1, 0, 0],[0,  0, 1],[0,  -1, 0]])
-        return self.rotate(R)
+        return self._rotate(R)
     
 </pre>
 </details>
 <details><summary><span class ='def signature'> def rotate_ZtoX(self):</span></summary>
 <pre class ='def content'>        R = np.array([[0, 0, 1],[0,  1, 0],[-1,  0, 0]])
-        return self.rotate(R)
+        return self._rotate(R)
 
 </pre>
 </details>
 <details><summary><span class ='def signature'> def rotate_around_Z(self, angle_deg):</span></summary>
-<pre class ='def content'>        ca, sa = self.cos_sin(angle_deg)
+<pre class ='def content'>        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[ca, -sa, 0],
                       [sa, ca, 0],
                       [0, 0, 1]])
-        return self.rotate(R)
+        return self._rotate(R)
 
 </pre>
 </details>
 <details><summary><span class ='def signature'> def rotate_around_X(self, angle_deg):</span></summary>
-<pre class ='def content'>        ca, sa = self.cos_sin(angle_deg)
+<pre class ='def content'>        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[1, 0, 0],
                       [0, ca, -sa],
                       [0, sa, ca]])
-        return self.rotate(R)
+        return self._rotate(R)
 
 </pre>
 </details>
 <details><summary><span class ='def signature'> def rotate_around_Y(self, angle_deg):</span></summary>
-<pre class ='def content'>        ca, sa = self.cos_sin(angle_deg)
+<pre class ='def content'>        ca, sa = self._cos_sin(angle_deg)
         R = np.array([[ca, 0, sa],
                       [0, 1, 0],
                       [-sa, 0, ca]])
-        return self.rotate(R)
+        return self._rotate(R)
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def cos_sin(self,angle_deg):</span></summary>
+<details><summary><span class ='def signature'> def connect_ends(self, other, tol=1e-3, verbose = False):</span></summary>
+<pre class ='def content'>    wires_to_add=[]
+    for ws in self.wires:
+        if(verbose):
+            print(f&quot;\nChecking if ends of wire from {ws[&#x27;a&#x27;]} to {ws[&#x27;b&#x27;]} should connect to any of {len(other.wires)} other wires:&quot;)
+        for es in [ws[&quot;a&quot;], ws[&quot;b&quot;]]:
+            for wo in other.wires:
+                if (self._point_should_connect_to_wire(es,wo,tol)):
+                    wire_seg_status = f&quot;{wo[&#x27;nS&#x27;]} segment&quot; if wo[&#x27;nS&#x27;] &gt; 0 else &#x27;unsegmented&#x27;
+                    length_orig = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
+                    b_orig = wo[&quot;b&quot;]
+                    wo[&#x27;b&#x27;]=tuple(es)
+                    length_shortened = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
+                    nS_shortened = max(1, int(wo[&#x27;nS&#x27;]*length_shortened/length_orig))
+                    nS_orig = wo[&#x27;nS&#x27;]
+                    wo[&#x27;nS&#x27;] = nS_shortened
+                    nS_remainder = max(1,nS_orig - nS_shortened)
+                    wires_to_add.append( (wo[&#x27;iTag&#x27;], nS_remainder, *wo[&#x27;b&#x27;], *b_orig, wo[&#x27;wr&#x27;]) )
+                    length_remainder = np.linalg.norm(np.array(wo[&quot;b&quot;]) - np.array(b_orig))
+                    if(verbose):
+                        print(f&quot;Inserting end of wire at {wo[&#x27;b&#x27;]} into {wire_seg_status} wire {length_orig}m wire from {wo[&#x27;a&#x27;]} to {b_orig}:&quot;)
+                        print(f&quot;    by shortening wire to end at {wo[&#x27;b&#x27;]}: {length_shortened}m, using {nS_shortened} segments&quot;)
+                        print(f&quot;    and adding wire from {wo[&quot;b&quot;]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments&quot;)
+                    break #(for efficiency only)
+    for params in wires_to_add:
+        other._add_wire(*params)
+
+#===============================================================
+# internal functions for class GeometryObject
+#===============================================================
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _cos_sin(self,angle_deg):</span></summary>
 <pre class ='def content'>        angle_rad = math.pi*angle_deg/180
         ca = math.cos(angle_rad)
         sa = math.sin(angle_rad)
@@ -88,7 +111,7 @@ import os
     
 </pre>
 </details>
-<details><summary><span class ='def signature'> def rotate(self, R):</span></summary>
+<details><summary><span class ='def signature'> def _rotate(self, R):</span></summary>
 <pre class ='def content'>        for w in self.wires:
             a = np.array(w[&#x27;a&#x27;])
             b = np.array(w[&#x27;b&#x27;])
@@ -97,36 +120,17 @@ import os
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def connect_ends(self, other, tol=1e-3, verbose = False):</span></summary>
-<pre class ='def content'>        wires_to_add=[]
-        for ws in self.wires:
-            if(verbose):
-                print(f&quot;\nChecking if ends of wire from {ws[&#x27;a&#x27;]} to {ws[&#x27;b&#x27;]} should connect to any of {len(other.wires)} other wires:&quot;)
-            for es in [ws[&quot;a&quot;], ws[&quot;b&quot;]]:
-                for wo in other.wires:
-                    if (self.point_should_connect_to_wire(es,wo,tol)):
-                        wire_seg_status = f&quot;{wo[&#x27;nS&#x27;]} segment&quot; if wo[&#x27;nS&#x27;] &gt; 0 else &#x27;unsegmented&#x27;
-                        length_orig = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
-                        b_orig = wo[&quot;b&quot;]
-                        wo[&#x27;b&#x27;]=tuple(es)
-                        length_shortened = np.linalg.norm(np.array(wo[&quot;a&quot;]) - np.array(wo[&quot;b&quot;]))
-                        nS_shortened = max(1, int(wo[&#x27;nS&#x27;]*length_shortened/length_orig))
-                        nS_orig = wo[&#x27;nS&#x27;]
-                        wo[&#x27;nS&#x27;] = nS_shortened
-                        nS_remainder = max(1,nS_orig - nS_shortened)
-                        wires_to_add.append( (wo[&#x27;iTag&#x27;], nS_remainder, *wo[&#x27;b&#x27;], *b_orig, wo[&#x27;wr&#x27;]) )
-                        length_remainder = np.linalg.norm(np.array(wo[&quot;b&quot;]) - np.array(b_orig))
-                        if(verbose):
-                            print(f&quot;Inserting end of wire at {wo[&#x27;b&#x27;]} into {wire_seg_status} wire {length_orig}m wire from {wo[&#x27;a&#x27;]} to {b_orig}:&quot;)
-                            print(f&quot;    by shortening wire to end at {wo[&#x27;b&#x27;]}: {length_shortened}m, using {nS_shortened} segments&quot;)
-                            print(f&quot;    and adding wire from {wo[&quot;b&quot;]} to {b_orig}:  {length_remainder}m using {nS_remainder} segments&quot;)
-                        break #(for efficiency only)
-        for params in wires_to_add:
-            other.add_wire(*params)
+<details><summary><span class ='def signature'> def _add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):</span></summary>
+<pre class ='def content'>        self.wires.append({&quot;iTag&quot;:iTag, &quot;nS&quot;:nS, &quot;a&quot;:(x1, y1, z1), &quot;b&quot;:(x2, y2, z2), &quot;wr&quot;:wr})
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def point_should_connect_to_wire(self,P, wire, tol=1e-3):</span></summary>
+<details><summary><span class ='def signature'> def _get_wires(self):</span></summary>
+<pre class ='def content'>        return self.wires
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _point_should_connect_to_wire(self,P, wire, tol=1e-3):</span></summary>
 <pre class ='def content'>        P = np.array(P, dtype=float)
         A = np.array(wire[&#x27;a&#x27;], dtype=float)
         B = np.array(wire[&#x27;b&#x27;], dtype=float)
@@ -168,7 +172,7 @@ import os
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def point_on_object(self,geom_object, wire_index, alpha_wire):</span></summary>
+<details><summary><span class ='def signature'> def _point_on_object(self,geom_object, wire_index, alpha_wire):</span></summary>
 <pre class ='def content'>        if(wire_index&gt; len(geom_object.wires)):
             wire_index = len(geom_object.wires)
             alpha_wire = 1.0
@@ -185,7 +189,7 @@ import os
 </pre>
 </details>
 </details>
-<details><summary><span class ='class signature'> class units:</span></summary>
+<details><summary><span class ='class signature'> class _units:</span></summary>
 <pre class ='class content'>    
     _UNIT_FACTORS = {
         &quot;m&quot;: 1.0,
@@ -203,7 +207,7 @@ import os
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:</span></summary>
+<details><summary><span class ='def signature'>🧾 def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Converts suffixed values like &#x27;d_mm&#x27; to meters.
@@ -279,8 +283,8 @@ import os
         self.EX_TAG = 999
         self.nSegs_per_wavelength = 40
         self.segLength_m = 0
-        self.units = units()
-        self.write_runner_files()
+        self._units = _units()
+        self._write_runner_files()
 
 </pre>
 </details>
@@ -288,24 +292,7 @@ import os
 <pre class ='def content'>        self.model_name = name
         self.nec_in = self.working_dir + &quot;\\&quot; + self.model_name +  &quot;.nec&quot;
         self.nec_out = self.working_dir + &quot;\\&quot; + self.model_name +  &quot;.out&quot;
-        self.write_runner_files()
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def write_runner_files(self):</span></summary>
-<pre class ='def content'>        for filepath, content in [
-            (self.nec_bat, f&quot;{self.nec_exe} &lt; {self.files_txt} \n&quot;),
-            (self.files_txt, f&quot;{self.nec_in}\n{self.nec_out}\n&quot;)
-        ]:
-            directory = os.path.dirname(filepath)
-            if directory and not os.path.exists(directory):
-                os.makedirs(directory)  # create directory if it doesn&#x27;t exist
-            try:
-                with open(filepath, &quot;w&quot;) as f:
-                    f.write(content)
-            except Exception as e:
-                print(f&quot;Error writing file {filepath}: {e}&quot;)
-
+        self._write_runner_files()
 
 </pre>
 </details>
@@ -334,6 +321,11 @@ import os
 
 </pre>
 </details>
+<details><summary><span class ='def signature'> def set_gain_sphere_1deg(self):</span></summary>
+<pre class ='def content'>        self.RP_CARD = &quot;RP 0 181 361 1003 -180 0 1 1\n&quot;
+
+</pre>
+</details>
 <details><summary><span class ='def signature'>🧾 def set_ground(self, eps_r, sigma, **params):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
@@ -355,7 +347,7 @@ import os
             self.GN_CARD = &quot;&quot;
             self.GM_CARD = &quot;GM 0 0 0 0 0 0 0 0.000\n&quot;
         else:
-            origin_height_m = self.units.from_suffixed_dimensions(params)[&#x27;origin_height_m&#x27;]
+            origin_height_m = self._units._from_suffixed_dimensions(params)[&#x27;origin_height_m&#x27;]
             self.GE_CARD = &quot;GE -1\n&quot;
             self.GN_CARD = f&quot;GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n&quot;
             self.GM_CARD = f&quot;GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n&quot;
@@ -417,62 +409,12 @@ import os
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        
-            inserts a single segment with a specified iTag into an existing geometry object
-            position within the object is specied as
-            EITHER:
-              item_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-            OR:
-              item_wire_index AND item_alpha_wire
-              which specify the i&#x27;th wire in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        wires = geomObj.get_wires()
-        if(item_alpha_object &gt;=0):
-            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
-            item_alpha_wire = item_alpha_object - item_wire_index
-        w = wires[item_wire_index]       
-
-        # calculate wire length vector AB, length a to b and distance from a to feed point
-        A = np.array(w[&quot;a&quot;], dtype=float)
-        B = np.array(w[&quot;b&quot;], dtype=float)
-        AB = B-A
-        wLen = np.linalg.norm(AB)
-        feedDist = wLen * item_alpha_wire
-
-        if (wLen &lt;= self.segLength_m):
-            # feed segment is all of this wire, so no need to split
-            w[&#x27;nS&#x27;] = 1
-            w[&#x27;iTag&#x27;] = item_iTag
-        else:
-            # split the wire AB into three wires: A to C, CD (feed segment), D to B
-            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
-            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
-            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
-            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
-            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
-            # (nonzero nS field is preserved during segmentation in &#x27;add&#x27;)
-            w[&#x27;b&#x27;] = tuple(C)
-            w[&#x27;nS&#x27;] = nS1
-            geomObj.add_wire(item_iTag , 1, *C, *D, w[&quot;wr&quot;])
-            geomObj.add_wire(w[&quot;iTag&quot;] , nS2, *D, *B, w[&quot;wr&quot;])
-            
                 
 </pre>
 </details>
 </details>
 <details><summary><span class ='def signature'> def add(self, geomObj):</span></summary>
-<pre class ='def content'>        for w in geomObj.get_wires():
+<pre class ='def content'>        for w in geomObj._get_wires():
             A = np.array(w[&quot;a&quot;], dtype=float)
             B = np.array(w[&quot;b&quot;], dtype=float)
             if(w[&#x27;nS&#x27;] == 0): # calculate and update number of segments only if not already present
@@ -483,6 +425,7 @@ import os
             for v in B:
                 self.model_text += f&quot;{v:.3f} &quot;
             self.model_text += f&quot;{w[&#x27;wr&#x27;]}\n&quot;
+
 
 </pre>
 </details>
@@ -500,6 +443,8 @@ import os
         tail_text += &quot;EN&quot;
         with open(self.nec_in, &quot;w&quot;) as f:
             f.write(self.model_text + tail_text)
+
+
 
 </pre>
 </details>
@@ -565,54 +510,115 @@ import os
 </pre>
 </details>
 <details><summary><span class ='def signature'> def read_radiation_pattern(self):</span></summary>
-<pre class ='def content'>        data = []
-        in_data = False
-        start_lineNo = 1e9
-        with open(self.nec_out) as f:
-            lines = f.readlines()
-        for lineNo, line in enumerate(lines):
-            if (&#x27;RADIATION PATTERNS&#x27; in line):
-                in_data = True
-                start_lineNo = lineNo + 5
+<pre class ='def content'>        return _read_rad_pattern(self.nec_out)
 
-            if (lineNo &gt; start_lineNo and line==&quot;\n&quot;):
-                in_data = False
-                
-            if (in_data and lineNo &gt;= start_lineNo):
-                theta = float(line[0:9])
-                phi = float(line[9:18])
-                gain_vert = float(line[18:28])
-                gain_horz = float(line[28:36])
-                gain_total = float(line[36:45])
-                axial_ratio = float(line[45:55])
-                tilt_deg = float(line[55:63])
-                # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
-                sense = line[63:72].strip()
-                e_theta_mag = float(line[72:87])
-                e_theta_phase = float(line[87:96])
-                e_phi_mag = float(line[96:111])
-                e_phi_phase = float(line[111:119])
-
-                data.append({
-                    &#x27;theta&#x27;: theta,
-                    &#x27;phi&#x27;: phi,
-                    &#x27;gain_vert_db&#x27;: gain_vert,
-                    &#x27;gain_horz_db&#x27;: gain_horz,
-                    &#x27;gain_total_db&#x27;: gain_total,
-                    &#x27;axial_ratio&#x27;: axial_ratio,
-                    &#x27;tilt_deg&#x27;: tilt_deg,
-                    &#x27;sense&#x27;: sense,
-                    &#x27;E_theta_mag&#x27;: e_theta_mag,
-                    &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
-                    &#x27;E_phi_mag&#x27;: e_phi_mag,
-                    &#x27;E_phi_phase_deg&#x27;: e_phi_phase
-                })
-
-
-        return data
+#===============================================================
+# internal functions for class NECModel
+#===============================================================
 
 </pre>
 </details>
+<details><summary><span class ='def signature'>🧾 def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        
+            inserts a single segment with a specified iTag into an existing geometry object
+            position within the object is specied as
+            EITHER:
+              item_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+            OR:
+              item_wire_index AND item_alpha_wire
+              which specify the i&#x27;th wire in the n wires in the object, and the distance along that
+              wire divided by that wire&#x27;s length
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        wires = geomObj._get_wires()
+        if(item_alpha_object &gt;=0):
+            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
+            item_alpha_wire = item_alpha_object - item_wire_index
+        w = wires[item_wire_index]       
+
+        # calculate wire length vector AB, length a to b and distance from a to feed point
+        A = np.array(w[&quot;a&quot;], dtype=float)
+        B = np.array(w[&quot;b&quot;], dtype=float)
+        AB = B-A
+        wLen = np.linalg.norm(AB)
+        feedDist = wLen * item_alpha_wire
+
+        if (wLen &lt;= self.segLength_m):
+            # feed segment is all of this wire, so no need to split
+            w[&#x27;nS&#x27;] = 1
+            w[&#x27;iTag&#x27;] = item_iTag
+        else:
+            # split the wire AB into three wires: A to C, CD (feed segment), D to B
+            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
+            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
+            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
+            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
+            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
+            # (nonzero nS field is preserved during segmentation in &#x27;add&#x27;)
+            w[&#x27;b&#x27;] = tuple(C)
+            w[&#x27;nS&#x27;] = nS1
+            geomObj._add_wire(item_iTag , 1, *C, *D, w[&quot;wr&quot;])
+            geomObj._add_wire(w[&quot;iTag&quot;] , nS2, *D, *B, w[&quot;wr&quot;])
+            
+
+</pre>
+</details>
+</details>
+</details>
+<details><summary><span class ='def signature'> def _read_rad_pattern(filepath):</span></summary>
+<pre class ='def content'>    data = []
+    in_data = False
+    start_lineNo = 1e9
+    with open(filepath) as f:
+        lines = f.readlines()
+    for lineNo, line in enumerate(lines):
+        if (&#x27;RADIATION PATTERNS&#x27; in line):
+            in_data = True
+            start_lineNo = lineNo + 5
+
+        if (lineNo &gt; start_lineNo and line==&quot;\n&quot;):
+            in_data = False
+            
+        if (in_data and lineNo &gt;= start_lineNo):
+            theta = float(line[0:9])
+            phi = float(line[9:18])
+            gain_vert = float(line[18:28])
+            gain_horz = float(line[28:36])
+            gain_total = float(line[36:45])
+            axial_ratio = float(line[45:55])
+            tilt_deg = float(line[55:63])
+            # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
+            sense = line[63:72].strip()
+            e_theta_mag = float(line[72:87])
+            e_theta_phase = float(line[87:96])
+            e_phi_mag = float(line[96:111])
+            e_phi_phase = float(line[111:119])
+
+            data.append({
+                &#x27;theta&#x27;: theta,
+                &#x27;phi&#x27;: phi,
+                &#x27;gain_vert_db&#x27;: gain_vert,
+                &#x27;gain_horz_db&#x27;: gain_horz,
+                &#x27;gain_total_db&#x27;: gain_total,
+                &#x27;axial_ratio&#x27;: axial_ratio,
+                &#x27;tilt_deg&#x27;: tilt_deg,
+                &#x27;sense&#x27;: sense,
+                &#x27;E_theta_mag&#x27;: e_theta_mag,
+                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
+                &#x27;E_phi_mag&#x27;: e_phi_mag,
+                &#x27;E_phi_phase_deg&#x27;: e_phi_phase
+            })
+
+
+    return data
+
+
+</pre>
 </details>
 <span class = 'filename'>optimisers.py</span><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
@@ -738,42 +744,6 @@ import random, sys
 <pre class ='body content'>
 </pre>
 </details>
-<details><summary><span class ='def signature'> def show_wires(wires, ex_tag, title, color='blue'):</span></summary>
-<pre class ='def content'>    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-
-    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
-    fig = plt.figure()
- #   fig.canvas.manager.set_window_title(&#x27;Please close this window to continue&#x27;)
-    ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
-
-    for start, end, tag in wires:
-        ax.plot(*zip(start, end), color=color if (tag!=ex_tag) else &#x27;red&#x27;)
-
-    plt.draw()  # ensure autoscale limits are calculated
-
-    # Get axis limits
-    xlim, ylim, zlim = ax.get_xlim(), ax.get_ylim(), ax.get_zlim()
-    mids = [(lim[0] + lim[1]) / 2 for lim in (xlim, ylim, zlim)]
-    spans = [lim[1] - lim[0] for lim in (xlim, ylim, zlim)]
-    max_range = max(spans)
-
-    # Set equal range around each midpoint
-    ax.set_xlim(mids[0] - max_range/2, mids[0] + max_range/2)
-    ax.set_ylim(mids[1] - max_range/2, mids[1] + max_range/2)
-    ax.set_zlim(mids[2] - max_range/2, mids[2] + max_range/2)
-
-    ax.set_xlabel(&#x27;X&#x27;)
-    ax.set_ylabel(&#x27;Y&#x27;)
-    ax.set_zlabel(&#x27;Z&#x27;)
-    ax.set_title(title)
-    
-    plt.tight_layout()
-    plt.show()
-    
-
-</pre>
-</details>
 <details><summary><span class ='def signature'> def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></summary>
 <pre class ='def content'>    wires = []
     with open(file_path, &#x27;r&#x27;) as f:
@@ -786,8 +756,7 @@ import random, sys
                     x2, y2, z2 = map(float, parts[6:9])
                     tag = int(parts[1])
                     wires.append(((x1, y1, z1), (x2, y2, z2), tag))
-    show_wires(wires, ex_tag, title, color=color)
-
+    _show_wires(wires, ex_tag, title, color=color)
 
 </pre>
 </details>
@@ -831,14 +800,137 @@ import random, sys
 
 
 
+#==================================================================
+# Internal functions
+#==================================================================
 
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _show_wires(wires, ex_tag, title, color='blue'):</span></summary>
+<pre class ='def content'>    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+
+    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
+    fig = plt.figure()
+ #   fig.canvas.manager.set_window_title(&#x27;Please close this window to continue&#x27;)
+    ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
+
+    for start, end, tag in wires:
+        ax.plot(*zip(start, end), color=color if (tag!=ex_tag) else &#x27;red&#x27;)
+
+    plt.draw()  # ensure autoscale limits are calculated
+
+    # Get axis limits
+    xlim, ylim, zlim = ax.get_xlim(), ax.get_ylim(), ax.get_zlim()
+    mids = [(lim[0] + lim[1]) / 2 for lim in (xlim, ylim, zlim)]
+    spans = [lim[1] - lim[0] for lim in (xlim, ylim, zlim)]
+    max_range = max(spans)
+
+    # Set equal range around each midpoint
+    ax.set_xlim(mids[0] - max_range/2, mids[0] + max_range/2)
+    ax.set_ylim(mids[1] - max_range/2, mids[1] + max_range/2)
+    ax.set_zlim(mids[2] - max_range/2, mids[2] + max_range/2)
+
+    ax.set_xlabel(&#x27;X&#x27;)
+    ax.set_ylabel(&#x27;Y&#x27;)
+    ax.set_zlabel(&#x27;Z&#x27;)
+    ax.set_title(title)
+    
+    plt.tight_layout()
+    plt.show()
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _plot_gains(pattern_data, azimuth_deg = None, elevation_deg = None):</span></summary>
+<pre class ='def content'>    import matplotlib.pyplot as plt
+    import numpy as np
+        
+    # Filter data for fixed elevation (theta)
+    if(elevation_deg is not None):
+        theta_cut = 90 - elevation_deg
+        print(f&quot;Plotting gain for elevation = {elevation_deg} i.e. theta = {theta_cut}&quot;)
+        cut = [d for d in pattern_data if abs(d[&#x27;theta&#x27;] - theta_cut) &lt; 0.1]
+        angle_deg = [d[&#x27;phi&#x27;] for d in cut]
+        title = f&#x27;elevation = {elevation_deg}°&#x27;
+
+    # Filter data for fixed azimuth (phi)
+    if(azimuth_deg is not None):
+        phi_cut = azimuth_deg 
+        print(f&quot;Plotting gain for azimuth = {azimuth_deg} i.e. phi = {phi_cut}&quot;)
+        cut = [d for d in pattern_data if abs(d[&#x27;phi&#x27;] - phi_cut) &lt; 0.1]
+        angle_deg = [-d[&#x27;theta&#x27;] for d in cut]
+        title = f&#x27;azimuth = {azimuth_deg}°&#x27;
+ 
+    fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
+    angle_rad = np.radians(angle_deg)
+    v_gain_db = [d[&#x27;gain_vert_db&#x27;] for d in cut]
+    h_gain_db = [d[&#x27;gain_horz_db&#x27;] for d in cut]
+    ax.plot(angle_rad, v_gain_db, label=title)
+    ax.plot(angle_rad, h_gain_db, label=title)
+    ax.set_title(title)
+    ax.grid(True)
+    
+    vmax = max(v_gain_db)
+    hmax = max(h_gain_db)
+
+    print(vmax,hmax)
+    pmax = max(vmax,hmax)
+    
+    ax.set_rmax(pmax)
+    ax.set_rmin(pmax-40)
+    ax.set_rlabel_position(90)
+
+    # Enable interactive mode for non-blocking plotting
+    plt.ion()
+
+    # Display the plot window in non-blocking mode
+    plt.show(block=False)
+
+
+
+import numpy as np
+import copy
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _get_complex_component(pat_data, component):</span></summary>
+<pre class ='def content'>    m = np.array([d[component + &#x27;_mag&#x27;] for d in pat_data])
+    p = np.radians([d[component + &#x27;_phase_deg&#x27;] for d in pat_data])
+    Z = m * np.exp(1j * p)
+    return Z
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _subtract_patterns(pat1, pat2):</span></summary>
+<pre class ='def content'>    Z_theta_1 = get_complex_component(pat1, &#x27;E_theta&#x27;)
+    Z_theta_2 = get_complex_component(pat2, &#x27;E_theta&#x27;)
+    Z_phi_1 = get_complex_component(pat1, &#x27;E_phi&#x27;)
+    Z_phi_2 = get_complex_component(pat2, &#x27;E_phi&#x27;)
+
+    pat = copy.deepcopy(pat1)
+    for i, d in enumerate(pat):
+        d[&#x27;E_theta_mag&#x27;] = np.abs(Z_theta_1[i] - Z_theta_2[i])
+        d[&#x27;E_phi_mag&#x27;] = np.abs(Z_phi_1[i] - Z_phi_2[i])
+        d[&#x27;gain_vert_db&#x27;] = 20*np.log10(d[&#x27;E_theta_mag&#x27;])
+        d[&#x27;gain_horz_db&#x27;] = 20*np.log10(d[&#x27;E_phi_mag&#x27;])
+
+
+    return pat
+
+    
+
+
+    
+
+                                            
 </pre>
 </details>
 <span class = 'filename'>components.py</span><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
 import numpy as np
 import math
-from necbol.modeller import GeometryObject,units
+from necbol.modeller import GeometryObject,_units
 
 #=================================================================================
 # Cannonical components
@@ -852,17 +944,17 @@ from necbol.modeller import GeometryObject,units
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
-        and loads the units module class units()
+        and loads the _units module class _units()
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        self.object_counter = starting_tag_nr
-        self.units = units()
+        self._units = _units()
 
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def new_geometry_object(self):</span></summary>
+<details><summary><span class ='def signature'>🧾 def _new_geometry_object(self):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value
@@ -883,9 +975,9 @@ from necbol.modeller import GeometryObject,units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self.new_geometry_object()
+<pre class ='body content'>        iTag, obj = self._new_geometry_object()
         for w in existing_obj.wires:
-            obj.add_wire(iTag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
+            obj._add_wire(iTag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
         return obj
         
 </pre>
@@ -908,11 +1000,11 @@ from necbol.modeller import GeometryObject,units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
         wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
-        obj.add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
         return obj
     
 </pre>
@@ -935,15 +1027,15 @@ from necbol.modeller import GeometryObject,units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
         half_width_m = dimensions_m.get(&#x27;width_m&#x27;)/2
         wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2        
-        obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
-        obj.add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
-        obj.add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
-        obj.add_wire(iTag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
+        obj._add_wire(iTag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
         return obj
 
 </pre>
@@ -965,10 +1057,10 @@ from necbol.modeller import GeometryObject,units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self.new_geometry_object()
-        from_point = obj.point_on_object(from_object, from_wire_index, from_alpha_wire)
-        to_point = obj.point_on_object(to_object, to_wire_index, to_alpha_wire)
-        obj.add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
+<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+        from_point = obj._point_on_object(from_object, from_wire_index, from_alpha_wire)
+        to_point = obj._point_on_object(to_object, to_wire_index, to_alpha_wire)
+        obj._add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
 </pre>
@@ -993,8 +1085,8 @@ from necbol.modeller import GeometryObject,units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
         length_m = dimensions_m.get(&#x27;length_m&#x27;)
         pitch_m = dimensions_m.get(&#x27;pitch_m&#x27;)
@@ -1015,7 +1107,7 @@ from necbol.modeller import GeometryObject,units
             x2 = radius_m * math.cos(phi2)
             y2 = radius_m * math.sin(phi2)
             z2 = delta_z_m * (i + 1)
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
@@ -1054,12 +1146,12 @@ from necbol.modeller import GeometryObject,units
 <pre class ='body content'>
 </pre>
 </details>
-<details><summary><span class ='def signature'> def cosine_series(s, terms):</span></summary>
+<details><summary><span class ='def signature'> def _cosine_series(s, terms):</span></summary>
 <pre class ='def content'>            return sum(A * math.cos(i * math.pi * s + P) for i, (A, P) in enumerate(terms))
 
         # === Parameter unpacking and setup ===
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
 
         l_m = dimensions_m.get(&#x27;length_m&#x27;)
         r0_m = dimensions_m.get(&#x27;r0_m&#x27;)
@@ -1083,8 +1175,8 @@ from necbol.modeller import GeometryObject,units
         for i, phi in enumerate(phi_list):
             s = phi / total_phi  # Normalize φ to [0, +1]
 
-            radius = r0_m * cosine_series(s, r_cos_params)
-            pitch = p0_m * cosine_series(s, p_cos_params)
+            radius = r0_m * _cosine_series(s, r_cos_params)
+            pitch = p0_m * _cosine_series(s, p_cos_params)
             delta_phi = total_phi / n_segments
 
             if i &gt; 0:
@@ -1097,7 +1189,7 @@ from necbol.modeller import GeometryObject,units
         for i in range(n_segments):
             x1, y1, z1 = points[i]
             x2, y2, z2 = points[i + 1]
-            obj.add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
@@ -1122,20 +1214,20 @@ from necbol.modeller import GeometryObject,units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
         wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2    
 
         delta_phi_deg = arc_phi_deg / n_wires        
         for i in range(n_wires):
-            ca, sa = obj.cos_sin(delta_phi_deg * i)
+            ca, sa = obj._cos_sin(delta_phi_deg * i)
             x1 = radius_m * ca
             y1 = radius_m * sa
-            ca, sa = obj.cos_sin(delta_phi_deg * (i+1))
+            ca, sa = obj._cos_sin(delta_phi_deg * (i+1))
             x2 = radius_m * ca
             y2 = radius_m * sa
-            obj.add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
+            obj._add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
 
         return obj
 
@@ -1179,8 +1271,8 @@ from necbol.modeller import GeometryObject,units
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        
         print(&quot;NOTE: The thin_sheet model has been tested functionally but not validated quantitavely&quot;)
-        iTag, obj = self.new_geometry_object()
-        dimensions_m = self.units.from_suffixed_dimensions(dimensions)
+        iTag, obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         length_m = dimensions_m.get(&#x27;length_m&#x27;)
         height_m = dimensions_m.get(&#x27;height_m&#x27;)
         grid_pitch_m = dimensions_m.get(&#x27;grid_pitch_m&#x27;)
@@ -1213,12 +1305,12 @@ from necbol.modeller import GeometryObject,units
         for i in range(i0, i1):     # make z wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dY, -H/2, 0, -L/2+i*dY, H/2]
             nSegs = nZ-1
-            obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         for j in range(j0, j1):     # make y wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dZ, 0, L/2, -H/2+j*dZ]
             nSegs = nY-1
-            obj.add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         # add conductive / capacitive load to the iTag of this object
         # note we aren&#x27;t ineserting a new segment specifically for the load, so there&#x27;s no need to
@@ -1229,7 +1321,7 @@ from necbol.modeller import GeometryObject,units
         else:
             R_Ohms = dG / sigma
             C_F = 0.0
-        model.LOADS.append(f&quot;LD 1 {iTag} 0 0 {R_Ohms:.6e} {1e-12:.6e} {CD:.6e}\n&quot;)
+        model.LOADS.append(f&quot;LD 1 {iTag} 0 0 {R_Ohms:.6e} 0 {CD:.6e}\n&quot;)
                     
         return obj
 
