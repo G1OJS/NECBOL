@@ -37,30 +37,14 @@
             so that the analysis continues (with updated input parameters) and outputs more than one test case
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(sigma):</span></div>
-<pre class ='docstring content'>            Set wire conductivity for all wires.
-
-            NOTE that NEC achieves this by specifying a &#x27;load&#x27; applicable to all wires, and addition
-            of further loads will interact with this. A future version of necbol will examine
-            this specification so that both wire conductivity and load parameters are accounted for in this case.
+<pre class ='docstring content'>            Set wire conductivity to be assumed for all wires that don&#x27;t have an explicitly-set load.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz, MHz_end = None, MHz_step = None):</span></div>
 <pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(azimuth, elevation):</span></div>
-<pre class ='docstring content'>            Request NEC to produce a gain pattern at a single specified azimuth and elevation
-            (Typically used when optimising gain in a fixed direction)
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation):</span></div>
-<pre class ='docstring content'>            Request NEC to produce a gain pattern over a specified azimuth
-            range at a single elevation using nPoints points
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_sphere_1deg():</span></div>
-<pre class ='docstring content'>            Request NEC to produce a full sphere&#x27;s worth of data points,
-            using 1 degree steps in both azimuth and elevation
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_hemisphere_1deg():</span></div>
-<pre class ='docstring content'>            Request NEC to produce a full half-sphere&#x27;s worth of data points covering the &#x27;above ground&#x27; half space,
-            using 1 degree steps in both azimuth and elevation
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_angular_resolution(az_step_deg, el_step_deg):</span></div>
+<pre class ='docstring content'>            Set resolution required in az and el in degrees
+            If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **params):</span></div>
 <pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
@@ -73,12 +57,8 @@
                 sigma (float): conductivity of the ground in mhos/meter
                 origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspstart_geometry(comments="No comments specified"):</span></div>
-<pre class ='docstring content'>            Effectively *resets* the model by deleting all wires, feed and loads.
-            All of the parameters set by &quot;set_&quot; functions are still incorporated when the file is written
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_series_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>            inserts a single segment containing a series RLC load into an existing geometry object
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_type = 'Series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
+<pre class ='docstring content'>            inserts a single segment containing an RLC load into an existing geometry object
             Position within the object is specied as
             EITHER:
               load_alpha_object (range 0 to 1) as a parameter specifying the length of
@@ -90,20 +70,8 @@
               load_wire_index AND load_alpha_wire
               which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire&#x27;s length
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_parallel_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>            inserts a single segment containing a parallel RLC load into an existing geometry object
-            Position within the object is specied as
-            EITHER:
-              load_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              load_wire_index AND load_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
+
+            NEC LD card specification: https://www.nec2.org/part_3/cards/ld.html
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_feed( geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></div>
 <pre class ='docstring content'>            Inserts a single segment containing the excitation point into an existing geometry object.
