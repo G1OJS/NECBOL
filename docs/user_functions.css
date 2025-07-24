@@ -1,9 +1,7 @@
-* {margin-left:2rem; background: #e6f9ff;} 
-.filename {margin-top: 1rem; font-weight:bold; border:solid grey 1px; color:grey; font-size:2rem;}         
-.signature {font-weight:bold; margin-left:2rem;}
-.class {color:black; font-size:1.5rem;}         
-.def {color:black; }
-.docstring {color:darkgreen;}
-         
-.content {color:black; padding-left: 1em; }
-.docstring {color:green;}
+* {margin-left:2rem; background: rgb(255, 255, 240);  font-family: system-ui, sans-serif; color:rgb(50, 60, 20);}          
+.filename {font-weight:bold; font-size:2.5rem;}          
+.signature {font-weight:bold;}         
+.class {color:rgb(50,100,200); font-size:1.5rem;}         
+.def {color:rgb(60, 70, 30); }         
+.content {color:rgb(10,10,10); padding-left: 2rem; margin-top:5px; }          
+.docstring {color:rgb(0, 100, 0); }
