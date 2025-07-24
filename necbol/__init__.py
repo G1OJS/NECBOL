@@ -2,6 +2,12 @@ from necbol.components import *
 from necbol.gui import *
 from necbol.modeller import *
 from necbol.optimisers import *
-print("\nNECBOL V2.1.1 by Dr Alan Robinson G1OJS\n\n")
+
+from importlib.metadata import version
+try:
+    __version__ = version("necbol")
+except:
+    __version__ = ""
+print(f"\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n")
 
 
