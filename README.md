@@ -34,6 +34,6 @@ Documentation is work in progress. In the meantime:
 
 * There are several more example files in the [examples folder](https://github.com/G1OJS/NECBOL/tree/main/examples) intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
 
-* Automated documentation is [here](https://g1ojs.github.io/NECBOL/docs/user_functions.html)
+* Automated user documentation is [here](https://g1ojs.github.io/NECBOL/docs/user_functions.html). You can see an outline of all code [here](https://g1ojs.github.io/NECBOL/docs/outline.html).
   
 * You can browse the source files in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol) (however note that they may be ahead of the release on pip).
