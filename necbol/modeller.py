@@ -206,19 +206,6 @@ class GeometryObject:
 #=================================================================================
 
 class _units:
-    
-    _UNIT_FACTORS = {
-        "m": 1.0,
-        "mm": 1000.0,
-        "cm": 100.0,
-        "in": 39.3701,
-        "ft": 3.28084,
-    }
-
-    def __init__(self, default_unit: str = "m"):
-        if default_unit not in self._UNIT_FACTORS:
-            raise ValueError(f"Unsupported unit: {default_unit}")
-        self.default_unit = default_unit
 
     def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:
         """Converts suffixed values like 'd_mm' to meters.
@@ -226,7 +213,15 @@ class _units:
         Output keys have '_m' suffix unless they already end with '_m',
         in which case they are passed through unchanged (assumed meters).
         """
-        
+
+        _UNIT_FACTORS = {
+        "m": 1.0,
+        "mm": 1000.0,
+        "cm": 100.0,
+        "in": 39.3701,
+        "ft": 3.28084,
+        }
+
         out = {}
         names_seen = []
         for key, value in params.items():
@@ -246,9 +241,9 @@ class _units:
 
             names_seen.append(name)
 
-            if suffix in self._UNIT_FACTORS:
+            if suffix in _UNIT_FACTORS:
                 # Convert value, output key with '_m' suffix
-                out[name + "_m"] = value / self._UNIT_FACTORS[suffix]
+                out[name + "_m"] = value / _UNIT_FACTORS[suffix]
                 continue
 
             if key in whitelist:
@@ -276,19 +271,22 @@ class NECModel:
         self.nec_out = working_dir + "\\" + model_name +  ".out"
         self.files_txt = working_dir + "\\files.txt"
         self.model_name = model_name
-        self.model_text = ""
-        self.LD_WIRECOND = ""
-        self.FR_CARD = ""
-        self.RP_CARD = ""
-        self.GE_CARD = "GE 0\n"
-        self.GN_CARD = ""
-        self.GM_CARD = ""
-        self.comments = ""
-        self.EX_TAG = 999
         self.nSegs_per_wavelength = 40
         self.segLength_m = 0
         self._units = _units()
-        self._write_runner_files()
+        self.default_wire_sigma = None
+        self.MHz = None
+        self.MHz_stop = None
+        self.MHz_step = None
+        self.segLength_m
+        self.az_step_deg = 1
+        self.el_step_deg = 1
+        self.ground_sigma = 0
+        self.ground_Er = 1.0
+        self.geometry = []
+        self.EX_tag = 999
+        self.LOADS = []
+        self.LD_start_tag = 8000
 
     def set_name(self, name):
         """
@@ -303,52 +301,26 @@ class NECModel:
 
     def set_wire_conductivity(self, sigma):
         """
-            Set wire conductivity for all wires.
-
-            NOTE that NEC achieves this by specifying a 'load' applicable to all wires, and addition
-            of further loads will interact with this. A future version of necbol will examine
-            this specification so that both wire conductivity and load parameters are accounted for in this case.
+            Set wire conductivity to be assumed for all wires that don't have an explicitly-set load.
         """
+        self.default_wire_sigma = sigma
         self.LD_WIRECOND = f"LD 5 0 0 0 {sigma:.6f} \n"
 
-    def set_frequency(self, MHz):
+    def set_frequency(self, MHz, MHz_end = None, MHz_step = None):
         """
             Request NEC to perform all analysis at the specified frequency. 
         """
-        self.FR_CARD = f"FR 0 1 0 0 {MHz:.3f} 0\n"
+        self.MHz = MHz
         lambda_m = 300/MHz
         self.segLength_m = lambda_m / self.nSegs_per_wavelength
         
-    def set_gain_point(self, azimuth, elevation):
+    def set_angular_resolution(self, az_step_deg, el_step_deg):
         """
-            Request NEC to produce a gain pattern at a single specified azimuth and elevation
-            (Typically used when optimising gain in a fixed direction)
+            Set resolution required in az and el in degrees
+            If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
         """
-        self.RP_CARD = f"RP 0 1 1 1000 {90-elevation:.2f} {azimuth:.2f} 0 0\n"
-
-    def set_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):
-        """
-            Request NEC to produce a gain pattern over a specified azimuth
-            range at a single elevation using nPoints points
-        """
-        if(nPoints<2):
-            nPoints=2
-        dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
-        self.RP_CARD = f"RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n"
-
-    def set_gain_sphere_1deg(self):
-        """
-            Request NEC to produce a full sphere's worth of data points,
-            using 1 degree steps in both azimuth and elevation
-        """
-        self.RP_CARD = "RP 0 361 361 1003 -180 0 1 1\n"
-
-    def set_gain_hemisphere_1deg(self):
-        """
-            Request NEC to produce a full half-sphere's worth of data points covering the 'above ground' half space,
-            using 1 degree steps in both azimuth and elevation
-        """
-        self.RP_CARD = "RP 0 181 361 1003 -180 0 1 1\n"
+        self.az_step_deg = az_step_deg
+        self.el_step_deg = el_step_deg
 
     def set_ground(self, eps_r, sigma, **params):
         """
@@ -362,30 +334,10 @@ class NECModel:
                 sigma (float): conductivity of the ground in mhos/meter
                 origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
         """
-        if eps_r == 1.0:
-            self.GE_CARD = "GE 0\n"
-            self.GN_CARD = ""
-            self.GM_CARD = "GM 0 0 0 0 0 0 0 0.000\n"
-        else:
-            origin_height_m = self._units._from_suffixed_dimensions(params)['origin_height_m']
-            self.GE_CARD = "GE -1\n"
-            self.GN_CARD = f"GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n"
-            self.GM_CARD = f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n"
 
-    def start_geometry(self, comments="No comments specified"):
+    def place_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_type = 'Series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
         """
-            Effectively *resets* the model by deleting all wires, feed and loads.
-            All of the parameters set by "set_" functions are still incorporated when the file is written
-        """
-        self.comments = comments
-        self.model_text = "CM " + comments + "\nCE\n"
-        # TO DO: decide if 500 is the right tag to start at, and whether to limit # of loads
-        self.LOAD_iTag = 500
-        self.LOADS = []
-
-    def place_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
-        """
-            inserts a single segment containing a series RLC load into an existing geometry object
+            inserts a single segment containing an RLC load into an existing geometry object
             Position within the object is specied as
             EITHER:
               load_alpha_object (range 0 to 1) as a parameter specifying the length of
@@ -397,29 +349,13 @@ class NECModel:
               load_wire_index AND load_alpha_wire
               which specify the i'th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire's length
+
+            NEC LD card specification: https://www.nec2.org/part_3/cards/ld.html
         """
-        self.LOADS.append(f"LD 0 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
-        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-        self.LOAD_iTag +=1
-        
-    def place_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
-        """
-            inserts a single segment containing a parallel RLC load into an existing geometry object
-            Position within the object is specied as
-            EITHER:
-              load_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              load_wire_index AND load_alpha_wire
-              which specify the i'th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire's length
-        """
-        self.LOADS.append(f"LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n")
-        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-        self.LOAD_iTag +=1
+        iTag = self.LOADS_start_Tag + len(self.LOADS)
+        model.LOADS.append({'iTag': iTag, 'type': load_type, 'value': (R_Ohms, L_uH * 1e-6, C_pf * 1e-12), 'alpha': None})
+        self._insert_special_segment(geomObj, iTag, load_alpha_object, load_wire_index, load_alpha_wire)
+
 
     def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
         """
@@ -436,50 +372,73 @@ class NECModel:
               which specify the i'th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire's length
         """
-        self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
-
-                
+        self._insert_special_segment(geomObj, self.EX_tag, feed_alpha_object, feed_wire_index, feed_alpha_wire)
+   
     def add(self, geomObj):
         """
             Add a completed component to the specified model: model_name.add(component_name). Any changes made
             to the component after this point are ignored.
         """
-        for w in geomObj._get_wires():
-            A = np.array(w["a"], dtype=float)
-            B = np.array(w["b"], dtype=float)
-            if(w['nS'] == 0): # calculate and update number of segments only if not already present
-                w['nS'] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
-            self.model_text += f"GW {w['iTag']} {w['nS']} "
-            for v in A:
-                self.model_text += f"{v:.3f} "
-            for v in B:
-                self.model_text += f"{v:.3f} "
-            self.model_text += f"{w['wr']}\n"
-
+        self.geometry.append(geomObj)
 
     def write_nec(self):
         """
             Write the entire model to the NEC input file ready for analysis. At this point, the function
             "show_wires_from_file" may be used to see the specified geometry in a 3D view.
         """
-        tail_text = self.GM_CARD
-        tail_text += self.GE_CARD
-        tail_text += self.GN_CARD
-        tail_text += "EK\n"
-        tail_text += self.LD_WIRECOND
-        for LD in self.LOADS:
-            tail_text += LD
-        tail_text += f"EX 0 {self.EX_TAG} 1 0 1 0\n"
-        tail_text += self.FR_CARD
-        tail_text += self.RP_CARD
-        tail_text += "EN"
+        self._write_runner_files()
+        
+        # open the .nec file
         with open(self.nec_in, "w") as f:
-            f.write(self.model_text + tail_text)
+            f.write("CM\nCE\n")
+            
+            # 1. Write GW lines for all geometry
+            for geomObj in self.geometry:
+                for w in geomObj._get_wires():
+                    A = np.array(w["a"], dtype=float)
+                    B = np.array(w["b"], dtype=float)
+                    if(w['nS'] == 0): # calculate and update number of segments only if not already present
+                        w['nS'] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
+                    f.write(f"GW {w['iTag']} {w['nS']} ")
+                    f.write(' '.join([f"{A[i]:.3f} " for i in range(3)]))
+                    f.write(' '.join([f"{B[i]:.3f} " for i in range(3)]))
+                    f.write(f" {w['wr']}\n")
+
+            # 2. Write GE card, Ground Card, and RP card
+            if self.ground_Er == 1.0:
+                f.write("GE 0\n")
+            else:
+                origin_height_m = self._units._from_suffixed_dimensions(params)['origin_height_m']
+                f.write("GE -1\n")
+                f.write(f"GN 2 0 0 0 {Er:.3f} {sigma:.3f} \n")
+                f.write(f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n")
+
+            # 3. Write out the loads
+            for LD in self.LOADS:
+                LDTYP = ['series','parallel','series_per_metre','parallel_per_metre','impedance_not_used','conductivity'].indexof(LD['load_type'])
+                LDTAG = LD['iTag']
+                # these strings are set programatically so shouldn't need an error trap
+                f.write(f"LD {LDTYP} {LDTAG} 0 0 {LD['R_Ohms']} {LD['L_uH'] * 1e-6} {LD['C_pf'] * 1e-12}")
+
+            # 4. Feed
+            f.write(f"EX 0 {self.EX_tag} 1 0 1 0\n")
+
+            # 5. Frequency
+            f.write(f"FR 0 1 0 0 {self.MHz:.3f} 0\n")
+
+            # 6. Pattern points
+            if self.ground_Er == 1.0:
+                f.write("RP 0 181 361 1003 -180 0 1 1\n")
+            else:
+                f.write(f"RP 0 91 361 1003 0 0 1 1\n")
+                
+            f.write("EN")
 
     def run_nec(self):
         """
             Pass the model file to NEC for analysis and wait for the output.
         """
+        
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
     def h_gain(self):
@@ -587,7 +546,7 @@ class NECModel:
             except Exception as e:
                 print(f"Error writing file {filepath}: {e}")
 
-    def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
+    def _insert_special_segment(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
         """
             inserts a single segment with a specified iTag into an existing geometry object
             position within the object is specied as either item_alpha_object or item_wire_index, item_alpha_wire

@@ -313,7 +313,7 @@ class components:
             dY = L/(nY-1)
             dZ = H/(nz-1)
         E0 = 8.854188 * 1e-12
-        CD = E0*(E-1) * thickness_m
+        C_F_per_metre = E0*(E-1) * thickness_m
         wire_radius_m = thickness_m/2
 
         # Create sheet
@@ -335,12 +335,13 @@ class components:
         # note we aren't ineserting a new segment specifically for the load, so there's no need to
         # increment model.LOAD_iTag
         if(epsillon_r > 1.0):
-            R_Ohms = 1e12
-            C_F = CD
+            R_Ohms_per_metre = 1e12
         else:
-            R_Ohms = dG / sigma
-            C_F = 0.0
-        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.6e} 0 {CD:.6e}\n")
+            R_Ohms_per_metre = 1 / sigma
+            C_F_per_metre = 0.0
+        # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
+        # Modify this to use 'per unit length' loads (type 2)
+        model.LOADS.append({'iTag': iTag, 'type': 'series_per_metre', 'value': (R_Ohms_per_metre, 0, C_F_per_metre), 'alpha': None})
                     
         return obj
 

@@ -199,6 +199,7 @@ def _subtract_patterns(pat1, pat2):
     for i, d in enumerate(pat):
         d['E_theta_mag'] = np.abs(Z_theta_1[i] - Z_theta_2[i])
         d['E_phi_mag'] = np.abs(Z_phi_1[i] - Z_phi_2[i])
+        # Note these lines are mathematically incorrect and simply placeholders:
         d['gain_vert_db'] = 20*np.log10(d['E_theta_mag'])
         d['gain_horz_db'] = 20*np.log10(d['E_phi_mag'])
 
