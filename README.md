@@ -2,7 +2,7 @@
 
 **NECBOL** is a Python library that provides a geometry-first interface for building antenna models using the NEC (Numerical Electromagnetics Code) engine.
 
-#### ⚠️ this repository may be ahead of the latest stable version: for the latest stable version, install from pip
+#### ⚠️ this repository may be ahead of the latest stable version: for the latest stable version, install from pip 
  - this may also mean that the examples here might not run correctly with the pip installed version, but this should be very temporary 
 
 ## Features
