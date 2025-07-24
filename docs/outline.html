@@ -245,22 +245,7 @@ import os
 </details>
 </details>
 <details><summary><span class ='class signature'> class _units:</span></summary>
-<pre class ='class content'>    _UNIT_FACTORS = {
-        &quot;m&quot;: 1.0,
-        &quot;mm&quot;: 1000.0,
-        &quot;cm&quot;: 100.0,
-        &quot;in&quot;: 39.3701,
-        &quot;ft&quot;: 3.28084,
-    }
-
-</pre>
-<details><summary><span class ='def signature'> def __init__(self, default_unit: str = "m"):</span></summary>
-<pre class ='def content'>        if default_unit not in self._UNIT_FACTORS:
-            raise ValueError(f&quot;Unsupported unit: {default_unit}&quot;)
-        self.default_unit = default_unit
-
-</pre>
-</details>
+<pre class ='class content'></pre>
 <details><summary><span class ='def signature'>🧾 def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
@@ -271,7 +256,15 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        out = {}
+<pre class ='body content'>        _UNIT_FACTORS = {
+        &quot;m&quot;: 1.0,
+        &quot;mm&quot;: 1000.0,
+        &quot;cm&quot;: 100.0,
+        &quot;in&quot;: 39.3701,
+        &quot;ft&quot;: 3.28084,
+        }
+
+        out = {}
         names_seen = []
         for key, value in params.items():
     
@@ -290,9 +283,9 @@ import os
 
             names_seen.append(name)
 
-            if suffix in self._UNIT_FACTORS:
+            if suffix in _UNIT_FACTORS:
                 # Convert value, output key with &#x27;_m&#x27; suffix
-                out[name + &quot;_m&quot;] = value / self._UNIT_FACTORS[suffix]
+                out[name + &quot;_m&quot;] = value / _UNIT_FACTORS[suffix]
                 continue
 
             if key in whitelist:
@@ -325,19 +318,22 @@ import os
         self.nec_out = working_dir + &quot;\\&quot; + model_name +  &quot;.out&quot;
         self.files_txt = working_dir + &quot;\\files.txt&quot;
         self.model_name = model_name
-        self.model_text = &quot;&quot;
-        self.LD_WIRECOND = &quot;&quot;
-        self.FR_CARD = &quot;&quot;
-        self.RP_CARD = &quot;&quot;
-        self.GE_CARD = &quot;GE 0\n&quot;
-        self.GN_CARD = &quot;&quot;
-        self.GM_CARD = &quot;&quot;
-        self.comments = &quot;&quot;
-        self.EX_TAG = 999
         self.nSegs_per_wavelength = 40
         self.segLength_m = 0
         self._units = _units()
-        self._write_runner_files()
+        self.default_wire_sigma = None
+        self.MHz = None
+        self.MHz_stop = None
+        self.MHz_step = None
+        self.segLength_m
+        self.az_step_deg = 1
+        self.el_step_deg = 1
+        self.ground_sigma = 0
+        self.ground_Er = 1.0
+        self.geometry = []
+        self.EX_tag = 999
+        self.LOADS = []
+        self.LD_start_tag = 8000
 
 </pre>
 </details>
@@ -361,84 +357,40 @@ import os
 <details><summary><span class ='def signature'>🧾 def set_wire_conductivity(self, sigma):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Set wire conductivity for all wires.
-
-            NOTE that NEC achieves this by specifying a &#x27;load&#x27; applicable to all wires, and addition
-            of further loads will interact with this. A future version of necbol will examine
-            this specification so that both wire conductivity and load parameters are accounted for in this case.
+<pre class ='docstring content'>            Set wire conductivity to be assumed for all wires that don&#x27;t have an explicitly-set load.
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.LD_WIRECOND = f&quot;LD 5 0 0 0 {sigma:.6f} \n&quot;
+<pre class ='body content'>        self.default_wire_sigma = sigma
+        self.LD_WIRECOND = f&quot;LD 5 0 0 0 {sigma:.6f} \n&quot;
 
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def set_frequency(self, MHz):</span></summary>
+<details><summary><span class ='def signature'>🧾 def set_frequency(self, MHz, MHz_end = None, MHz_step = None):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.FR_CARD = f&quot;FR 0 1 0 0 {MHz:.3f} 0\n&quot;
+<pre class ='body content'>        self.MHz = MHz
         lambda_m = 300/MHz
         self.segLength_m = lambda_m / self.nSegs_per_wavelength
         
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def set_gain_point(self, azimuth, elevation):</span></summary>
+<details><summary><span class ='def signature'>🧾 def set_angular_resolution(self, az_step_deg, el_step_deg):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a gain pattern at a single specified azimuth and elevation
-            (Typically used when optimising gain in a fixed direction)
+<pre class ='docstring content'>            Set resolution required in az and el in degrees
+            If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.RP_CARD = f&quot;RP 0 1 1 1000 {90-elevation:.2f} {azimuth:.2f} 0 0\n&quot;
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a gain pattern over a specified azimuth
-            range at a single elevation using nPoints points
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        if(nPoints&lt;2):
-            nPoints=2
-        dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
-        self.RP_CARD = f&quot;RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n&quot;
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_sphere_1deg(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a full sphere&#x27;s worth of data points,
-            using 1 degree steps in both azimuth and elevation
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.RP_CARD = &quot;RP 0 361 361 1003 -180 0 1 1\n&quot;
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_hemisphere_1deg(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a full half-sphere&#x27;s worth of data points covering the &#x27;above ground&#x27; half space,
-            using 1 degree steps in both azimuth and elevation
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.RP_CARD = &quot;RP 0 181 361 1003 -180 0 1 1\n&quot;
+<pre class ='body content'>        self.az_step_deg = az_step_deg
+        self.el_step_deg = el_step_deg
 
 </pre>
 </details>
@@ -458,40 +410,13 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        if eps_r == 1.0:
-            self.GE_CARD = &quot;GE 0\n&quot;
-            self.GN_CARD = &quot;&quot;
-            self.GM_CARD = &quot;GM 0 0 0 0 0 0 0 0.000\n&quot;
-        else:
-            origin_height_m = self._units._from_suffixed_dimensions(params)[&#x27;origin_height_m&#x27;]
-            self.GE_CARD = &quot;GE -1\n&quot;
-            self.GN_CARD = f&quot;GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n&quot;
-            self.GM_CARD = f&quot;GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n&quot;
-
-</pre>
+<pre class ='body content'></pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def start_geometry(self, comments="No comments specified"):</span></summary>
+<details><summary><span class ='def signature'>🧾 def place_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_type = 'Series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Effectively *resets* the model by deleting all wires, feed and loads.
-            All of the parameters set by &quot;set_&quot; functions are still incorporated when the file is written
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.comments = comments
-        self.model_text = &quot;CM &quot; + comments + &quot;\nCE\n&quot;
-        # TO DO: decide if 500 is the right tag to start at, and whether to limit # of loads
-        self.LOAD_iTag = 500
-        self.LOADS = []
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def place_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            inserts a single segment containing a series RLC load into an existing geometry object
+<pre class ='docstring content'>            inserts a single segment containing an RLC load into an existing geometry object
             Position within the object is specied as
             EITHER:
               load_alpha_object (range 0 to 1) as a parameter specifying the length of
@@ -503,37 +428,15 @@ import os
               load_wire_index AND load_alpha_wire
               which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire&#x27;s length
+
+            NEC LD card specification: https://www.nec2.org/part_3/cards/ld.html
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.LOADS.append(f&quot;LD 0 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n&quot;)
-        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-        self.LOAD_iTag +=1
-        
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def place_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            inserts a single segment containing a parallel RLC load into an existing geometry object
-            Position within the object is specied as
-            EITHER:
-              load_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              load_wire_index AND load_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.LOADS.append(f&quot;LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n&quot;)
-        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-        self.LOAD_iTag +=1
+<pre class ='body content'>        iTag = self.LOADS_start_Tag + len(self.LOADS)
+        model.LOADS.append({&#x27;iTag&#x27;: iTag, &#x27;type&#x27;: load_type, &#x27;value&#x27;: (R_Ohms, L_uH * 1e-6, C_pf * 1e-12), &#x27;alpha&#x27;: None})
+        self._insert_special_segment(geomObj, iTag, load_alpha_object, load_wire_index, load_alpha_wire)
+
 
 </pre>
 </details>
@@ -556,9 +459,8 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
-
-                
+<pre class ='body content'>        self._insert_special_segment(geomObj, self.EX_tag, feed_alpha_object, feed_wire_index, feed_alpha_wire)
+   
 </pre>
 </details>
 </details>
@@ -570,18 +472,7 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        for w in geomObj._get_wires():
-            A = np.array(w[&quot;a&quot;], dtype=float)
-            B = np.array(w[&quot;b&quot;], dtype=float)
-            if(w[&#x27;nS&#x27;] == 0): # calculate and update number of segments only if not already present
-                w[&#x27;nS&#x27;] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
-            self.model_text += f&quot;GW {w[&#x27;iTag&#x27;]} {w[&#x27;nS&#x27;]} &quot;
-            for v in A:
-                self.model_text += f&quot;{v:.3f} &quot;
-            for v in B:
-                self.model_text += f&quot;{v:.3f} &quot;
-            self.model_text += f&quot;{w[&#x27;wr&#x27;]}\n&quot;
-
+<pre class ='body content'>        self.geometry.append(geomObj)
 
 </pre>
 </details>
@@ -594,19 +485,53 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        tail_text = self.GM_CARD
-        tail_text += self.GE_CARD
-        tail_text += self.GN_CARD
-        tail_text += &quot;EK\n&quot;
-        tail_text += self.LD_WIRECOND
-        for LD in self.LOADS:
-            tail_text += LD
-        tail_text += f&quot;EX 0 {self.EX_TAG} 1 0 1 0\n&quot;
-        tail_text += self.FR_CARD
-        tail_text += self.RP_CARD
-        tail_text += &quot;EN&quot;
+<pre class ='body content'>        self._write_runner_files()
+        
+        # open the .nec file
         with open(self.nec_in, &quot;w&quot;) as f:
-            f.write(self.model_text + tail_text)
+            f.write(&quot;CM\nCE\n&quot;)
+            
+            # 1. Write GW lines for all geometry
+            for geomObj in self.geometry:
+                for w in geomObj._get_wires():
+                    A = np.array(w[&quot;a&quot;], dtype=float)
+                    B = np.array(w[&quot;b&quot;], dtype=float)
+                    if(w[&#x27;nS&#x27;] == 0): # calculate and update number of segments only if not already present
+                        w[&#x27;nS&#x27;] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
+                    f.write(f&quot;GW {w[&#x27;iTag&#x27;]} {w[&#x27;nS&#x27;]} &quot;)
+                    f.write(&#x27; &#x27;.join([f&quot;{A[i]:.3f} &quot; for i in range(3)]))
+                    f.write(&#x27; &#x27;.join([f&quot;{B[i]:.3f} &quot; for i in range(3)]))
+                    f.write(f&quot; {w[&#x27;wr&#x27;]}\n&quot;)
+
+            # 2. Write GE card, Ground Card, and RP card
+            if self.ground_Er == 1.0:
+                f.write(&quot;GE 0\n&quot;)
+            else:
+                origin_height_m = self._units._from_suffixed_dimensions(params)[&#x27;origin_height_m&#x27;]
+                f.write(&quot;GE -1\n&quot;)
+                f.write(f&quot;GN 2 0 0 0 {Er:.3f} {sigma:.3f} \n&quot;)
+                f.write(f&quot;GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n&quot;)
+
+            # 3. Write out the loads
+            for LD in self.LOADS:
+                LDTYP = [&#x27;series&#x27;,&#x27;parallel&#x27;,&#x27;series_per_metre&#x27;,&#x27;parallel_per_metre&#x27;,&#x27;impedance_not_used&#x27;,&#x27;conductivity&#x27;].indexof(LD[&#x27;load_type&#x27;])
+                LDTAG = LD[&#x27;iTag&#x27;]
+                # these strings are set programatically so shouldn&#x27;t need an error trap
+                f.write(f&quot;LD {LDTYP} {LDTAG} 0 0 {LD[&#x27;R_Ohms&#x27;]} {LD[&#x27;L_uH&#x27;] * 1e-6} {LD[&#x27;C_pf&#x27;] * 1e-12}&quot;)
+
+            # 4. Feed
+            f.write(f&quot;EX 0 {self.EX_tag} 1 0 1 0\n&quot;)
+
+            # 5. Frequency
+            f.write(f&quot;FR 0 1 0 0 {self.MHz:.3f} 0\n&quot;)
+
+            # 6. Pattern points
+            if self.ground_Er == 1.0:
+                f.write(&quot;RP 0 181 361 1003 -180 0 1 1\n&quot;)
+            else:
+                f.write(f&quot;RP 0 91 361 1003 0 0 1 1\n&quot;)
+                
+            f.write(&quot;EN&quot;)
 
 </pre>
 </details>
@@ -765,7 +690,7 @@ import os
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></summary>
+<details><summary><span class ='def signature'>🧾 def _insert_special_segment(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            inserts a single segment with a specified iTag into an existing geometry object
@@ -1198,6 +1123,7 @@ import copy
     for i, d in enumerate(pat):
         d[&#x27;E_theta_mag&#x27;] = np.abs(Z_theta_1[i] - Z_theta_2[i])
         d[&#x27;E_phi_mag&#x27;] = np.abs(Z_phi_1[i] - Z_phi_2[i])
+        # Note these lines are mathematically incorrect and simply placeholders:
         d[&#x27;gain_vert_db&#x27;] = 20*np.log10(d[&#x27;E_theta_mag&#x27;])
         d[&#x27;gain_horz_db&#x27;] = 20*np.log10(d[&#x27;E_phi_mag&#x27;])
 
@@ -1566,7 +1492,7 @@ from necbol.modeller import GeometryObject,_units
             dY = L/(nY-1)
             dZ = H/(nz-1)
         E0 = 8.854188 * 1e-12
-        CD = E0*(E-1) * thickness_m
+        C_F_per_metre = E0*(E-1) * thickness_m
         wire_radius_m = thickness_m/2
 
         # Create sheet
@@ -1588,12 +1514,13 @@ from necbol.modeller import GeometryObject,_units
         # note we aren&#x27;t ineserting a new segment specifically for the load, so there&#x27;s no need to
         # increment model.LOAD_iTag
         if(epsillon_r &gt; 1.0):
-            R_Ohms = 1e12
-            C_F = CD
+            R_Ohms_per_metre = 1e12
         else:
-            R_Ohms = dG / sigma
-            C_F = 0.0
-        model.LOADS.append(f&quot;LD 1 {iTag} 0 0 {R_Ohms:.6e} 0 {CD:.6e}\n&quot;)
+            R_Ohms_per_metre = 1 / sigma
+            C_F_per_metre = 0.0
+        # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
+        # Modify this to use &#x27;per unit length&#x27; loads (type 2)
+        model.LOADS.append({&#x27;iTag&#x27;: iTag, &#x27;type&#x27;: &#x27;series_per_metre&#x27;, &#x27;value&#x27;: (R_Ohms_per_metre, 0, C_F_per_metre), &#x27;alpha&#x27;: None})
                     
         return obj
 
