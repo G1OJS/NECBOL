@@ -1,35 +1,28 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>user_functions.html</title><link rel='stylesheet' href='./user_functions.css' /><body>
-<span class = 'filename'>__init__.py</span><br><span class = 'filename'>modeller.py</span><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(self, **params):</span></div>
-<pre class ='docstring content'>        
-            Translate an object by dx, dy, dz
+<br><div class = 'filename'>__init__.py</div><br><br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(**params):</span></div>
+<pre class ='docstring content'>            Translate an object by dx, dy, dz
             Arguments are dx_{units}, dy_{units}, dz_{units}
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY(self):</span></div>
-<pre class ='docstring content'>        
-            Rotate the object through 90 degrees around X
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY():</span></div>
+<pre class ='docstring content'>            Rotate the object through 90 degrees around X
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX(self):</span></div>
-<pre class ='docstring content'>        
-            Rotate the object through 90 degrees around Y
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX():</span></div>
+<pre class ='docstring content'>            Rotate the object through 90 degrees around Y
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(self, angle_deg):</span></div>
-<pre class ='docstring content'>        
-            Rotate the object through angle_deg degrees around X
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around X
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(self, angle_deg):</span></div>
-<pre class ='docstring content'>        
-            Rotate the object through angle_deg degrees around Y
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Y
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(self, angle_deg):</span></div>
-<pre class ='docstring content'>        
-            Rotate the object through angle_deg degrees around Z
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Z
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(self, other, tol=1e-3, verbose = False):</span></div>
-<pre class ='docstring content'>        
-            Check both ends of the wire to see if they lie on any wires in the specified object,
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(other, tol=1e-3, verbose = False):</span></div>
+<pre class ='docstring content'>            Check both ends of the wire to see if they lie on any wires in the specified object,
             and if so, split the wires of the specified object so that NEC considers them to be
             a valid T junction. Usage is:
 
@@ -38,47 +31,39 @@
             if verbose is True, details of the wire connection(s) are printed
 </pre>
 <hr><div><span class ='class signature'>class NECModel:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(self, name):</span></div>
-<pre class ='docstring content'>        
-            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(name):</span></div>
+<pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
             output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
             so that the analysis continues (with updated input parameters) and outputs more than one test case
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(self, sigma):</span></div>
-<pre class ='docstring content'>        
-            Set wire conductivity for all wires.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(sigma):</span></div>
+<pre class ='docstring content'>            Set wire conductivity for all wires.
 
             NOTE that NEC achieves this by specifying a &#x27;load&#x27; applicable to all wires, and addition
             of further loads will interact with this. A future version of necbol will examine
             this specification so that both wire conductivity and load parameters are accounted for in this case.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(self, MHz):</span></div>
-<pre class ='docstring content'>        
-            Request NEC to perform all analysis at the specified frequency. 
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz):</span></div>
+<pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(self, azimuth, elevation):</span></div>
-<pre class ='docstring content'>        
-            Request NEC to produce a gain pattern at a single specified azimuth and elevation
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(azimuth, elevation):</span></div>
+<pre class ='docstring content'>            Request NEC to produce a gain pattern at a single specified azimuth and elevation
             (Typically used when optimising gain in a fixed direction)
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):</span></div>
-<pre class ='docstring content'>        
-            Request NEC to produce a gain pattern over a specified azimuth
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation):</span></div>
+<pre class ='docstring content'>            Request NEC to produce a gain pattern over a specified azimuth
             range at a single elevation using nPoints points
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_sphere_1deg(self):</span></div>
-<pre class ='docstring content'>        
-            Request NEC to produce a full sphere&#x27;s worth of data points,
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_sphere_1deg():</span></div>
+<pre class ='docstring content'>            Request NEC to produce a full sphere&#x27;s worth of data points,
             using 1 degree steps in both azimuth and elevation
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_hemisphere_1deg(self):</span></div>
-<pre class ='docstring content'>        
-            Request NEC to produce a full half-sphere&#x27;s worth of data points covering the &#x27;above ground&#x27; half space,
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_hemisphere_1deg():</span></div>
+<pre class ='docstring content'>            Request NEC to produce a full half-sphere&#x27;s worth of data points covering the &#x27;above ground&#x27; half space,
             using 1 degree steps in both azimuth and elevation
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(self, eps_r, sigma, **params):</span></div>
-<pre class ='docstring content'>        
-            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **params):</span></div>
+<pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
             If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
             If you don&#x27;t call this function, free space will be assumed.
             Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
@@ -88,14 +73,12 @@
                 sigma (float): conductivity of the ground in mhos/meter
                 origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspstart_geometry(self, comments="No comments specified"):</span></div>
-<pre class ='docstring content'>        
-            Effectively *resets* the model by deleting all wires, feed and loads.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspstart_geometry(comments="No comments specified"):</span></div>
+<pre class ='docstring content'>            Effectively *resets* the model by deleting all wires, feed and loads.
             All of the parameters set by &quot;set_&quot; functions are still incorporated when the file is written
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>        
-            inserts a single segment containing a series RLC load into an existing geometry object
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_series_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
+<pre class ='docstring content'>            inserts a single segment containing a series RLC load into an existing geometry object
             Position within the object is specied as
             EITHER:
               load_alpha_object (range 0 to 1) as a parameter specifying the length of
@@ -108,9 +91,8 @@
               which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire&#x27;s length
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>        
-            inserts a single segment containing a parallel RLC load into an existing geometry object
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_parallel_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
+<pre class ='docstring content'>            inserts a single segment containing a parallel RLC load into an existing geometry object
             Position within the object is specied as
             EITHER:
               load_alpha_object (range 0 to 1) as a parameter specifying the length of
@@ -123,9 +105,8 @@
               which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire&#x27;s length
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>        
-            Inserts a single segment containing the excitation point into an existing geometry object.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_feed( geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></div>
+<pre class ='docstring content'>            Inserts a single segment containing the excitation point into an existing geometry object.
             Position within the object is specied as
             EITHER:
               feed_alpha_object (range 0 to 1) as a parameter specifying the length of
@@ -138,40 +119,32 @@
               which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire&#x27;s length
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd(self, geomObj):</span></div>
-<pre class ='docstring content'>        
-            Add a completed component to the specified model: model_name.add(component_name). Any changes made
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd(geomObj):</span></div>
+<pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
             to the component after this point are ignored.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspwrite_nec(self):</span></div>
-<pre class ='docstring content'>        
-            Write the entire model to the NEC input file ready for analysis. At this point, the function
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspwrite_nec():</span></div>
+<pre class ='docstring content'>            Write the entire model to the NEC input file ready for analysis. At this point, the function
             &quot;show_wires_from_file&quot; may be used to see the specified geometry in a 3D view.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprun_nec(self):</span></div>
-<pre class ='docstring content'>        
-            Pass the model file to NEC for analysis and wait for the output.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprun_nec():</span></div>
+<pre class ='docstring content'>            Pass the model file to NEC for analysis and wait for the output.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsph_gain(self):</span></div>
-<pre class ='docstring content'>        
-            Return the horizontal polarisation gain at the specified single gain point
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsph_gain():</span></div>
+<pre class ='docstring content'>            Return the horizontal polarisation gain at the specified single gain point
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspv_gain(self):</span></div>
-<pre class ='docstring content'>        
-            Return the vertical polarisation gain at the specified single gain point
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspv_gain():</span></div>
+<pre class ='docstring content'>            Return the vertical polarisation gain at the specified single gain point
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptot_gain(self):</span></div>
-<pre class ='docstring content'>        
-            Return the total gain at the specified single gain point
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptot_gain():</span></div>
+<pre class ='docstring content'>            Return the total gain at the specified single gain point
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspvswr(self, Z0 = 50):</span></div>
-<pre class ='docstring content'>        
-            Return the antenna VSWR at the feed point assuming a 50 ohm system
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspvswr(Z0 = 50):</span></div>
+<pre class ='docstring content'>            Return the antenna VSWR at the feed point assuming a 50 ohm system
             Or another value if specified
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspread_radiation_pattern(self):</span></div>
-<pre class ='docstring content'>        
-            read the radiation pattern from the model.nec_out file
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspread_radiation_pattern():</span></div>
+<pre class ='docstring content'>            read the radiation pattern from the model.nec_out file
             into a list of dictionaries with format:
                 {&#x27;theta&#x27;: theta,
                 &#x27;phi&#x27;: phi,
@@ -187,13 +160,11 @@
                 &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
                 
 </pre>
-<span class = 'filename'>optimisers.py</span><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
-<pre class ='docstring content'>    
-        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
+<br><div class = 'filename'>optimisers.py</div><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
+<pre class ='docstring content'>        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(self, model,  verbose=False, tty=True):</span></div>
-<pre class ='docstring content'>        
-            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(model,  verbose=False, tty=True):</span></div>
+<pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
             and comparing the user-specified cost function with the best achieved so far. If the test gives a better
             cost, the test is adopted as the new baseline.
 
@@ -205,29 +176,26 @@
             If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
             initialisation to limit their max and min values.
 </pre>
-<span class = 'filename'>gui.py</span><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></div>
-<pre class ='docstring content'>    
-        Opens the specified nec input file (*.nec) and reads the geometry,
+<br><div class = 'filename'>gui.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></div>
+<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
         then displays the geometry in a 3D projection. The feed is highligted in red.
         Loads are highlighted in green.
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(pattern_data, elevation_deg, component, polar=True):</span></div>
-<pre class ='docstring content'>    
-        This is a very basic plot routine providing polar and rectangular plots
+<pre class ='docstring content'>        This is a very basic plot routine providing polar and rectangular plots
         with gain range covering 40 dB max to min.
         Later versions of necbol will include more customisable plot functions
         and the ability to save output data in a suitable format for onward analysis
 </pre>
-<span class = 'filename'>components.py</span><br><hr><div><span class ='class signature'>class components:</span></div>
+<br><div class = 'filename'>components.py</div><br><hr><div><span class ='class signature'>class components:</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
         and loads the _units module class _units()
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspcopy_of(self, existing_obj):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspcopy_of(existing_obj):</span></div>
 <pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspwire_Z(self, **dimensions):</span></div>
-<pre class ='docstring content'>        
-        Create a straight wire aligned along the Z-axis, centered at the origin.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspwire_Z(**dimensions):</span></div>
+<pre class ='docstring content'>        Create a straight wire aligned along the Z-axis, centered at the origin.
 
         The wire extends from -length/2 to +length/2 on the Z-axis, with the specified diameter.
 
@@ -238,9 +206,8 @@
         Returns:
             obj (GeometryObject): The constructed geometry object with the defined wire.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprect_loop_XZ(self, **dimensions):</span></div>
-<pre class ='docstring content'>        
-        Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprect_loop_XZ(**dimensions):</span></div>
+<pre class ='docstring content'>        Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
         The &#x27;side&#x27; wires extend from Z=-length/2 to Z=+length/2 at X = +/- width/2.
         The &#x27;top/bottom&#x27; wires extend from X=-width/2 to X=+width/2 at Z = +/- length/2.
         dimensions:
@@ -251,9 +218,8 @@
         Returns:
             obj (GeometryObject): The constructed geometry object with the defined wires.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):</span></div>
-<pre class ='docstring content'>        
-        Create a single wire from a specified point on the from_object to a specified point on the to_object.
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnector(from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):</span></div>
+<pre class ='docstring content'>        Create a single wire from a specified point on the from_object to a specified point on the to_object.
         The point on an object is specified as {ftom|to}_wire_index AND {ftom|to}_alpha_wire, which specify respectively:
               the i&#x27;th wire in the n wires in the object, and
               the distance along that wire divided by that wire&#x27;s length
@@ -263,9 +229,8 @@
         Returns:
             obj (GeometryObject): The constructed geometry object with the defined wire.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsphelix(self,  wires_per_turn, sense, **dimensions):</span></div>
-<pre class ='docstring content'>        
-        Create a single helix with axis = Z axis
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsphelix( wires_per_turn, sense, **dimensions):</span></div>
+<pre class ='docstring content'>        Create a single helix with axis = Z axis
         Arguments_
             sense (&quot;LH&quot;|&quot;RH&quot;) - the handedness of the helix          
             wires_per_turn (int) - the number of wires to use to represent the helix, per turn
@@ -278,9 +243,8 @@
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspflexi_helix(self, sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):</span></div>
-<pre class ='docstring content'>        
-        Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspflexi_helix(sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):</span></div>
+<pre class ='docstring content'>        Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
 
             r(Z) = r0 * Σ [RA_i * cos(i * π * Z / l + RP_i)] for i=0..n-1
             p(Z) = p0 * Σ [PA_i * cos(i * π * Z / l + PP_i)] for i=0..n-1
@@ -303,9 +267,8 @@
         Returns:
             GeometryObject: The constructed helix geometry object.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspcircular_arc(self, n_wires, arc_phi_deg, **dimensions):</span></div>
-<pre class ='docstring content'>        
-        Create a single circular arc in the XY plane centred on the origin
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspcircular_arc(n_wires, arc_phi_deg, **dimensions):</span></div>
+<pre class ='docstring content'>        Create a single circular arc in the XY plane centred on the origin
         Arguments:
             n_wires (int) - the number of wires to use to represent the arc         
             arc_phi_deg (float) - the angle subtended at the origin by the arc in degrees. Note that a continuous circular loop can be constructed by specifying arc_phi_deg = 360.
@@ -316,9 +279,8 @@
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></div>
-<pre class ='docstring content'>        
-        Creates a grid of wires interconnected at segment level to economically model a flat sheet
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(model, sigma, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></div>
+<pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         Models *either* conductive or dielectric sheet, not both.
         Set epsillon_r to 1.0 for conductive sheet
@@ -343,4 +305,4 @@
         Dimensions are length_, height_, thickness_, grid_pitch_
 </pre>
 
-<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite v1.2.2 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
+<br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite 1.4.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
