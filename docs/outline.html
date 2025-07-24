@@ -334,6 +334,7 @@ import os
         self.EX_tag = 999
         self.LOADS = []
         self.LD_start_tag = 8000
+        self.elevation_in_fsweep_deg
 
 </pre>
 </details>
@@ -367,7 +368,7 @@ import os
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def set_frequency(self, MHz, MHz_end = None, MHz_step = None):</span></summary>
+<details><summary><span class ='def signature'>🧾 def set_frequency(self, MHz):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
@@ -391,6 +392,26 @@ import os
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        self.az_step_deg = az_step_deg
         self.el_step_deg = el_step_deg
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_frequency_sweep(self, MHz, MHz_stop, MHz_step, elevation_deg = 5):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>
+</pre>
+<details><summary><span class ='default signature'> default value of 5 deg is safe for over ground and free space</span></summary>
+<pre class ='default content'></pre>
+</details>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.MHz_stop = MHz_stop
+        self.MHz_step = MHz_step
+        self.MHz = MHz
+        lambda_m = 300/MHz_stop
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+        self.elevation_in_fsweep_deg = elevation_deg
 
 </pre>
 </details>
@@ -523,9 +544,11 @@ import os
             f.write(f&quot;EX 0 {self.EX_tag} 1 0 1 0\n&quot;)
 
             # 5. Frequency
+            # update to include sweep
             f.write(f&quot;FR 0 1 0 0 {self.MHz:.3f} 0\n&quot;)
 
             # 6. Pattern points
+            # update logic to calculate nTheta, nPhi and set nTheta to 1 if fsweep &amp; set theta0 = 90-elevation_deg
             if self.ground_Er == 1.0:
                 f.write(&quot;RP 0 181 361 1003 -180 0 1 1\n&quot;)
             else:

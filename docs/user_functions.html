@@ -39,13 +39,17 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(sigma):</span></div>
 <pre class ='docstring content'>            Set wire conductivity to be assumed for all wires that don&#x27;t have an explicitly-set load.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz, MHz_end = None, MHz_step = None):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz):</span></div>
 <pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_angular_resolution(az_step_deg, el_step_deg):</span></div>
 <pre class ='docstring content'>            Set resolution required in az and el in degrees
             If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
 </pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency_sweep(MHz, MHz_stop, MHz_step, elevation_deg = 5):</span></div>
+<pre class ='docstring content'>
+</pre>
+<hr><div><span class ='default signature'>default value of 5 deg is safe for over ground and free space</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **params):</span></div>
 <pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
             If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
