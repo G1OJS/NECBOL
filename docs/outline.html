@@ -1513,18 +1513,17 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
+<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, sigma_not_used, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         Models *either* conductive or dielectric sheet, not both.
-        Set epsillon_r to 1.0 for conductive sheet
-        Set epsillon_r &gt; 1.0 for dielectric sheet (conductivity value is then not used)
+        Set epsillon_r to 1.0 for perfectly conducting sheet
+        Set epsillon_r &gt; 1.0 for dielectric sheet 
 
         Arguments:
             model - the object model being built
-            sigma - conductivity in mhos/metre
             epsillon_r - relative dielectric constant
             force_odd = true ensures wires cross at y=z=0
             The four &#x27;close_&#x27; parameters determine whether or not the edges are &#x27;sealed&#x27; with a final wire (if True) or
@@ -1562,11 +1561,13 @@ from necbol.modeller import GeometryObject,_units
             H = (nZ-1)*dG
             dY = dG
             dZ = dG
+            dS = dG
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
+            dS = 0.5*(dY+dZ)
         E0 = 8.854188 * 1e-12
-        CD = E0*(E-1) * thickness_m
+        C_Farads_per_metre_per_axis = E0*(E-1) * thickness_m / (2*dS)
         wire_radius_m = thickness_m/2
 
         # Create sheet
@@ -1587,13 +1588,13 @@ from necbol.modeller import GeometryObject,_units
         # add conductive / capacitive load to the iTag of this object
         # note we aren&#x27;t ineserting a new segment specifically for the load, so there&#x27;s no need to
         # increment model.LOAD_iTag
+        # revised load here is a parallel RLC load with distributed capacitance per metre
         if(epsillon_r &gt; 1.0):
-            R_Ohms = 1e12
-            C_F = CD
+            R_Ohms_per_metre_per_axis = 1e12
         else:
-            R_Ohms = dG / sigma
-            C_F = 0.0
-        model.LOADS.append(f&quot;LD 1 {iTag} 0 0 {R_Ohms:.6e} 0 {CD:.6e}\n&quot;)
+            R_Ohms_per_metre_per_axis = 0
+            C_Farads_per_metre_per_axis = 0.0
+        model.LOADS.append(f&quot;LD 3 {iTag} 0 0 {R_Ohms_per_metre_per_axis:.6e} 0 {C_Farads_per_metre_per_axis:.6e}\n&quot;)
                     
         return obj
 
