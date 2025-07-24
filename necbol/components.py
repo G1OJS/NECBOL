@@ -262,17 +262,16 @@ class components:
         return obj
 
 
-    def thin_sheet(self, model, sigma, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
+    def thin_sheet(self, model, sigma_not_used, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
         """
         Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         Models *either* conductive or dielectric sheet, not both.
-        Set epsillon_r to 1.0 for conductive sheet
-        Set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
+        Set epsillon_r to 1.0 for perfectly conducting sheet
+        Set epsillon_r > 1.0 for dielectric sheet 
 
         Arguments:
             model - the object model being built
-            sigma - conductivity in mhos/metre
             epsillon_r - relative dielectric constant
             force_odd = true ensures wires cross at y=z=0
             The four 'close_' parameters determine whether or not the edges are 'sealed' with a final wire (if True) or
@@ -309,11 +308,13 @@ class components:
             H = (nZ-1)*dG
             dY = dG
             dZ = dG
+            dS = dG
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
+            dS = 0.5*(dY+dZ)
         E0 = 8.854188 * 1e-12
-        CD = E0*(E-1) * thickness_m
+        C_Farads_per_metre_per_axis = E0*(E-1) * thickness_m / (2*dS)
         wire_radius_m = thickness_m/2
 
         # Create sheet
@@ -334,13 +335,13 @@ class components:
         # add conductive / capacitive load to the iTag of this object
         # note we aren't ineserting a new segment specifically for the load, so there's no need to
         # increment model.LOAD_iTag
+        # revised load here is a parallel RLC load with distributed capacitance per metre
         if(epsillon_r > 1.0):
-            R_Ohms = 1e12
-            C_F = CD
+            R_Ohms_per_metre_per_axis = 1e12
         else:
-            R_Ohms = dG / sigma
-            C_F = 0.0
-        model.LOADS.append(f"LD 1 {iTag} 0 0 {R_Ohms:.6e} 0 {CD:.6e}\n")
+            R_Ohms_per_metre_per_axis = 0
+            C_Farads_per_metre_per_axis = 0.0
+        model.LOADS.append(f"LD 3 {iTag} 0 0 {R_Ohms_per_metre_per_axis:.6e} 0 {C_Farads_per_metre_per_axis:.6e}\n")
                     
         return obj
 
