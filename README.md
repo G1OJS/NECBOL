@@ -2,9 +2,6 @@
 
 **NECBOL** is a Python library that provides a geometry-first interface for building antenna models using the NEC (Numerical Electromagnetics Code) engine. 
 
-#### ⚠️ this repository may be ahead of the latest stable version: for the latest stable version, install from pip 
- - this may also mean that the examples here might not run correctly with the pip installed version, but this should be very temporary 
-
 ## Features
 
 - **Component-based antenna construction**: Easily create antennas using predefined components.
@@ -37,6 +34,6 @@ Documentation is work in progress. In the meantime:
 
 * There are several more example files in the [examples folder](https://github.com/G1OJS/NECBOL/tree/main/examples) intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
 
-* Automated documentation is [here](https://g1ojs.github.io/NECBOL/user_functions.html)
+* Automated documentation is [here](https://g1ojs.github.io/NECBOL/docs/user_functions.html)
   
-* Copies of the files installed by pip are in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol) on this repository. 
+* You can browse the source files in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol) (however note that they may be ahead of the release on pip).
