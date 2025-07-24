@@ -287,6 +287,7 @@ class NECModel:
         self.EX_tag = 999
         self.LOADS = []
         self.LD_start_tag = 8000
+        self.elevation_in_fsweep_deg
 
     def set_name(self, name):
         """
@@ -306,7 +307,7 @@ class NECModel:
         self.default_wire_sigma = sigma
         self.LD_WIRECOND = f"LD 5 0 0 0 {sigma:.6f} \n"
 
-    def set_frequency(self, MHz, MHz_end = None, MHz_step = None):
+    def set_frequency(self, MHz):
         """
             Request NEC to perform all analysis at the specified frequency. 
         """
@@ -321,6 +322,18 @@ class NECModel:
         """
         self.az_step_deg = az_step_deg
         self.el_step_deg = el_step_deg
+
+    def set_frequency_sweep(self, MHz, MHz_stop, MHz_step, elevation_deg = 5):
+        """
+
+            default value of 5 deg is safe for over ground and free space             
+        """
+        self.MHz_stop = MHz_stop
+        self.MHz_step = MHz_step
+        self.MHz = MHz
+        lambda_m = 300/MHz_stop
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+        self.elevation_in_fsweep_deg = elevation_deg
 
     def set_ground(self, eps_r, sigma, **params):
         """
@@ -424,9 +437,11 @@ class NECModel:
             f.write(f"EX 0 {self.EX_tag} 1 0 1 0\n")
 
             # 5. Frequency
+            # update to include sweep
             f.write(f"FR 0 1 0 0 {self.MHz:.3f} 0\n")
 
             # 6. Pattern points
+            # update logic to calculate nTheta, nPhi and set nTheta to 1 if fsweep & set theta0 = 90-elevation_deg
             if self.ground_Er == 1.0:
                 f.write("RP 0 181 361 1003 -180 0 1 1\n")
             else:
