@@ -7,37 +7,33 @@ model = NECModel(working_dir="nec_wkg",
 
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 14)
-model.set_gain_az_arc(azimuth_start=0, azimuth_stop=360, nPoints=360, elevation=45)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+model.set_gain_point(azimuth_deg = 0, elevation_deg = 25)
 
 antenna_components = components ()
 
-
 dplen_m =4.5
-
-
-model.start_geometry()
 
 dipole = antenna_components.wire_Z(length_m = dplen_m, wire_diameter_mm = 10)
 dipole.rotate_ZtoX()
 model.place_feed(dipole, feed_wire_index=0, feed_alpha_wire=0.5)
 model.add(dipole)
 
-loading_plate_left = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 1000, thickness_mm = 1, grid_pitch_mm = 200 )
+loading_plate_left = antenna_components.thin_sheet(model, 1.0, length_mm = 1000, height_mm = 1000, thickness_mm = 1, grid_pitch_mm = 200 )
 loading_plate_left.translate(dx_m = -dplen_m/2, dy_m=0, dz_m=0)
 model.add(loading_plate_left)
 
-loading_plate_right = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = 1000, height_mm = 1000, thickness_mm = 1, grid_pitch_mm = 200 )
+loading_plate_right = antenna_components.thin_sheet(model, 1.0, length_mm = 1000, height_mm = 1000, thickness_mm = 1, grid_pitch_mm = 200 )
 loading_plate_right.translate(dx_m = dplen_m/2, dy_m=0, dz_m=0)
 model.add(loading_plate_right)
 
 model.write_nec() 
-show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
 model.run_nec()
-data_dipole = model.read_radiation_pattern()
-plot_gain(data_dipole, 45, 'gain_horz_db')
 
-vswr = model.vswr()
+show_wires_from_file(model)
+plot_pattern_gains(model)
+
+vswr = vswr(model)
 print(f"vswr:{vswr:.2f}")
 
 print(f"\n\nEnd of example {model.model_name}")

@@ -1,5 +1,6 @@
 from necbol.components import *
-from necbol.gui import *
+from necbol.visualiser import *
+from necbol.analyser import *
 from necbol.modeller import *
 from necbol.optimisers import *
 

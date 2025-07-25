@@ -30,10 +30,12 @@ pip install necbol
 ## User Guide
 Documentation is work in progress. In the meantime:
 
-* For a quick and basic overview, see the file [example_dipole_with_detailed_comments.py](https://github.com/G1OJS/NECBOL/blob/d22ee40ef966d9abb778667cd5b5979a98ed287b/example_dipole_with_detailed_comments.py) for a minimal explanation of how to use this framework.
+* For a quick and basic overview, see the file "example_dipole_with_detailed_comments.py" for a minimal explanation of how to use this framework.
 
 * There are several more example files in the [examples folder](https://github.com/G1OJS/NECBOL/tree/main/examples) intended to highlight different aspects of necbol and different ways of doing similar things. You can copy these examples and modify to see how they work, or start your own from scratch.
 
 * Automated user documentation is [here](https://g1ojs.github.io/NECBOL/docs/user_functions.html). You can see an outline of all code [here](https://g1ojs.github.io/NECBOL/docs/outline.html).
   
 * You can browse the source files in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol) (however note that they may be ahead of the release on pip).
+
+* Please look at the change history file, especally if you've used previous versions

@@ -62,7 +62,7 @@ class RandomOptimiser:
                 x_new[name] = max(min(x_new[name], maxv), minv)
         return x_new
 
-    def optimise(self, model,  verbose=False, tty=True):
+    def optimise(self, verbose=False, tty=True, show_geometry = True):
         """
             This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
             and comparing the user-specified cost function with the best achieved so far. If the test gives a better
@@ -77,7 +77,8 @@ class RandomOptimiser:
             initialisation to limit their max and min values.
         """
         best_params = self.x_baseline.copy()
-        best_model = self.build_fn(model, **best_params)
+        best_model = self.build_fn(**best_params)
+        best_model.set_angular_resolution(10,10)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -91,7 +92,8 @@ class RandomOptimiser:
         try:
             for i in range(self.max_iter):
                 test_params = self._random_variation(best_params)
-                test_model = self.build_fn(model, **test_params)
+                test_model = self.build_fn(**test_params)
+                test_model.set_angular_resolution(10,10)
                 test_model.write_nec()
                 test_model.run_nec()
                 result = self.cost_fn(test_model)
@@ -131,7 +133,7 @@ class RandomOptimiser:
         except KeyboardInterrupt:
             print("\nINTERRUPTED by user input")
             
-        best_model = self.build_fn(model, **best_params)
+        best_model = self.build_fn(**best_params)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -141,4 +143,4 @@ class RandomOptimiser:
         print("# "+ initial_message)
         print(f"# []   FINAL: {final_info} with {self._format_params(best_params)}")
         
-        return best_params, final_info
+        return best_model, best_params, final_info

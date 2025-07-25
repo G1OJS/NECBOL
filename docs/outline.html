@@ -1,7 +1,308 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>outline.html</title><link rel='stylesheet' href='./outline.css' /><body>
-<br><div class = 'filename'>__init__.py</div><br><br><div class = 'filename'>modeller.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<br><div class = 'filename'>__init__.py</div><br><br><div class = 'filename'>analyser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def vswr(model, Z0 = 50):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Return the antenna VSWR at the feed point assuming a 50 ohm system
+        Or another value if specified
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>    try:
+        with open(model.nec_out) as f:
+            while &quot;ANTENNA INPUT PARAMETERS&quot; not in f.readline():
+                pass
+            for _ in range(4):
+                l = f.readline()
+            if model.verbose:
+                print(&quot;Z line:&quot;, l.strip())
+            r = float(l[60:72])
+            x = float(l[72:84])
+    except (RuntimeError, ValueError):
+        raise ValueError(f&quot;Something went wrong reading input impedance from {nec_out}&quot;)
+
+    z_in = r + x * 1j
+    gamma = (z_in - Z0) / (z_in + Z0)
+    return (1 + abs(gamma)) / (1 - abs(gamma))
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'> def get_gains_at_gain_point(model):</span></summary>
+<pre class ='def content'>    try:
+        pattern = _read_radiation_pattern(model.nec_out, model.az_datum_deg, model.el_datum_deg)
+        gains_at_point = [d for d in pattern if (abs(d[&#x27;elevation_deg&#x27;] - model.el_datum_deg) &lt; 0.1) and (abs(d[&#x27;azimuth_deg&#x27;] - model.az_datum_deg) &lt; 0.1)][0]
+        
+    except (RuntimeError, ValueError):
+        print(&quot;Trying to read gains at {azimuth_deg}, {elevation_deg}&quot;)
+        raise ValueError(f&quot;Something went wrong reading gains from {nec_out}&quot;)
+
+    return gains_at_point
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_range_dB = 30):</span></summary>
+<pre class ='def content'>    import matplotlib.pyplot as plt
+    import numpy as np
+
+    if(elevation_deg is not None and azimuth_deg is not None):
+        Print(&quot;Can&#x27;t plot a 3D pattern, please select azimuth or elevation only&quot;)
+        return
+
+    if (elevation_deg is None and azimuth_deg is None):
+        elevation_deg = model.el_datum_deg
+
+    title = model.model_name
+
+    # Filter data for fixed elevation (theta)
+    if(elevation_deg is not None):
+        print(f&quot;Plotting gain for elevation = {elevation_deg}&quot;)
+        pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = azimuth_deg, elevation_deg = None)
+        
+        cut = [d for d in pattern_data if abs(d[&#x27;elevation_deg&#x27;] - elevation_deg) &lt; 0.1]
+        angle_deg = [d[&#x27;azimuth_deg&#x27;] for d in cut]
+        title += f&#x27; elevation = {elevation_deg}°&#x27;
+
+    # Filter data for fixed azimuth (phi)
+    if(azimuth_deg is not None):
+        print(f&quot;Plotting gain for azimuth = {azimuth_deg}&quot;)
+        pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = None, elevation_deg = elevation_deg)
+        cut = [d for d in pattern_data if abs(d[&#x27;azimuth_deg&#x27;] - azimuth_deg) &lt; 0.1]
+        angle_deg = [d[&#x27;elevation_deg&#x27;] for d in cut]
+        title += f&#x27; azimuth = {azimuth_deg}°&#x27;
+ 
+    fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
+
+    scl_max = -100
+    for comp in components:
+        gain = [d[comp] for d in cut]
+        scl_max = max(scl_max,max(gain))
+        angle_rad = np.radians(angle_deg)
+        ax.plot(angle_rad, gain, label = comp)
+        print(comp, f&quot; max gain: {max(gain)}&quot;)
+    ax.legend()
+    ax.set_title(title)
+    ax.grid(True)
+
+    ax.set_rmax(scl_max)
+    ax.set_rmin(scl_max - gain_scale_range_dB )
+    ax.set_rlabel_position(90)
+
+    # Enable interactive mode for non-blocking plotting
+    plt.ion()
+
+    # Display the plot window in non-blocking mode
+    plt.show(block=False)
+
+
+
+
+#==================================================================
+# Internal functions
+#==================================================================
+
+import numpy as np
+import copy
+
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _get_complex_component(pat_data, component):</span></summary>
+<pre class ='def content'>    m = np.array([d[component + &#x27;_mag&#x27;] for d in pat_data])
+    p = np.radians([d[component + &#x27;_phase_deg&#x27;] for d in pat_data])
+    Z = m * np.exp(1j * p)
+    return Z
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _plot_difference_field(model1, model2):</span></summary>
+<pre class ='def content'>    # needs work to check if patterns don&#x27;t match az, el 1:1 and if model datums are different
+    pattern1 = _read_radiation_pattern(model1.nec_out)
+    pattern2 = _read_radiation_pattern(model2.nec_out)
+    diff = _subtract_field_patterns(pattern1, pattern2)
+    _plot_pattern_gains(diff, elevation_deg = model.el_datum_deg)
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _subtract_field_patterns(pat1, pat2):</span></summary>
+<pre class ='def content'>    Z_theta_1 = _get_complex_component(pat1, &#x27;E_theta&#x27;)
+    Z_theta_2 = _get_complex_component(pat2, &#x27;E_theta&#x27;)
+    Z_phi_1 = _get_complex_component(pat1, &#x27;E_phi&#x27;)
+    Z_phi_2 = _get_complex_component(pat2, &#x27;E_phi&#x27;)
+
+    output_pattern = []
+    for i, d in enumerate(pattern1):
+        E_theta = Z_theta_1[i] - Z_theta_2[i]
+        E_phi = Z_phi_1[i] - Z_phi_2[i]
+        output_pattern.append(_compute_full_farfield_metrics(E_theta, E_phi))
+
+    return output_pattern
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
+        &#x27;az_deg&#x27;: float,
+        &#x27;el_deg&#x27;: float,
+        &#x27;vert_gain_dBi&#x27;: float,
+        &#x27;horiz_gain_dBi&#x27;: float,
+        &#x27;total_gain_dBi&#x27;: float,
+        &#x27;axial_ratio_dB&#x27;: float,
+        &#x27;tilt_deg&#x27;: float,
+        &#x27;sense&#x27;: string,
+        &#x27;E_theta_mag&#x27;: float,
+        &#x27;E_theta_phase_deg&#x27;: float,
+        &#x27;E_phi_mag&#x27;: float,
+        &#x27;E_phi_phase_deg&#x27;: float
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>    data = []
+    thetas = set()
+    phis = set()
+    in_data = False
+    start_lineNo = 1e9
+    with open(filepath) as f:
+        lines = f.readlines()
+    for lineNo, line in enumerate(lines):
+        if (&#x27;RADIATION PATTERNS&#x27; in line):
+            in_data = True
+            start_lineNo = lineNo + 5
+
+        if (lineNo &gt; start_lineNo and line==&quot;\n&quot;):
+            in_data = False
+            
+        if (in_data and lineNo &gt;= start_lineNo):
+            theta = float(line[0:9])
+            phi = float(line[9:18])
+            thetas.add(theta)
+            phis.add(phi)
+            if (elevation_deg is not None and theta != 90 - elevation_deg):
+                continue
+            if (azimuth_deg is not None and phi != azimuth_deg):
+                continue
+            data.append({
+                &#x27;azimuth_deg&#x27;: phi,
+                &#x27;elevation_deg&#x27;: 90 - theta,
+                &#x27;vert_gain_dBi&#x27;: float(line[18:28]),
+                &#x27;horiz_gain_dBi&#x27;: float(line[28:36]),
+                &#x27;total_gain_dBi&#x27;: float(line[36:45]),
+                &#x27;axial_ratio_dB&#x27;: float(line[45:55]),
+                &#x27;tilt_deg&#x27;: float(line[55:63]),
+                &#x27;sense&#x27;: line[63:72].strip(),
+                &#x27;E_theta_mag&#x27;: float(line[72:87]),
+                &#x27;E_theta_phase_deg&#x27;: float(line[87:96]),
+                &#x27;E_phi_mag&#x27;: float(line[96:111]),
+                &#x27;E_phi_phase_deg&#x27;: float(line[111:119])
+            })
+
+    if (len(data) == 0):
+        print(f&quot;Looking for gain at phi = {azimuth_deg}, theta = {90 - elevation_deg} in&quot;)
+        print(f&quot;Thetas = {thetas}&quot;)
+        print(f&quot;Phis = {phis}&quot;)
+        raise EOFError(f&quot;Failed to read needed data in {filepath}. Check for NEC errors.&quot;)
+
+    return data
+
+
+
+
+import math
+import cmath
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'> def _compute_full_farfield_metrics(E_theta, E_phi):</span></summary>
+<pre class ='def content'>    # Total field magnitude squared
+    total_power = abs(E_theta)**2 + abs(E_phi)**2
+    total_gain_dBi = 10 * math.log10(total_power) if total_power &gt; 0 else -math.inf
+
+    # RHCP and LHCP components
+    E_rhcp = (E_theta - 1j * E_phi) / math.sqrt(2)
+    E_lhcp = (E_theta + 1j * E_phi) / math.sqrt(2)
+
+    rhcp_power = abs(E_rhcp)**2
+    lhcp_power = abs(E_lhcp)**2
+
+    rhcp_gain_dBi = 10 * math.log10(rhcp_power) if rhcp_power &gt; 0 else -math.inf
+    lhcp_gain_dBi = 10 * math.log10(lhcp_power) if lhcp_power &gt; 0 else -math.inf
+
+    # Axial ratio in dB
+    max_pol_power = max(rhcp_power, lhcp_power)
+    min_pol_power = min(rhcp_power, lhcp_power)
+    if min_pol_power == 0:
+        axial_ratio_dB = float(&#x27;inf&#x27;)
+    else:
+        axial_ratio_dB = 10 * math.log10(max_pol_power / min_pol_power)
+
+    # Polarization sense
+    if axial_ratio_dB == float(&#x27;inf&#x27;):
+        polarization_sense = &quot;Linear&quot;
+    elif rhcp_power &gt; lhcp_power:
+        polarization_sense = &quot;RHCP&quot;
+    else:
+        polarization_sense = &quot;LHCP&quot;
+
+    # Polarization ellipse tilt (major axis orientation in θ–φ plane)
+    delta = math.radians(E_theta_phase_deg - E_phi_phase_deg)
+    if E_theta_mag != 0 and E_phi_mag != 0:
+        tilt_rad = 0.5 * math.atan2(
+            2 * E_theta_mag * E_phi_mag * math.cos(delta),
+            E_theta_mag**2 - E_phi_mag**2
+        )
+        polarization_tilt_deg = math.degrees(tilt_rad)
+    else:
+        polarization_tilt_deg = 0.0
+
+    # Vertical and horizontal gain projections
+    #   - vertical polarization corresponds to E_theta
+    #   - horizontal polarization corresponds to E_phi
+    # (this is the convention used in 4NEC2&#x27;s output)
+
+    vert_power = abs(E_theta)**2
+    horiz_power = abs(E_phi)**2
+
+    vert_gain_dBi = 10 * math.log10(vert_power) if vert_power &gt; 0 else -math.inf
+    horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power &gt; 0 else -math.inf
+
+    return {
+        &#x27;E_theta_mag&#x27;: E_theta_mag,
+        &#x27;E_theta_phase_deg&#x27;: E_theta_phase_deg,
+        &#x27;E_phi_mag&#x27;: E_phi_mag,
+        &#x27;E_phi_phase_deg&#x27;: E_phi_phase_deg,
+        &#x27;total_gain_dBi&#x27;: total_gain_dBi,
+        &#x27;vert_gain_dBi&#x27;: vert_gain_dBi,
+        &#x27;horiz_gain_dBi&#x27;: horiz_gain_dBi,
+        &#x27;rhcp_gain_dBi&#x27;: rhcp_gain_dBi,
+        &#x27;lhcp_gain_dBi&#x27;: lhcp_gain_dBi,
+        &#x27;axial_ratio_dB&#x27;: axial_ratio_dB,
+        &#x27;polarization_tilt_deg&#x27;: polarization_tilt_deg,
+        &#x27;polarization_sense&#x27;: polarization_sense
+    }
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _get_available_results(model):</span></summary>
+<pre class ='def content'>    # need to add here whether over full pattern or e.g. azimuth cut
+ #   model.max_total_gain = max(d[&#x27;total_gain_dBi&#x27;] for d in pattern_data)
+    model.vswr = vswr(model)
+
+    
+</pre>
+</details>
+<br><div class = 'filename'>modeller.py</div><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>import numpy as np
 import math
 import warnings
@@ -9,10 +310,396 @@ import subprocess
 import os
 
 #=================================================================================
+# NEC Wrapper functions for writing .nec file and reading output
+#=================================================================================
+
+</pre>
+</details>
+<details><summary><span class ='class signature'> class NECModel:</span></summary>
+<pre class ='class content'></pre>
+<details><summary><span class ='def signature'> def __init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):</span></summary>
+<pre class ='def content'>        self.verbose = verbose
+        self.working_dir = working_dir
+        self.nec_exe = nec_exe_path
+        self.nec_bat = working_dir + &quot;\\nec.bat&quot;
+        self.nec_in = working_dir + &quot;\\&quot; + model_name +  &quot;.nec&quot;
+        self.nec_out = working_dir + &quot;\\&quot; + model_name +  &quot;.out&quot;
+        self.files_txt = working_dir + &quot;\\files.txt&quot;
+        self.model_name = model_name
+        self.nSegs_per_wavelength = 40
+        self.segLength_m = 0
+        self._units = _units()
+        self.default_wire_sigma = None
+        self.MHz = None
+        self.MHz_stop = None
+        self.MHz_step = None
+        self.origin_height_m = 0
+        self.segLength_m
+        self.el_datum_deg = 0
+        self.az_datum_deg = 0
+        self.az_step_deg = 10
+        self.el_step_deg = 5
+        self.ground_sigma = 0
+        self.ground_Er = 1.0
+        self.geometry = []
+        self.EX_tag = 999
+        self.LOADS = []
+        self.LOADS_start_tag = 8000
+        self.max_total_gain = None
+        self.vswr = None
+
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_name(self, name):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
+            output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
+            so that the analysis continues (with updated input parameters) and outputs more than one test case
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.model_name = name
+        self.nec_in = self.working_dir + &quot;\\&quot; + self.model_name +  &quot;.nec&quot;
+        self.nec_out = self.working_dir + &quot;\\&quot; + self.model_name +  &quot;.out&quot;
+        self._write_runner_files()
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_wire_conductivity(self, sigma):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set wire conductivity to be assumed for all wires that don&#x27;t have an explicitly-set load.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.default_wire_sigma = sigma
+        self.LD_WIRECOND = f&quot;LD 5 0 0 0 {sigma:.6f} \n&quot;
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_frequency(self, MHz):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.MHz = MHz
+        lambda_m = 300/MHz
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_gain_point(self, azimuth_deg, elevation_deg):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set the azimuth and elevation of a single gain point that
+            must appear in the output radiation pattern
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.az_datum_deg = azimuth_deg
+        self.el_datum_deg = elevation_deg
+
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_angular_resolution(self, az_step_deg, el_step_deg):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set resolution required in az and el in degrees
+            If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.az_step_deg = az_step_deg
+        self.el_step_deg = el_step_deg
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_ground(self, eps_r, sigma, **origin_height):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
+            If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
+            If you don&#x27;t call this function, free space will be assumed.
+            Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
+            the specified distance above ground.
+            Parameters:
+                eps_r (float): relative permittivity (relative dielectric constant) of the ground
+                sigma (float): conductivity of the ground in mhos/meter
+                origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.ground_Er = eps_r
+        self.ground_sigma = sigma
+        if(eps_r &gt;1.0):
+            self.origin_height_m = self._units._from_suffixed_dimensions(origin_height)[&#x27;origin_height_m&#x27;]
+            if(self.el_datum_deg &lt;= 0):
+                self.el_datum_deg = 1
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def place_RLC_load(self, geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            inserts a single segment containing an RLC load into an existing geometry object
+            Position within the object is specied as
+            EITHER:
+              load_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              load_wire_index AND load_alpha_wire
+              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire&#x27;s length
+
+            NEC LD card specification: https://www.nec2.org/part_3/cards/ld.html
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        iTag = self.LOADS_start_tag + len(self.LOADS)
+        self.LOADS.append({&#x27;iTag&#x27;: iTag, &#x27;load_type&#x27;: load_type, &#x27;RoLuCp&#x27;: (R_Ohms, L_uH, C_pf), &#x27;alpha&#x27;: None})
+        self._insert_special_segment(geomObj, iTag, load_alpha_object, load_wire_index, load_alpha_wire)
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Inserts a single segment containing the excitation point into an existing geometry object.
+            Position within the object is specied as
+            EITHER:
+              feed_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              feed_wire_index AND feed_alpha_wire
+              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire&#x27;s length
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self._insert_special_segment(geomObj, self.EX_tag, feed_alpha_object, feed_wire_index, feed_alpha_wire)
+   
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def add(self, geomObj):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
+            to the component after this point are ignored.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.geometry.append(geomObj)
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def write_nec(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Write the entire model to the NEC input file ready for analysis. At this point, the function
+            &quot;show_wires_from_file&quot; may be used to see the specified geometry in a 3D view.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self._write_runner_files()
+        
+        # open the .nec file
+        with open(self.nec_in, &quot;w&quot;) as f:
+            f.write(&quot;CM\nCE\n&quot;)
+            
+            # 1. Write GW lines for all geometry
+            for geomObj in self.geometry:
+                for w in geomObj._get_wires():
+                    A = np.array(w[&quot;a&quot;], dtype=float)
+                    B = np.array(w[&quot;b&quot;], dtype=float)
+                    if(w[&#x27;nS&#x27;] == 0): # calculate and update number of segments only if not already present
+                        w[&#x27;nS&#x27;] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
+                    f.write(f&quot;GW {w[&#x27;iTag&#x27;]} {w[&#x27;nS&#x27;]} &quot;)
+                    f.write(&#x27; &#x27;.join([f&quot;{A[i]:.3f} &quot; for i in range(3)]))
+                    f.write(&#x27; &#x27;.join([f&quot;{B[i]:.3f} &quot; for i in range(3)]))
+                    f.write(f&quot; {w[&#x27;wr&#x27;]}\n&quot;)
+
+            # 2. Write GE card, Ground Card, and GM card to set origin height
+            if self.ground_Er == 1.0:
+                f.write(&quot;GE 0\n&quot;)
+            else:
+                f.write(f&quot;GM 0 0 0 0 0 0 0 {self.origin_height_m:.3f}\n&quot;)
+                f.write(&quot;GE -1\n&quot;)
+                f.write(f&quot;GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n&quot;)
+
+            # 3. Write out the loads
+            for LD in self.LOADS:
+                LDTYP = [&#x27;series&#x27;,&#x27;parallel&#x27;,&#x27;series_per_metre&#x27;,&#x27;parallel_per_metre&#x27;,&#x27;impedance_not_used&#x27;,&#x27;conductivity&#x27;].index(LD[&#x27;load_type&#x27;])
+                LDTAG = LD[&#x27;iTag&#x27;]
+                R_Ohms, L_uH , C_pF = LD[&#x27;RoLuCp&#x27;]
+                # these strings are set programatically so shouldn&#x27;t need an error trap
+                f.write(f&quot;LD {LDTAG} {LDTYP} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n&quot;)
+
+            # 4. Feed
+            f.write(f&quot;EX 0 {self.EX_tag} 1 0 1 0\n&quot;)
+
+            # 5. Frequency
+            # update to include sweep
+            f.write(f&quot;FR 0 1 0 0 {self.MHz:.3f} 0\n&quot;)
+
+            # 6. Pattern points
+            # Need to update logic to set nTheta to 1 if fsweep 
+            n_phi = 1 + int(360 / self.az_step_deg)
+            d_phi = 360 / (n_phi - 1)
+            phi_start_deg = self.az_datum_deg
+            if self.ground_Er == 1.0:  # free space, no ground card, full sphere is appropriate
+                theta_start_deg, d_theta, n_theta = self._set_theta_grid_from_el_datum(self.el_datum_deg, self.el_step_deg, hemisphere = False)
+                f.write(f&quot;RP 0 {n_theta} {n_phi} 1003 {theta_start_deg} {phi_start_deg} {d_theta} {d_phi}\n&quot;)
+            else:                       # ground exists, upper hemisphere is appropriate
+                theta_start_deg, d_theta, n_theta = self._set_theta_grid_from_el_datum(self.el_datum_deg, self.el_step_deg, hemisphere = True)
+                f.write(f&quot;RP 0 {n_theta} {n_phi} 1003 {theta_start_deg} {phi_start_deg} {d_theta} {d_phi}\n&quot;)
+                
+            f.write(&quot;EN&quot;)
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def run_nec(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Pass the model file to NEC for analysis and wait for the output.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+
+
+#===============================================================
+# internal functions for class NECModel
+#===============================================================
+
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def _set_frequency_sweep(self, MHz, MHz_stop, MHz_step):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set parameters for frequency sweep. This also sets the angular pattern resolution
+            to 10 degrees in azimuth and elevation to limit the size of output files           
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.MHz_stop = MHz_stop
+        self.MHz_step = MHz_step
+        self.MHz = MHz
+        lambda_m = 300/MHz_stop
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+        self.set_angular_resolution(10,10)
+
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'> def _set_theta_grid_from_el_datum(self, el_datum_deg, el_step_deg, hemisphere = True):</span></summary>
+<pre class ='def content'>        theta_datum = 90 - el_datum_deg
+        d_theta = el_step_deg
+        theta_range = 90 if hemisphere else 180
+
+        theta_start = theta_datum % d_theta
+        # Fix float errors (e.g. 0.0000001)
+        theta_start = round(theta_start, 6)
+
+        # Clip to max range
+        max_theta = theta_start + d_theta * (int((theta_range - theta_start) / d_theta))
+        n_theta = 1 + int((max_theta - theta_start) / d_theta)
+        return theta_start, d_theta, n_theta
+
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def _write_runner_files(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Write the .bat file to start NEC, and &#x27;files.txt&#x27; to tell NEC the name of the input and output files
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        for filepath, content in [
+            (self.nec_bat, f&quot;{self.nec_exe} &lt; {self.files_txt} \n&quot;),
+            (self.files_txt, f&quot;{self.nec_in}\n{self.nec_out}\n&quot;)
+        ]:
+            directory = os.path.dirname(filepath)
+            if directory and not os.path.exists(directory):
+                os.makedirs(directory)  # create directory if it doesn&#x27;t exist
+            try:
+                with open(filepath, &quot;w&quot;) as f:
+                    f.write(content)
+            except Exception as e:
+                print(f&quot;Error writing file {filepath}: {e}&quot;)
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def _insert_special_segment(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            inserts a single segment with a specified iTag into an existing geometry object
+            position within the object is specied as either item_alpha_object or item_wire_index, item_alpha_wire
+            (see calling functions for more details)
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        wires = geomObj._get_wires()
+        if(item_alpha_object &gt;=0):
+            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
+            item_alpha_wire = item_alpha_object - item_wire_index
+        w = wires[item_wire_index]       
+
+        # calculate wire length vector AB, length a to b and distance from a to feed point
+        A = np.array(w[&quot;a&quot;], dtype=float)
+        B = np.array(w[&quot;b&quot;], dtype=float)
+        AB = B-A
+        wLen = np.linalg.norm(AB)
+        feedDist = wLen * item_alpha_wire
+
+        if (wLen &lt;= self.segLength_m):
+            # feed segment is all of this wire, so no need to split
+            w[&#x27;nS&#x27;] = 1
+            w[&#x27;iTag&#x27;] = item_iTag
+        else:
+            # split the wire AB into three wires: A to C, CD (feed segment), D to B
+            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
+            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
+            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
+            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
+            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
+            # (nonzero nS field is preserved during segmentation in &#x27;add&#x27;)
+            w[&#x27;b&#x27;] = tuple(C)
+            w[&#x27;nS&#x27;] = nS1
+            geomObj._add_wire(item_iTag , 1, *C, *D, w[&quot;wr&quot;])
+            geomObj._add_wire(w[&quot;iTag&quot;] , nS2, *D, *B, w[&quot;wr&quot;])
+            
+
+#=================================================================================
 # The geometry object that holds a single component plus its methods
 #=================================================================================
 
 </pre>
+</details>
+</details>
 </details>
 <details><summary><span class ='class signature'> class GeometryObject:</span></summary>
 <pre class ='class content'></pre>
@@ -245,22 +932,7 @@ import os
 </details>
 </details>
 <details><summary><span class ='class signature'> class _units:</span></summary>
-<pre class ='class content'>    _UNIT_FACTORS = {
-        &quot;m&quot;: 1.0,
-        &quot;mm&quot;: 1000.0,
-        &quot;cm&quot;: 100.0,
-        &quot;in&quot;: 39.3701,
-        &quot;ft&quot;: 3.28084,
-    }
-
-</pre>
-<details><summary><span class ='def signature'> def __init__(self, default_unit: str = "m"):</span></summary>
-<pre class ='def content'>        if default_unit not in self._UNIT_FACTORS:
-            raise ValueError(f&quot;Unsupported unit: {default_unit}&quot;)
-        self.default_unit = default_unit
-
-</pre>
-</details>
+<pre class ='class content'></pre>
 <details><summary><span class ='def signature'>🧾 def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
@@ -271,7 +943,15 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        out = {}
+<pre class ='body content'>        _UNIT_FACTORS = {
+        &quot;m&quot;: 1.0,
+        &quot;mm&quot;: 1000.0,
+        &quot;cm&quot;: 100.0,
+        &quot;in&quot;: 39.3701,
+        &quot;ft&quot;: 3.28084,
+        }
+
+        out = {}
         names_seen = []
         for key, value in params.items():
     
@@ -290,9 +970,9 @@ import os
 
             names_seen.append(name)
 
-            if suffix in self._UNIT_FACTORS:
+            if suffix in _UNIT_FACTORS:
                 # Convert value, output key with &#x27;_m&#x27; suffix
-                out[name + &quot;_m&quot;] = value / self._UNIT_FACTORS[suffix]
+                out[name + &quot;_m&quot;] = value / _UNIT_FACTORS[suffix]
                 continue
 
             if key in whitelist:
@@ -306,557 +986,87 @@ import os
         return out
 
 
-#=================================================================================
-# NEC Wrapper functions for writing .nec file and reading output
-#=================================================================================
 
 </pre>
 </details>
 </details>
 </details>
-<details><summary><span class ='class signature'> class NECModel:</span></summary>
-<pre class ='class content'></pre>
-<details><summary><span class ='def signature'> def __init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):</span></summary>
-<pre class ='def content'>        self.verbose = verbose
-        self.working_dir = working_dir
-        self.nec_exe = nec_exe_path
-        self.nec_bat = working_dir + &quot;\\nec.bat&quot;
-        self.nec_in = working_dir + &quot;\\&quot; + model_name +  &quot;.nec&quot;
-        self.nec_out = working_dir + &quot;\\&quot; + model_name +  &quot;.out&quot;
-        self.files_txt = working_dir + &quot;\\files.txt&quot;
-        self.model_name = model_name
-        self.model_text = &quot;&quot;
-        self.LD_WIRECOND = &quot;&quot;
-        self.FR_CARD = &quot;&quot;
-        self.RP_CARD = &quot;&quot;
-        self.GE_CARD = &quot;GE 0\n&quot;
-        self.GN_CARD = &quot;&quot;
-        self.GM_CARD = &quot;&quot;
-        self.comments = &quot;&quot;
-        self.EX_TAG = 999
-        self.nSegs_per_wavelength = 40
-        self.segLength_m = 0
-        self._units = _units()
-        self._write_runner_files()
+<br><div class = 'filename'>visualiser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>import copy
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def set_name(self, name):</span></summary>
+<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
-            output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
-            so that the analysis continues (with updated input parameters) and outputs more than one test case
+<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
+        then displays the geometry in a 3D projection. The feed is highligted in red.
+        Loads are highlighted in green.
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.model_name = name
-        self.nec_in = self.working_dir + &quot;\\&quot; + self.model_name +  &quot;.nec&quot;
-        self.nec_out = self.working_dir + &quot;\\&quot; + self.model_name +  &quot;.out&quot;
-        self._write_runner_files()
+<pre class ='body content'>    model_tmp = copy.deepcopy(model)
+    model_tmp.wires = []
+    with open(model.nec_in, &#x27;r&#x27;) as f:
+        for line in f:
+            if line.startswith(&quot;GW&quot;):
+                parts = line.strip().split()
+                if len(parts) &gt;= 9:
+                    # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
+                    x1, y1, z1 = map(float, parts[3:6])
+                    x2, y2, z2 = map(float, parts[6:9])
+                    tag = int(parts[1])
+                    model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag))
+    _show_wires(model_tmp)
 
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def set_wire_conductivity(self, sigma):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Set wire conductivity for all wires.
+<details><summary><span class ='def signature'> def _show_wires(model):</span></summary>
+<pre class ='def content'>    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
 
-            NOTE that NEC achieves this by specifying a &#x27;load&#x27; applicable to all wires, and addition
-            of further loads will interact with this. A future version of necbol will examine
-            this specification so that both wire conductivity and load parameters are accounted for in this case.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.LD_WIRECOND = f&quot;LD 5 0 0 0 {sigma:.6f} \n&quot;
+    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
+    title = &quot;Geometry for &quot; + model.model_name
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_frequency(self, MHz):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.FR_CARD = f&quot;FR 0 1 0 0 {MHz:.3f} 0\n&quot;
-        lambda_m = 300/MHz
-        self.segLength_m = lambda_m / self.nSegs_per_wavelength
-        
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_point(self, azimuth, elevation):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a gain pattern at a single specified azimuth and elevation
-            (Typically used when optimising gain in a fixed direction)
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.RP_CARD = f&quot;RP 0 1 1 1000 {90-elevation:.2f} {azimuth:.2f} 0 0\n&quot;
+    for start, end, tag in model.wires:
+        line_color = &#x27;black&#x27;
+        if (tag == model.EX_tag):
+            line_color = &#x27;red&#x27;
+        if (tag in [load[&#x27;iTag&#x27;] for load in model.LOADS]):
+            line_color = &#x27;green&#x27;       
+        ax.plot(*zip(start, end), color=line_color if (tag!=model.EX_tag) else &#x27;red&#x27;)
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_az_arc(self, azimuth_start, azimuth_stop, nPoints, elevation):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a gain pattern over a specified azimuth
-            range at a single elevation using nPoints points
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        if(nPoints&lt;2):
-            nPoints=2
-        dAz = (azimuth_stop - azimuth_start) / (nPoints-1)
-        self.RP_CARD = f&quot;RP 0 1 {nPoints} 1000 {90-elevation:.2f} {azimuth_start:.2f} 0 {dAz:.2f}\n&quot;
+    plt.draw()  # ensure autoscale limits are calculated
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_sphere_1deg(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a full sphere&#x27;s worth of data points,
-            using 1 degree steps in both azimuth and elevation
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.RP_CARD = &quot;RP 0 361 361 1003 -180 0 1 1\n&quot;
+    # Get axis limits
+    xlim, ylim, zlim = ax.get_xlim(), ax.get_ylim(), ax.get_zlim()
+    mids = [(lim[0] + lim[1]) / 2 for lim in (xlim, ylim, zlim)]
+    spans = [lim[1] - lim[0] for lim in (xlim, ylim, zlim)]
+    max_range = max(spans)
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_gain_hemisphere_1deg(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Request NEC to produce a full half-sphere&#x27;s worth of data points covering the &#x27;above ground&#x27; half space,
-            using 1 degree steps in both azimuth and elevation
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.RP_CARD = &quot;RP 0 181 361 1003 -180 0 1 1\n&quot;
+    # Set equal range around each midpoint
+    ax.set_xlim(mids[0] - max_range/2, mids[0] + max_range/2)
+    ax.set_ylim(mids[1] - max_range/2, mids[1] + max_range/2)
+    ax.set_zlim(mids[2] - max_range/2, mids[2] + max_range/2)
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_ground(self, eps_r, sigma, **params):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
-            If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
-            If you don&#x27;t call this function, free space will be assumed.
-            Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
-            the specified distance above ground.
-            Parameters:
-                eps_r (float): relative permittivity (relative dielectric constant) of the ground
-                sigma (float): conductivity of the ground in mhos/meter
-                origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        if eps_r == 1.0:
-            self.GE_CARD = &quot;GE 0\n&quot;
-            self.GN_CARD = &quot;&quot;
-            self.GM_CARD = &quot;GM 0 0 0 0 0 0 0 0.000\n&quot;
-        else:
-            origin_height_m = self._units._from_suffixed_dimensions(params)[&#x27;origin_height_m&#x27;]
-            self.GE_CARD = &quot;GE -1\n&quot;
-            self.GN_CARD = f&quot;GN 2 0 0 0 {eps_r:.3f} {sigma:.3f} \n&quot;
-            self.GM_CARD = f&quot;GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n&quot;
+    ax.set_xlabel(&#x27;X&#x27;)
+    ax.set_ylabel(&#x27;Y&#x27;)
+    ax.set_zlabel(&#x27;Z&#x27;)
+    ax.set_title(title)
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def start_geometry(self, comments="No comments specified"):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Effectively *resets* the model by deleting all wires, feed and loads.
-            All of the parameters set by &quot;set_&quot; functions are still incorporated when the file is written
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.comments = comments
-        self.model_text = &quot;CM &quot; + comments + &quot;\nCE\n&quot;
-        # TO DO: decide if 500 is the right tag to start at, and whether to limit # of loads
-        self.LOAD_iTag = 500
-        self.LOADS = []
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def place_series_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            inserts a single segment containing a series RLC load into an existing geometry object
-            Position within the object is specied as
-            EITHER:
-              load_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              load_wire_index AND load_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.LOADS.append(f&quot;LD 0 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n&quot;)
-        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-        self.LOAD_iTag +=1
-        
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def place_parallel_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            inserts a single segment containing a parallel RLC load into an existing geometry object
-            Position within the object is specied as
-            EITHER:
-              load_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              load_wire_index AND load_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.LOADS.append(f&quot;LD 1 {self.LOAD_iTag} 0 0 {R_ohms} {L_uH * 1e-6} {C_pf * 1e-12}\n&quot;)
-        self._place_feed_or_load(geomObj, self.LOAD_iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-        self.LOAD_iTag +=1
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Inserts a single segment containing the excitation point into an existing geometry object.
-            Position within the object is specied as
-            EITHER:
-              feed_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              feed_wire_index AND feed_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self._place_feed_or_load(geomObj, self.EX_TAG, feed_alpha_object, feed_wire_index, feed_alpha_wire)
-
-                
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def add(self, geomObj):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
-            to the component after this point are ignored.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        for w in geomObj._get_wires():
-            A = np.array(w[&quot;a&quot;], dtype=float)
-            B = np.array(w[&quot;b&quot;], dtype=float)
-            if(w[&#x27;nS&#x27;] == 0): # calculate and update number of segments only if not already present
-                w[&#x27;nS&#x27;] = 1+int(np.linalg.norm(B-A) / self.segLength_m)
-            self.model_text += f&quot;GW {w[&#x27;iTag&#x27;]} {w[&#x27;nS&#x27;]} &quot;
-            for v in A:
-                self.model_text += f&quot;{v:.3f} &quot;
-            for v in B:
-                self.model_text += f&quot;{v:.3f} &quot;
-            self.model_text += f&quot;{w[&#x27;wr&#x27;]}\n&quot;
+    if (model.vswr is not None):
+        fig.figure.text(0.02,0.05,f&quot;Vswr: {model.vswr:.2f} &quot;)
+    if (model.max_total_gain is not None):
+        fig.figure.text(0.02,0.1,f&quot;Max total gain: {model.max_total_gain:.2f} dBi&quot;)
+    
+    plt.tight_layout()
+    plt.show()
 
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def write_nec(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Write the entire model to the NEC input file ready for analysis. At this point, the function
-            &quot;show_wires_from_file&quot; may be used to see the specified geometry in a 3D view.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        tail_text = self.GM_CARD
-        tail_text += self.GE_CARD
-        tail_text += self.GN_CARD
-        tail_text += &quot;EK\n&quot;
-        tail_text += self.LD_WIRECOND
-        for LD in self.LOADS:
-            tail_text += LD
-        tail_text += f&quot;EX 0 {self.EX_TAG} 1 0 1 0\n&quot;
-        tail_text += self.FR_CARD
-        tail_text += self.RP_CARD
-        tail_text += &quot;EN&quot;
-        with open(self.nec_in, &quot;w&quot;) as f:
-            f.write(self.model_text + tail_text)
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def run_nec(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Pass the model file to NEC for analysis and wait for the output.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def h_gain(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the horizontal polarisation gain at the specified single gain point
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return self._get_single_point_gains()[&#x27;h_gain&#x27;]
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def v_gain(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the vertical polarisation gain at the specified single gain point
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return self._get_single_point_gains()[&#x27;v_gain&#x27;]
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def tot_gain(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the total gain at the specified single gain point
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return self._get_single_point_gains()[&#x27;total&#x27;]
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def vswr(self, Z0 = 50):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the antenna VSWR at the feed point assuming a 50 ohm system
-            Or another value if specified
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        try:
-            with open(self.nec_out) as f:
-                while &quot;ANTENNA INPUT PARAMETERS&quot; not in f.readline():
-                    pass
-                for _ in range(4):
-                    l = f.readline()
-                if self.verbose:
-                    print(&quot;Z line:&quot;, l.strip())
-                r = float(l[60:72])
-                x = float(l[72:84])
-        except (RuntimeError, ValueError):
-            raise ValueError(f&quot;Something went wrong reading input impedance from {nec_out}&quot;)
-
-        z_in = r + x * 1j
-        gamma = (z_in - Z0) / (z_in + Z0)
-        return (1 + abs(gamma)) / (1 - abs(gamma))
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def read_radiation_pattern(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            read the radiation pattern from the model.nec_out file
-            into a list of dictionaries with format:
-                {&#x27;theta&#x27;: theta,
-                &#x27;phi&#x27;: phi,
-                &#x27;gain_vert_db&#x27;: gain_vert,
-                &#x27;gain_horz_db&#x27;: gain_horz,
-                &#x27;gain_total_db&#x27;: gain_total,
-                &#x27;axial_ratio&#x27;: axial_ratio,
-                &#x27;tilt_deg&#x27;: tilt_deg,
-                &#x27;sense&#x27;: sense,
-                &#x27;E_theta_mag&#x27;: e_theta_mag,
-                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
-                &#x27;E_phi_mag&#x27;: e_phi_mag,
-                &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
-                
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return _read_radiation_pattern(self.nec_out)
-
-#===============================================================
-# internal functions for class NECModel
-#===============================================================
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'> def _get_single_point_gains(self):</span></summary>
-<pre class ='def content'>        # this will be refactored to call _read_radiation_pattern
-        # and store the result, so that if it is called again
-        # the read is not needed
-        # Also, either using interpolation or aligning a cut / sphere with the
-        # needed point may provide efficiencies (and maintainability, more importantly)
-        try:
-            with open(self.nec_out) as f:
-                while &quot;RADIATION PATTERNS&quot; not in f.readline():
-                    pass
-                for _ in range(5):
-                    l = f.readline()
-                if self.verbose:
-                    print(&quot;Gains line:&quot;, l.strip())
-        except (RuntimeError, ValueError):
-            raise ValueError(f&quot;Something went wrong reading gains from {nec_out}&quot;)
-
-        return {
-            &quot;v_gain&quot;: float(l[21:29]),
-            &quot;h_gain&quot;: float(l[29:37]),
-            &quot;total&quot;: float(l[37:45]),
-        }
-
-
-</pre>
-</details>
-<details><summary><span class ='def signature'>🧾 def _write_runner_files(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Write the .bat file to start NEC, and &#x27;files.txt&#x27; to tell NEC the name of the input and output files
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        for filepath, content in [
-            (self.nec_bat, f&quot;{self.nec_exe} &lt; {self.files_txt} \n&quot;),
-            (self.files_txt, f&quot;{self.nec_in}\n{self.nec_out}\n&quot;)
-        ]:
-            directory = os.path.dirname(filepath)
-            if directory and not os.path.exists(directory):
-                os.makedirs(directory)  # create directory if it doesn&#x27;t exist
-            try:
-                with open(filepath, &quot;w&quot;) as f:
-                    f.write(content)
-            except Exception as e:
-                print(f&quot;Error writing file {filepath}: {e}&quot;)
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def _place_feed_or_load(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            inserts a single segment with a specified iTag into an existing geometry object
-            position within the object is specied as either item_alpha_object or item_wire_index, item_alpha_wire
-            (see calling functions for more details)
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        wires = geomObj._get_wires()
-        if(item_alpha_object &gt;=0):
-            item_wire_index = min(len(wires)-1,int(item_alpha_object*len(wires))) # 0 to nWires -1
-            item_alpha_wire = item_alpha_object - item_wire_index
-        w = wires[item_wire_index]       
-
-        # calculate wire length vector AB, length a to b and distance from a to feed point
-        A = np.array(w[&quot;a&quot;], dtype=float)
-        B = np.array(w[&quot;b&quot;], dtype=float)
-        AB = B-A
-        wLen = np.linalg.norm(AB)
-        feedDist = wLen * item_alpha_wire
-
-        if (wLen &lt;= self.segLength_m):
-            # feed segment is all of this wire, so no need to split
-            w[&#x27;nS&#x27;] = 1
-            w[&#x27;iTag&#x27;] = item_iTag
-        else:
-            # split the wire AB into three wires: A to C, CD (feed segment), D to B
-            nS1 = int(feedDist / self.segLength_m)              # no need for min of 1 as we always have the feed segment
-            C = A + AB * (nS1 * self.segLength_m) / wLen        # feed segment end a
-            D = A + AB * ((nS1+1) * self.segLength_m) / wLen    # feed segment end b
-            nS2 = int((wLen-feedDist) / self.segLength_m)       # no need for min of 1 as we always have the feed segment
-            # write results back to geomObj: modify existing wire to end at C, add feed segment CD and final wire DB
-            # (nonzero nS field is preserved during segmentation in &#x27;add&#x27;)
-            w[&#x27;b&#x27;] = tuple(C)
-            w[&#x27;nS&#x27;] = nS1
-            geomObj._add_wire(item_iTag , 1, *C, *D, w[&quot;wr&quot;])
-            geomObj._add_wire(w[&quot;iTag&quot;] , nS2, *D, *B, w[&quot;wr&quot;])
-            
-
-</pre>
-</details>
-</details>
-</details>
-<details><summary><span class ='def signature'> def _read_radiation_pattern(filepath):</span></summary>
-<pre class ='def content'>    data = []
-    in_data = False
-    start_lineNo = 1e9
-    with open(filepath) as f:
-        lines = f.readlines()
-    for lineNo, line in enumerate(lines):
-        if (&#x27;RADIATION PATTERNS&#x27; in line):
-            in_data = True
-            start_lineNo = lineNo + 5
-
-        if (lineNo &gt; start_lineNo and line==&quot;\n&quot;):
-            in_data = False
-            
-        if (in_data and lineNo &gt;= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
-            gain_vert = float(line[18:28])
-            gain_horz = float(line[28:36])
-            gain_total = float(line[36:45])
-            axial_ratio = float(line[45:55])
-            tilt_deg = float(line[55:63])
-            # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
-            sense = line[63:72].strip()
-            e_theta_mag = float(line[72:87])
-            e_theta_phase = float(line[87:96])
-            e_phi_mag = float(line[96:111])
-            e_phi_phase = float(line[111:119])
-
-            data.append({
-                &#x27;theta&#x27;: theta,
-                &#x27;phi&#x27;: phi,
-                &#x27;gain_vert_db&#x27;: gain_vert,
-                &#x27;gain_horz_db&#x27;: gain_horz,
-                &#x27;gain_total_db&#x27;: gain_total,
-                &#x27;axial_ratio&#x27;: axial_ratio,
-                &#x27;tilt_deg&#x27;: tilt_deg,
-                &#x27;sense&#x27;: sense,
-                &#x27;E_theta_mag&#x27;: e_theta_mag,
-                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
-                &#x27;E_phi_mag&#x27;: e_phi_mag,
-                &#x27;E_phi_phase_deg&#x27;: e_phi_phase
-            })
-
-
-    return data
-
-
+                                            
 </pre>
 </details>
 <br><div class = 'filename'>optimisers.py</div><br><details><summary><span class ='body signature'> body</span></summary>
@@ -914,7 +1124,7 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def optimise(self, model,  verbose=False, tty=True):</span></summary>
+<details><summary><span class ='def signature'>🧾 def optimise(self, verbose=False, tty=True, show_geometry = True):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
@@ -932,7 +1142,8 @@ import random, sys
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        best_params = self.x_baseline.copy()
-        best_model = self.build_fn(model, **best_params)
+        best_model = self.build_fn(**best_params)
+        best_model.set_angular_resolution(10,10)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -946,7 +1157,8 @@ import random, sys
         try:
             for i in range(self.max_iter):
                 test_params = self._random_variation(best_params)
-                test_model = self.build_fn(model, **test_params)
+                test_model = self.build_fn(**test_params)
+                test_model.set_angular_resolution(10,10)
                 test_model.write_nec()
                 test_model.run_nec()
                 result = self.cost_fn(test_model)
@@ -986,7 +1198,7 @@ import random, sys
         except KeyboardInterrupt:
             print(&quot;\nINTERRUPTED by user input&quot;)
             
-        best_model = self.build_fn(model, **best_params)
+        best_model = self.build_fn(**best_params)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -996,221 +1208,10 @@ import random, sys
         print(&quot;# &quot;+ initial_message)
         print(f&quot;# []   FINAL: {final_info} with {self._format_params(best_params)}&quot;)
         
-        return best_params, final_info
+        return best_model, best_params, final_info
 </pre>
 </details>
 </details>
-</details>
-<br><div class = 'filename'>gui.py</div><br><details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'></pre>
-</details>
-<details><summary><span class ='def signature'>🧾 def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
-        then displays the geometry in a 3D projection. The feed is highligted in red.
-        Loads are highlighted in green.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>    wires = []
-    with open(file_path, &#x27;r&#x27;) as f:
-        for line in f:
-            if line.startswith(&quot;GW&quot;):
-                parts = line.strip().split()
-                if len(parts) &gt;= 9:
-                    # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
-                    x1, y1, z1 = map(float, parts[3:6])
-                    x2, y2, z2 = map(float, parts[6:9])
-                    tag = int(parts[1])
-                    wires.append(((x1, y1, z1), (x2, y2, z2), tag))
-    _show_wires(wires, ex_tag, title, color=color)
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def plot_gain(pattern_data, elevation_deg, component, polar=True):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        This is a very basic plot routine providing polar and rectangular plots
-        with gain range covering 40 dB max to min.
-        Later versions of necbol will include more customisable plot functions
-        and the ability to save output data in a suitable format for onward analysis
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>    import matplotlib.pyplot as plt
-    import numpy as np
-        
-    # Filter data for fixed elevation (theta)
-    theta_cut = 90 - elevation_deg
-    print(f&quot;Plotting gain for elevation = {elevation_deg} i.e. theta = {theta_cut}&quot;)
-    az_cut = [d for d in pattern_data if abs(d[&#x27;theta&#x27;] - theta_cut) &lt; 0.1]
-
-    # Sort by phi (just in case)
-    az_cut.sort(key=lambda d: d[&#x27;phi&#x27;])
-
-    # Extract azimuth (phi) and gain
-    phi_deg = [d[&#x27;phi&#x27;] for d in az_cut]
-    gain_db = [d[component] for d in az_cut]
-    max_gain = np.max(gain_db)
-
-    title = f&#x27;{component} at elevation = {elevation_deg}°&#x27;
-
-    if polar:
-        phi_rad = np.radians(phi_deg)
-        fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
-        ax.plot(phi_rad, gain_db, label=title)
-        ax.set_title(title)
-        ax.grid(True)
-        ax.set_rmax(max_gain)
-        ax.set_rmin(max_gain-40)
-        ax.set_rlabel_position(90)
-    else:
-        fig, ax = plt.subplots()
-        ax.plot(phi_deg, gain_db, label=title)
-        ax.set_xlabel(&#x27;Azimuth φ (degrees)&#x27;)
-        ax.set_ylabel(&#x27;Gain (dB)&#x27;)
-        ax.set_ylim([max_gain-40,max_gain])
-        ax.grid(True)
-  
-    plt.show()
-
-
-
-#==================================================================
-# Internal functions
-#==================================================================
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'> def _show_wires(wires, ex_tag, title, color='blue'):</span></summary>
-<pre class ='def content'>    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-
-    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
-    fig = plt.figure()
- #   fig.canvas.manager.set_window_title(&#x27;Please close this window to continue&#x27;)
-    ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
-
-    # LOAD highlighting depends on initial tag numbering scheme which needs revision
-
-    for start, end, tag in wires:
-        line_color = color
-        if (tag == ex_tag):
-            line_color = &#x27;red&#x27;
-        if (tag &gt;500 and tag &lt; ex_tag): # MAGIC NUMBER
-            line_color = &#x27;green&#x27;       
-        ax.plot(*zip(start, end), color=line_color if (tag!=ex_tag) else &#x27;red&#x27;)
-
-    plt.draw()  # ensure autoscale limits are calculated
-
-    # Get axis limits
-    xlim, ylim, zlim = ax.get_xlim(), ax.get_ylim(), ax.get_zlim()
-    mids = [(lim[0] + lim[1]) / 2 for lim in (xlim, ylim, zlim)]
-    spans = [lim[1] - lim[0] for lim in (xlim, ylim, zlim)]
-    max_range = max(spans)
-
-    # Set equal range around each midpoint
-    ax.set_xlim(mids[0] - max_range/2, mids[0] + max_range/2)
-    ax.set_ylim(mids[1] - max_range/2, mids[1] + max_range/2)
-    ax.set_zlim(mids[2] - max_range/2, mids[2] + max_range/2)
-
-    ax.set_xlabel(&#x27;X&#x27;)
-    ax.set_ylabel(&#x27;Y&#x27;)
-    ax.set_zlabel(&#x27;Z&#x27;)
-    ax.set_title(title)
-    
-    plt.tight_layout()
-    plt.show()
-
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _plot_gains(pattern_data, azimuth_deg = None, elevation_deg = None):</span></summary>
-<pre class ='def content'>    import matplotlib.pyplot as plt
-    import numpy as np
-        
-    # Filter data for fixed elevation (theta)
-    if(elevation_deg is not None):
-        theta_cut = 90 - elevation_deg
-        print(f&quot;Plotting gain for elevation = {elevation_deg} i.e. theta = {theta_cut}&quot;)
-        cut = [d for d in pattern_data if abs(d[&#x27;theta&#x27;] - theta_cut) &lt; 0.1]
-        angle_deg = [d[&#x27;phi&#x27;] for d in cut]
-        title = f&#x27;elevation = {elevation_deg}°&#x27;
-
-    # Filter data for fixed azimuth (phi)
-    if(azimuth_deg is not None):
-        phi_cut = azimuth_deg 
-        print(f&quot;Plotting gain for azimuth = {azimuth_deg} i.e. phi = {phi_cut}&quot;)
-        cut = [d for d in pattern_data if abs(d[&#x27;phi&#x27;] - phi_cut) &lt; 0.1]
-        angle_deg = [d[&#x27;theta&#x27;] for d in cut]
-        title = f&#x27;azimuth = {azimuth_deg}°&#x27;
- 
-    fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
-    angle_rad = np.radians(angle_deg)
-    v_gain_db = [d[&#x27;gain_vert_db&#x27;] for d in cut]
-    h_gain_db = [d[&#x27;gain_horz_db&#x27;] for d in cut]
-    ax.plot(angle_rad, v_gain_db, label=title)
-    ax.plot(angle_rad, h_gain_db, label=title)
-    ax.set_title(title)
-    ax.grid(True)
-    
-    vmax = max(v_gain_db)
-    hmax = max(h_gain_db)
-
-    print(vmax,hmax)
-    pmax = max(vmax,hmax)
-    
-    ax.set_rmax(pmax)
-    ax.set_rmin(pmax-40)
-    ax.set_rlabel_position(90)
-
-    # Enable interactive mode for non-blocking plotting
-    plt.ion()
-
-    # Display the plot window in non-blocking mode
-    plt.show(block=False)
-
-
-
-import numpy as np
-import copy
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _get_complex_component(pat_data, component):</span></summary>
-<pre class ='def content'>    m = np.array([d[component + &#x27;_mag&#x27;] for d in pat_data])
-    p = np.radians([d[component + &#x27;_phase_deg&#x27;] for d in pat_data])
-    Z = m * np.exp(1j * p)
-    return Z
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _subtract_patterns(pat1, pat2):</span></summary>
-<pre class ='def content'>    Z_theta_1 = _get_complex_component(pat1, &#x27;E_theta&#x27;)
-    Z_theta_2 = _get_complex_component(pat2, &#x27;E_theta&#x27;)
-    Z_phi_1 = _get_complex_component(pat1, &#x27;E_phi&#x27;)
-    Z_phi_2 = _get_complex_component(pat2, &#x27;E_phi&#x27;)
-
-    pat = copy.deepcopy(pat1)
-    for i, d in enumerate(pat):
-        d[&#x27;E_theta_mag&#x27;] = np.abs(Z_theta_1[i] - Z_theta_2[i])
-        d[&#x27;E_phi_mag&#x27;] = np.abs(Z_phi_1[i] - Z_phi_2[i])
-        d[&#x27;gain_vert_db&#x27;] = 20*np.log10(d[&#x27;E_theta_mag&#x27;])
-        d[&#x27;gain_horz_db&#x27;] = 20*np.log10(d[&#x27;E_phi_mag&#x27;])
-
-
-    return pat
-
-    
-
-
-    
-
-                                            
-</pre>
 </details>
 <br><div class = 'filename'>components.py</div><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>import numpy as np
@@ -1510,10 +1511,11 @@ from necbol.modeller import GeometryObject,_units
         return obj
 
 
+
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, sigma_not_used, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
+<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
@@ -1548,9 +1550,10 @@ from necbol.modeller import GeometryObject,_units
         height_m = dimensions_m.get(&#x27;height_m&#x27;)
         grid_pitch_m = dimensions_m.get(&#x27;grid_pitch_m&#x27;)
         thickness_m = dimensions_m.get(&#x27;thickness_m&#x27;)
-        E = epsillon_r     
+          
         dG = grid_pitch_m
-
+        wire_radius_m = thickness_m/2
+        
         nY = int(length_m / dG) + 1
         nZ = int(height_m / dG) + 1
         if (force_odd):
@@ -1565,10 +1568,9 @@ from necbol.modeller import GeometryObject,_units
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
-            dS = 0.5*(dY+dZ)
-        E0 = 8.854188 * 1e-12
-        C_Farads_per_metre_per_axis = E0*(E-1) * thickness_m / (2*dS)
+
         wire_radius_m = thickness_m/2
+
 
         # Create sheet
         i0 = 0 if close_start else 1
@@ -1585,16 +1587,14 @@ from necbol.modeller import GeometryObject,_units
             nSegs = nY-1
             obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
-        # add conductive / capacitive load to the iTag of this object
-        # note we aren&#x27;t ineserting a new segment specifically for the load, so there&#x27;s no need to
-        # increment model.LOAD_iTag
-        # revised load here is a parallel RLC load with distributed capacitance per metre
+
+        # add distributed capacitive load to the iTag of this object if dielectric
         if(epsillon_r &gt; 1.0):
-            R_Ohms_per_metre_per_axis = 1e12
-        else:
-            R_Ohms_per_metre_per_axis = 0
-            C_Farads_per_metre_per_axis = 0.0
-        model.LOADS.append(f&quot;LD 3 {iTag} 0 0 {R_Ohms_per_metre_per_axis:.6e} 0 {C_Farads_per_metre_per_axis:.6e}\n&quot;)
+            E0 = 8.854188 * 1e-12
+            C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * thickness_m
+            # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
+            model.LOADS.append({&#x27;iTag&#x27;: iTag, &#x27;load_type&#x27;: &#x27;series_per_metre&#x27;, &#x27;RoLuCp&#x27;: (0, 0, C_pF_per_metre), &#x27;alpha&#x27;: None})
+
                     
         return obj
 

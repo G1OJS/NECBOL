@@ -1,3 +1,67 @@
+# V3.0.0
+
+Version 3 makes some changes to various functions to enable:
+* moving towards allowing several concurrent models in the same file
+* preparing for detailed comparison of results, extraction of scattered fields from objects, delta dB plots etc
+* moving towards adding a frequency sweep feature and add VSWR bandwidth as an optimisation target
+* moving towards allowing gain parameters computed over a range of angles as optimiser targets (e.g. max vertical gain, min gain in a spefified direction, front to back ratio)
+* simplifying and automating gain pattern resolution and range settings
+
+The detailed changes are listed below.
+
+### Gain point and Angular range and resolution functions
+* set_gain_point(azimuth, elevation),
+* set_gain_hemisphere_1deg(),
+* set_gain_sphere_1deg(),
+* set_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation)
+  
+These are now all replaced by:
+* set_gain_point(azimuth_deg, elevation_deg)
+* set_angular_resolution(az_step_deg, el_step_deg)
+  
+The last function works intelligently with ground specification to determine whether a full sphere or half sphere is requested.
+
+### start_geometry function
+No longer needed
+
+### Load placement functions
+
+* place_parallel_RLC_load(......) and
+* place_series_RLC_load(......)
+
+are replaced by
+* place_RLC_load(...... load_type = 'series'|'parallel', ............)
+
+### Simple model results parameters
+* h_gain(),
+* v_gain(),
+* tot_gain(),
+* vswr(Z0 = 50)
+
+are replaced by 
+* get_gains_at_gain_point(model) and
+* vswr(model, Z0 = 50)
+
+#### Results plotting functions
+* plot_gain(pattern_data, elevation_deg, component, polar=True)   
+
+is replaced by 
+* plot_pattern_gains(model)
+which is intended as a flexible plot which can overlay several field components
+
+* read_radiation_pattern() is no longer needed as a user function
+
+#### Wire Frame viewer functions
+* show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer")
+
+is replaced by 
+* show_wires_from_file(model)
+
+which avoids the need to pass ex_tag and get details of load tag numbers from the model
+
+#### Thin Sheet Model 
+The positional argument 'sigma' is removed. If used to create a conducting sheet, the conductivity is either perfect or as specied in the global 'set_wire_conductivity(sigma)' function. This model still requires validation for the production of a thin dielectric sheet.
+
 # V2.1.0
 Changes forced by 'stretching test case' of building a model of a car passenger cell with a handheld transmitter inside. This requires meshed grids to connect cleanly, which requires 0,1,2,3 or 4 edges to be left 'open' *and* requires changes to the wire connection decision functions:
 

@@ -29,28 +29,25 @@ model = NECModel(working_dir="nec_wkg",
 
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
-model.set_gain_az_arc(azimuth_start=0, azimuth_stop=360, nPoints=360, elevation=10)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_mm = 0 )
-
-
+model.el_datum_deg = 10
 
 antenna_components = components ()
-model.start_geometry()
 
 dipole = antenna_components.wire_Z(length_mm = 250, wire_diameter_mm = 10)
 model.place_feed(dipole, feed_wire_index=0, feed_alpha_wire=0.5)
 dipole.translate(dx_mm = car_width_mm*0.25, dy_mm = pcell_length_mm*0.8, dz_mm = 700 + floor_height_mm)
 model.add(dipole)
 
-left_side = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = pcell_length_mm, height_mm = car_window_base_mm, thickness_mm = 1, grid_pitch_mm = 200 )
+left_side = antenna_components.thin_sheet(model, 1.0, length_mm = pcell_length_mm, height_mm = car_window_base_mm, thickness_mm = 1, grid_pitch_mm = 200 )
 left_side.translate(dx_mm = -car_width_mm/2, dy_mm = pcell_length_mm/2, dz_mm= car_window_base_mm/2 + floor_height_mm)
 
 
-right_side = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = pcell_length_mm, height_mm = car_window_base_mm, thickness_mm = 1, grid_pitch_mm = 200 )
+right_side = antenna_components.thin_sheet(model, 1.0, length_mm = pcell_length_mm, height_mm = car_window_base_mm, thickness_mm = 1, grid_pitch_mm = 200 )
 right_side.translate(dx_mm = car_width_mm/2, dy_mm = pcell_length_mm/2, dz_mm=car_window_base_mm/2 + floor_height_mm)
 
 
-front_bulkhead = antenna_components.thin_sheet(model, 58000000, 1.0,
+front_bulkhead = antenna_components.thin_sheet(model, 1.0,
                                                length_mm = car_width_mm, height_mm = car_window_base_mm,
                                                thickness_mm = 1, grid_pitch_mm = 200,
                                                close_start = False, close_end = False)
@@ -60,7 +57,7 @@ front_bulkhead.connect_ends(left_side)
 front_bulkhead.connect_ends(right_side)
 
 
-rear_bulkhead = antenna_components.thin_sheet(model, 58000000, 1.0,
+rear_bulkhead = antenna_components.thin_sheet(model, 1.0,
                                                length_mm = car_width_mm, height_mm = car_window_base_mm,
                                                thickness_mm = 1, grid_pitch_mm = 200,
                                                close_start = False, close_end = False)
@@ -69,7 +66,7 @@ rear_bulkhead.translate(dx_mm = 0, dy_mm=0, dz_mm=car_window_base_mm/2 + floor_h
 rear_bulkhead.connect_ends(left_side)
 rear_bulkhead.connect_ends(right_side)
 
-floor = antenna_components.thin_sheet(model, 58000000, 1.0,
+floor = antenna_components.thin_sheet(model, 1.0,
                                       length_mm = pcell_length_mm, height_mm = car_width_mm, thickness_mm = 1, grid_pitch_mm = 200,
                                       close_start=False, close_end=False, close_top=False, close_bottom=False)
 floor.rotate_around_Y(90)
@@ -79,7 +76,7 @@ floor.connect_ends(rear_bulkhead)
 floor.connect_ends(left_side)
 floor.connect_ends(right_side)
 
-roof = antenna_components.thin_sheet(model, 58000000, 1.0, length_mm = roof_length_mm, height_mm = car_width_mm, thickness_mm = 1, grid_pitch_mm = 200 )
+roof = antenna_components.thin_sheet(model,  1.0, length_mm = roof_length_mm, height_mm = car_width_mm, thickness_mm = 1, grid_pitch_mm = 200 )
 roof.rotate_around_Y(90)
 roof.translate(dx_mm = 0, dy_mm=pcell_length_mm/2+roof_start_mm, dz_mm=(-car_window_base_mm/2) + car_height_mm+floor_height_mm)
 
@@ -91,12 +88,11 @@ model.add(floor)
 model.add(roof)
 
 model.write_nec() 
-show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
+show_wires_from_file(model)
 model.run_nec()
-data_dipole = model.read_radiation_pattern()
-plot_gain(data_dipole, 10, 'gain_horz_db')
 
-vswr = model.vswr()
+plot_pattern_gains(model)
+vswr = vswr(model)
 print(f"vswr:{vswr:.2f}")
 
 print(f"\n\nEnd of example {model.model_name}")

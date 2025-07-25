@@ -262,7 +262,9 @@ class components:
         return obj
 
 
-    def thin_sheet(self, model, sigma_not_used, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
+
+    def thin_sheet(self, model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
+
         """
         Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
@@ -295,9 +297,10 @@ class components:
         height_m = dimensions_m.get('height_m')
         grid_pitch_m = dimensions_m.get('grid_pitch_m')
         thickness_m = dimensions_m.get('thickness_m')
-        E = epsillon_r     
+          
         dG = grid_pitch_m
-
+        wire_radius_m = thickness_m/2
+        
         nY = int(length_m / dG) + 1
         nZ = int(height_m / dG) + 1
         if (force_odd):
@@ -312,10 +315,9 @@ class components:
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
-            dS = 0.5*(dY+dZ)
-        E0 = 8.854188 * 1e-12
-        C_Farads_per_metre_per_axis = E0*(E-1) * thickness_m / (2*dS)
+
         wire_radius_m = thickness_m/2
+
 
         # Create sheet
         i0 = 0 if close_start else 1
@@ -332,16 +334,14 @@ class components:
             nSegs = nY-1
             obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
-        # add conductive / capacitive load to the iTag of this object
-        # note we aren't ineserting a new segment specifically for the load, so there's no need to
-        # increment model.LOAD_iTag
-        # revised load here is a parallel RLC load with distributed capacitance per metre
+
+        # add distributed capacitive load to the iTag of this object if dielectric
         if(epsillon_r > 1.0):
-            R_Ohms_per_metre_per_axis = 1e12
-        else:
-            R_Ohms_per_metre_per_axis = 0
-            C_Farads_per_metre_per_axis = 0.0
-        model.LOADS.append(f"LD 3 {iTag} 0 0 {R_Ohms_per_metre_per_axis:.6e} 0 {C_Farads_per_metre_per_axis:.6e}\n")
+            E0 = 8.854188 * 1e-12
+            C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * thickness_m
+            # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
+            model.LOADS.append({'iTag': iTag, 'load_type': 'series_per_metre', 'RoLuCp': (0, 0, C_pF_per_metre), 'alpha': None})
+
                     
         return obj
 
