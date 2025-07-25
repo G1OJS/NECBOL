@@ -12,21 +12,6 @@
         Later versions of necbol will include more customisable plot functions
         and the ability to save output data in a suitable format for onward analysis
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(pattern_data, azimuth_deg = None, elevation_deg = None, components = ['gain_total_dBi']):</span></div>
-<pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
-        &#x27;az_deg&#x27;: float,
-        &#x27;el_deg&#x27;: float,
-        &#x27;vert_gain_dBi&#x27;: float,
-        &#x27;horiz_gain_dBi&#x27;: float,
-        &#x27;total_gain_dBi&#x27;: float,
-        &#x27;axial_ratio_dB&#x27;: float,
-        &#x27;tilt_deg&#x27;: float,
-        &#x27;sense&#x27;: string,
-        &#x27;E_theta_mag&#x27;: float,
-        &#x27;E_theta_phase_deg&#x27;: float,
-        &#x27;E_phi_mag&#x27;: float,
-        &#x27;E_phi_phase_deg&#x27;: float
-</pre>
 <br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class NECModel:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(name):</span></div>
 <pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
@@ -42,10 +27,6 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(azimuth_deg, elevation_deg):</span></div>
 <pre class ='docstring content'>            Set the azimuth and elevation of a single gain point that
             must appear in the output radiation pattern
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency_sweep(MHz, MHz_stop, MHz_step):</span></div>
-<pre class ='docstring content'>            Set parameters for frequency sweep. This also sets the angular pattern resolution
-            to 10 degrees in azimuth and elevation to limit the size of output files           
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_angular_resolution(az_step_deg, el_step_deg):</span></div>
 <pre class ='docstring content'>            Set resolution required in az and el in degrees
