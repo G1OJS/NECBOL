@@ -30,7 +30,7 @@ model.write_nec()
 model.run_nec()
 
 show_wires_from_file(model)
-plot_total_gain(model)
+plot_pattern_gains(model)
 
 vswr = vswr(model)
 print(f"vswr:{vswr:.2f}")

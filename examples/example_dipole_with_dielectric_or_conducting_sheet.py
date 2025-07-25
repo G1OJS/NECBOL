@@ -19,7 +19,7 @@ model.add(dipole)
 model.write_nec() 
 show_wires_from_file(model)
 model.run_nec()
-plot_total_gain(model)
+plot_pattern_gains(model)
 
 nearby_sheet = antenna_components.thin_sheet(model, 1.0, length_mm = 1000, height_mm = 500, thickness_mm = 5, grid_pitch_mm = 50 )
 model.set_name(f"Vertical Dipole with nearby conducting sheet")
@@ -27,7 +27,7 @@ model.add(nearby_sheet)
 model.write_nec()
 show_wires_from_file(model)
 model.run_nec()
-plot_total_gain(model)
+plot_pattern_gains(model)
 
 
 

@@ -27,7 +27,9 @@ model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 
 # Azimuth and elevation of the gain point (leave at 0,0 if you only want vswr)
-model.set_gain_point(azimuth_deg = 0, elevation_deg = 20)
+model.set_gain_point(azimuth_deg = 0, elevation_deg = 0)
+
+model.set_angular_resolution(az_step_deg = 1, el_step_deg = 1)
 
 # Ground type. Currently limited to simple choices. If eps_r = 1, or if you omit this line,
 # nec is told to use no ground. Othewise you should set the origin height so that the antenna reference
@@ -87,7 +89,8 @@ print(gains)
 v_gain = gains['vert_gain_dBi']
 print(f"\nExample: extract vertical gain from gains = {v_gain}")
 
-plot_total_gain(model)
+#plot_pattern_gains(model, elevation_deg = model.el_datum_deg)
+plot_pattern_gains(model, azimuth_deg = 0)
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards). Also

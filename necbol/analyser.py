@@ -58,41 +58,59 @@ def get_gains_at_gain_point(model):
     return gains_at_point
 
 
-def plot_total_gain(model):
-    """
-        This is a very basic plot routine providing polar and rectangular plots
-        with gain range covering 40 dB max to min.
-        Later versions of necbol will include more customisable plot functions
-        and the ability to save output data in a suitable format for onward analysis
-    """
+def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_range_dB = 30):
     import matplotlib.pyplot as plt
     import numpy as np
 
-    pattern_data = _read_radiation_pattern(model.nec_out, elevation_deg = model.el_datum_deg)
-    elevation_deg = model.el_datum_deg
-    component = 'total_gain_dBi' 
+    if(elevation_deg is not None and azimuth_deg is not None):
+        Print("Can't plot a 3D pattern, please select azimuth or elevation only")
+        return
+
+    if (elevation_deg is None and azimuth_deg is None):
+        elevation_deg = model.el_datum_deg
+
+    title = model.model_name
+
+    # Filter data for fixed elevation (theta)
+    if(elevation_deg is not None):
+        print(f"Plotting gain for elevation = {elevation_deg}")
+        pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = azimuth_deg, elevation_deg = None)
         
-    # Filter data for fixed elevation 
-    print(f"Plotting gain for elevation = {elevation_deg}")
-    az_cut = [d for d in pattern_data if abs(d['elevation_deg'] - model.el_datum_deg) < 0.1]
+        cut = [d for d in pattern_data if abs(d['elevation_deg'] - elevation_deg) < 0.1]
+        angle_deg = [d['azimuth_deg'] for d in cut]
+        title += f' elevation = {elevation_deg}°'
 
-    # Extract azimuth (phi) and gain
-    az_deg = [d['azimuth_deg'] for d in az_cut]
-    gain_db = [d[component] for d in az_cut]
-    max_gain = np.max(gain_db)
-
-    title = f'{component} at elevation = {elevation_deg}° for {model.model_name}'
-
-    az_rad = np.radians(az_deg)
+    # Filter data for fixed azimuth (phi)
+    if(azimuth_deg is not None):
+        print(f"Plotting gain for azimuth = {azimuth_deg}")
+        pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = None, elevation_deg = elevation_deg)
+        cut = [d for d in pattern_data if abs(d['azimuth_deg'] - azimuth_deg) < 0.1]
+        angle_deg = [d['elevation_deg'] for d in cut]
+        title += f' azimuth = {azimuth_deg}°'
+ 
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    ax.plot(az_rad, gain_db, label=title)
+
+    scl_max = -100
+    for comp in components:
+        gain = [d[comp] for d in cut]
+        scl_max = max(scl_max,max(gain))
+        angle_rad = np.radians(angle_deg)
+        ax.plot(angle_rad, gain, label = comp)
+        print(comp, f" max gain: {max(gain)}")
+    ax.legend()
     ax.set_title(title)
     ax.grid(True)
-    ax.set_rmax(max_gain)
-    ax.set_rmin(max_gain-40)
+
+    ax.set_rmax(scl_max)
+    ax.set_rmin(scl_max - gain_scale_range_dB )
     ax.set_rlabel_position(90)
 
-    plt.show()
+    # Enable interactive mode for non-blocking plotting
+    plt.ion()
+
+    # Display the plot window in non-blocking mode
+    plt.show(block=False)
+
 
 
 
@@ -102,49 +120,6 @@ def plot_total_gain(model):
 
 import numpy as np
 import copy
-
-def _plot_pattern_gains(pattern_data, azimuth_deg = None, elevation_deg = None, components = ['gain_total_dBi']):
-    import matplotlib.pyplot as plt
-    import numpy as np
-        
-    # Filter data for fixed elevation (theta)
-    if(elevation_deg is not None):
-        print(f"Plotting gain for elevation = {elevation_deg}")
-        cut = [d for d in pattern_data if abs(d['elevation_deg'] - elevation_deg) < 0.1]
-        angle_deg = [d['azimuth_deg'] for d in cut]
-        title = f'elevation = {elevation_deg}°'
-
-    # Filter data for fixed azimuth (phi)
-    if(azimuth_deg is not None):
-        print(f"Plotting gain for azimuth = {azimuth_deg}")
-        cut = [d for d in pattern_data if abs(d['azimuth_deg'] - azimuth_deg) < 0.1]
-        angle_deg = [d['elevation_deg'] for d in cut]
-        title = f'azimuth = {azimuth_deg}°'
- 
-    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-    angle_rad = np.radians(angle_deg)
-    v_gain_db = [d['vert_gain_dBi'] for d in cut]
-    h_gain_db = [d['horiz_gain_dBi'] for d in cut]
-    ax.plot(angle_rad, v_gain_db, label=title)
-    ax.plot(angle_rad, h_gain_db, label=title)
-    ax.set_title(title)
-    ax.grid(True)
-    
-    vmax = max(v_gain_db)
-    hmax = max(h_gain_db)
-
-    print(vmax,hmax)
-    pmax = max(vmax,hmax)
-    
-    ax.set_rmax(pmax)
-    ax.set_rmin(pmax-40)
-    ax.set_rlabel_position(90)
-
-    # Enable interactive mode for non-blocking plotting
-    plt.ion()
-
-    # Display the plot window in non-blocking mode
-    plt.show(block=False)
 
 
 
