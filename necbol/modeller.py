@@ -102,8 +102,7 @@ class NECModel:
     def set_frequency_sweep(self, MHz, MHz_stop, MHz_step):
         """
             Set parameters for frequency sweep. This also sets the angular pattern resolution
-            to 10 degrees in azimuth and elevation to limit the size of output files
-            default value of 5 deg is safe for over ground and free space             
+            to 10 degrees in azimuth and elevation to limit the size of output files           
         """
         self.MHz_stop = MHz_stop
         self.MHz_step = MHz_step
