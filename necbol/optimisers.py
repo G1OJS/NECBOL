@@ -62,7 +62,7 @@ class RandomOptimiser:
                 x_new[name] = max(min(x_new[name], maxv), minv)
         return x_new
 
-    def optimise(self, azimuth_deg = 0, elevation_deg = 5, verbose=False, tty=True, show_geometry = True):
+    def optimise(self, verbose=False, tty=True, show_geometry = True):
         """
             This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
             and comparing the user-specified cost function with the best achieved so far. If the test gives a better
