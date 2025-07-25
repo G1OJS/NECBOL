@@ -1048,12 +1048,12 @@ import os
                     x2, y2, z2 = map(float, parts[6:9])
                     tag = int(parts[1])
                     model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag))
-    show_wires(model_tmp)
+    _show_wires(model_tmp)
 
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'> def show_wires(model):</span></summary>
+<details><summary><span class ='def signature'> def _show_wires(model):</span></summary>
 <pre class ='def content'>    import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
@@ -1155,7 +1155,7 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def optimise(self, azimuth_deg = 0, elevation_deg = 5, verbose=False, tty=True, show_geometry = True):</span></summary>
+<details><summary><span class ='def signature'>🧾 def optimise(self, verbose=False, tty=True, show_geometry = True):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
