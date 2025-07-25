@@ -9,6 +9,7 @@ def build_csc(d_mm, h_mm, main_wire_diameter_mm, feed_gap_mm):
     model.set_wire_conductivity(sigma = 58000000)
     model.set_frequency(MHz = 144.2)
     model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+    model.set_gain_point(azimuth_deg = 0, elevation_deg = 5)
 
     antenna_components = components()
 
