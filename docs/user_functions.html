@@ -6,11 +6,20 @@
         Or another value if specified
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspget_gains_at_gain_point(model):</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_total_gain(model):</span></div>
-<pre class ='docstring content'>        This is a very basic plot routine providing polar and rectangular plots
-        with gain range covering 40 dB max to min.
-        Later versions of necbol will include more customisable plot functions
-        and the ability to save output data in a suitable format for onward analysis
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_range_dB = 30):</span></div>
+<pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
+        &#x27;az_deg&#x27;: float,
+        &#x27;el_deg&#x27;: float,
+        &#x27;vert_gain_dBi&#x27;: float,
+        &#x27;horiz_gain_dBi&#x27;: float,
+        &#x27;total_gain_dBi&#x27;: float,
+        &#x27;axial_ratio_dB&#x27;: float,
+        &#x27;tilt_deg&#x27;: float,
+        &#x27;sense&#x27;: string,
+        &#x27;E_theta_mag&#x27;: float,
+        &#x27;E_theta_phase_deg&#x27;: float,
+        &#x27;E_phi_mag&#x27;: float,
+        &#x27;E_phi_phase_deg&#x27;: float
 </pre>
 <br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class NECModel:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(name):</span></div>
