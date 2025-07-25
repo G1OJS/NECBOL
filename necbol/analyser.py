@@ -294,18 +294,85 @@ def _subtract_field_patterns(pat1, pat2):
     Z_phi_1 = _get_complex_component(pat1, 'E_phi')
     Z_phi_2 = _get_complex_component(pat2, 'E_phi')
 
-    pat = copy.deepcopy(pat1)
-    for i, d in enumerate(pat):
-        d['E_theta_mag'] = np.abs(Z_theta_1[i] - Z_theta_2[i])
-        d['E_phi_mag'] = np.abs(Z_phi_1[i] - Z_phi_2[i])
-        # Note these lines are mathematically incorrect and simply placeholders:
-        d['gain_vert_db'] = 20*np.log10(d['E_theta_mag'])
-        d['gain_horz_db'] = 20*np.log10(d['E_phi_mag'])
+    output_pattern = []
+    for i, d in enumerate(pattern1):
+        E_theta = Z_theta_1[i] - Z_theta_2[i]
+        E_phi = Z_phi_1[i] - Z_phi_2[i]
+        output_pattern.append(_compute_full_farfield_metrics(E_theta, E_phi))
 
-    return pat
+    return output_pattern
 
+import math
+import cmath
 
-    
+def _compute_full_farfield_metrics(E_theta, E_phi):
+
+    # Total field magnitude squared
+    total_power = abs(E_theta)**2 + abs(E_phi)**2
+    total_gain_dBi = 10 * math.log10(total_power) if total_power > 0 else -math.inf
+
+    # RHCP and LHCP components
+    E_rhcp = (E_theta - 1j * E_phi) / math.sqrt(2)
+    E_lhcp = (E_theta + 1j * E_phi) / math.sqrt(2)
+
+    rhcp_power = abs(E_rhcp)**2
+    lhcp_power = abs(E_lhcp)**2
+
+    rhcp_gain_dBi = 10 * math.log10(rhcp_power) if rhcp_power > 0 else -math.inf
+    lhcp_gain_dBi = 10 * math.log10(lhcp_power) if lhcp_power > 0 else -math.inf
+
+    # Axial ratio in dB
+    max_pol_power = max(rhcp_power, lhcp_power)
+    min_pol_power = min(rhcp_power, lhcp_power)
+    if min_pol_power == 0:
+        axial_ratio_dB = float('inf')
+    else:
+        axial_ratio_dB = 10 * math.log10(max_pol_power / min_pol_power)
+
+    # Polarization sense
+    if axial_ratio_dB == float('inf'):
+        polarization_sense = "Linear"
+    elif rhcp_power > lhcp_power:
+        polarization_sense = "RHCP"
+    else:
+        polarization_sense = "LHCP"
+
+    # Polarization ellipse tilt (major axis orientation in θ–φ plane)
+    delta = math.radians(E_theta_phase_deg - E_phi_phase_deg)
+    if E_theta_mag != 0 and E_phi_mag != 0:
+        tilt_rad = 0.5 * math.atan2(
+            2 * E_theta_mag * E_phi_mag * math.cos(delta),
+            E_theta_mag**2 - E_phi_mag**2
+        )
+        polarization_tilt_deg = math.degrees(tilt_rad)
+    else:
+        polarization_tilt_deg = 0.0
+
+    # Vertical and horizontal gain projections
+    #   - vertical polarization corresponds to E_theta
+    #   - horizontal polarization corresponds to E_phi
+    # (this is the convention used in 4NEC2's output)
+
+    vert_power = abs(E_theta)**2
+    horiz_power = abs(E_phi)**2
+
+    vert_gain_dBi = 10 * math.log10(vert_power) if vert_power > 0 else -math.inf
+    horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power > 0 else -math.inf
+
+    return {
+        'E_theta_mag': E_theta_mag,
+        'E_theta_phase_deg': E_theta_phase_deg,
+        'E_phi_mag': E_phi_mag,
+        'E_phi_phase_deg': E_phi_phase_deg,
+        'total_gain_dBi': total_gain_dBi,
+        'vert_gain_dBi': vert_gain_dBi,
+        'horiz_gain_dBi': horiz_gain_dBi,
+        'rhcp_gain_dBi': rhcp_gain_dBi,
+        'lhcp_gain_dBi': lhcp_gain_dBi,
+        'axial_ratio_dB': axial_ratio_dB,
+        'polarization_tilt_deg': polarization_tilt_deg,
+        'polarization_sense': polarization_sense
+    }
 
 
     
