@@ -1,6 +1,6 @@
 [project]
 name = "necbol"
-version = "3.0.a1"
+version = "3.0.0"
 license = "MIT"
 
 authors = [
