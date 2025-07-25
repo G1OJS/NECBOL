@@ -27,7 +27,7 @@ model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 
 # Azimuth and elevation of the gain point (leave at 0,0 if you only want vswr)
-model.set_gain_point(azimuth = 0, elevation = 3)
+model.set_gain_point(azimuth_deg = 0, elevation_deg = 20)
 
 # Ground type. Currently limited to simple choices. If eps_r = 1, or if you omit this line,
 # nec is told to use no ground. Othewise you should set the origin height so that the antenna reference
@@ -35,18 +35,12 @@ model.set_gain_point(azimuth = 0, elevation = 3)
 # You can specify this in m, mm, cm, in, or ft (e.g. origin_height_ft = 30.33)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0) 
 
-
 #-------------------------------------------------------------------------------------------------------------------
 # Now we define the antenna geometry
 #-------------------------------------------------------------------------------------------------------------------
 
 # Get a 'copy' of the geometry builder class called antenna_components (again, you can change this name if desired)
 antenna_components = components ()
-
-# Tell the nec interface to clear any existing geometries and start a new one
-# This clears only geometry definitions, not the definitions made above
-# It's a mandatory line even if there is no existing geometry to clear because it initilises various things
-model.start_geometry()
 
 # Define your antenna structure. Here you must use named arguments (length =, wire_diameter =)
 # but the _mm can be replaced by _m, _cm, _ft, _in if you want to work in other unit systems,
@@ -77,26 +71,30 @@ model.add(dipole)
 model.write_nec()
 # now ask nec to analyse the nec input file and produce a nec output file
 model.run_nec()
-# get gains (H, V and Total) and vswr(calculated from impedance) from the nec output file
-h_gain = model.h_gain()
-v_gain = model.v_gain()
-tot_gain = model.tot_gain()
-
-vswr = model.vswr()
 
 #-------------------------------------------------------------------------------------------------------------------
 # And now a very minimal way of returning the extracted results for you to see
 #-------------------------------------------------------------------------------------------------------------------
 
-# print the results
-print(f"H gain: {h_gain} dBi, V gain: {v_gain} dBi, Total gain: {tot_gain} dBi, vswr:{vswr:.2f}")
+# simple printout of gains and vswr. note that get_gains_at_gain_point() also returns the
+# azimuth and elevation of the gain point for confirmation and to keep the data together
+gains = get_gains_at_gain_point(model)
+vswr = vswr(model)
+
+print(f"vswr:{vswr:.2f}")
+print("\nFull set of info from nec output for the gain point:")
+print(gains)
+v_gain = gains['vert_gain_dBi']
+print(f"\nExample: extract vertical gain from gains = {v_gain}")
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards). Also
 # you don't *have* to call this at all, if you're happy that the antenna geometry is correct and you're just
 # optimising parameters or doing frequency sweeps (there's no harm in putting a big loop around all of the above,
 # apart from the import statements, and stepping through frequency as you wish and printing the results).
-show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
+show_wires_from_file(model)
+
+plot_total_gain(model)
 
 #-------------------------------------------------------------------------------------------------------------------
 # That's it!

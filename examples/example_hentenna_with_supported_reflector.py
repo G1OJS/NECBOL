@@ -3,7 +3,6 @@ from necbol import *
 
 def build_hentenna_yagi(model, h_m, w_m, fp_m, refl_sep_m, refl_scale, wd_mm):
 
-    model.start_geometry()
     antenna_components = components()
     
     feed_rod = antenna_components.wire_Z(length_m = w_m,
@@ -44,7 +43,7 @@ model = NECModel(working_dir="nec_wkg",
 
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
-model.set_gain_point(azimuth = 90, elevation = 5)
+model.set_gain_point(azimuth_deg = 90, elevation_deg = 5)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
 #model.set_ground(eps_r = 1, sigma = 0.0, origin_height_m = 0.0)
 
@@ -56,13 +55,11 @@ refl_sep = 0.33
 model = build_hentenna_yagi(model, hen_height_m, hen_width_m, feed_height_m, refl_sep, refl_scale, 5)
 model.write_nec()
 model.run_nec()
-h_gain = model.h_gain()
-v_gain = model.v_gain()
-tot_gain = model.tot_gain()
-vswr = model.vswr()
-print(f"H gain: {h_gain} dBi, V gain: {v_gain} dBi, Total gain: {tot_gain} dBi, vswr:{vswr:.2f}")
+gains = get_gains_at_gain_point(model)
+vswr = vswr(model)
+print(f"{gains}, vswr:{vswr:.2f}")
 
-show_wires_from_file(model.nec_in, model.EX_TAG, title=model.model_name)
+show_wires_from_file(model)
 
 print(f"\n\nEnd of example {model.model_name}")
 

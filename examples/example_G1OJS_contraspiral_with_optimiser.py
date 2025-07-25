@@ -2,16 +2,20 @@
 
 from necbol import *
 
-def cost_function(model):
-    vcost = model.vswr()
-    g = model.h_gain()
-    gcost = 15-g
-    return ({"cost":vcost*vcost + gcost*gcost, "info":f"VSWR:{vcost:.2f} Gain:{g:.2f}"})
 
-def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm,
+def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm,
                        helix_sep_mm, cld_mm, cl_alpha, cl_spacing_mm):
 
-    model.start_geometry()
+    
+    model = NECModel(working_dir="..\\nec_wkg",
+                     model_name = "G1OJS Contraspiral",
+                     nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
+                     verbose=False)
+    model.set_wire_conductivity(sigma = 58000000)
+    model.set_frequency(MHz = 144.2)
+    model.set_gain_point(azimuth_deg = 90, elevation_deg = 3)
+    model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+
     antenna_components = components()
 
     coupling_loop_wire_diameter_mm = 2.0
@@ -54,23 +58,21 @@ def build_contraspiral(model, d_mm, l_mm, main_wire_diameter_mm,
     
     return model
 
+def cost_function(model):
+    vcost = vswr(model)
+    g = get_gains_at_gain_point(model)['horiz_gain_dBi']
+    gcost = 15-g
+    return ({"cost":vcost*vcost + gcost*gcost, "info":f"VSWR:{vcost:.2f} Gain:{g:.2f}"})
+
+
 
 from necbol.optimisers import RandomOptimiser
 
-model = NECModel(working_dir="..\\nec_wkg",
-                 model_name = "G1OJS Contraspiral",
-                 nec_exe_path="C:\\4nec2\\exe\\nec2dxs11k.exe",
-                 verbose=False)
-model.set_wire_conductivity(sigma = 58000000)
-model.set_frequency(MHz = 144.2)
-model.set_gain_point(azimuth = 90, elevation = 3)
-model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
-
 param_init = {"d_mm":151, "l_mm":131, "main_wire_diameter_mm":2, "helix_sep_mm":122, "cld_mm":81, "cl_alpha":0.505, "cl_spacing_mm":2.1}
 
-model=build_contraspiral(model, **param_init)
+model=build_contraspiral(**param_init)
 model.write_nec()
-show_wires_from_file(model.nec_in, model.EX_TAG, title = model.model_name)
+show_wires_from_file(model)
 
 opt = RandomOptimiser(
     build_fn = build_contraspiral,
@@ -78,7 +80,7 @@ opt = RandomOptimiser(
     cost_fn = cost_function
 )
 
-best_params, best_info = opt.optimise(model, tty = False)
+best_params, best_info = opt.optimise(tty = False)
 
 
 

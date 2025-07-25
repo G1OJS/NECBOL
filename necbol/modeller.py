@@ -443,10 +443,11 @@ class NECModel:
 
             # 3. Write out the loads
             for LD in self.LOADS:
-                LDTYP = ['series','parallel','series_per_metre','parallel_per_metre','impedance_not_used','conductivity'].indexof(LD['load_type'])
+                LDTYP = ['series','parallel','series_per_metre','parallel_per_metre','impedance_not_used','conductivity'].index(LD['load_type'])
                 LDTAG = LD['iTag']
+                R_Ohms, L_uH , C_pF = LD['RoLuCp']
                 # these strings are set programatically so shouldn't need an error trap
-                f.write(f"LD {LDTYP} {LDTAG} 0 0 {LD['R_Ohms']} {LD['L_uH'] * 1e-6} {LD['C_pf'] * 1e-12}")
+                f.write(f"LD {LDTAG} {LDTYP} 0 0 {R_Ohms} {L_uH} {C_pF}\n")
 
             # 4. Feed
             f.write(f"EX 0 {self.EX_tag} 1 0 1 0\n")
@@ -476,101 +477,6 @@ class NECModel:
         
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
 
-    def vswr(self, Z0 = 50):
-        """
-            Return the antenna VSWR at the feed point assuming a 50 ohm system
-            Or another value if specified
-        """
-        try:
-            with open(self.nec_out) as f:
-                while "ANTENNA INPUT PARAMETERS" not in f.readline():
-                    pass
-                for _ in range(4):
-                    l = f.readline()
-                if self.verbose:
-                    print("Z line:", l.strip())
-                r = float(l[60:72])
-                x = float(l[72:84])
-        except (RuntimeError, ValueError):
-            raise ValueError(f"Something went wrong reading input impedance from {nec_out}")
-
-        z_in = r + x * 1j
-        gamma = (z_in - Z0) / (z_in + Z0)
-        return (1 + abs(gamma)) / (1 - abs(gamma))
-
-    def get_gains_at_gain_point(self):
-        try:
-            pattern = self.read_radiation_pattern(self.nec_out, self.az_datum_deg, self.el_datum_deg )
-            gains_at_point = [d for d in pattern if (abs(d['el_deg'] - self.el_datum_deg) < 0.1) and (abs(d['az_deg'] - self.az_datum_deg) < 0.1)][0]
-            
-        except (RuntimeError, ValueError):
-            print("Trying to read gains at {azimuth_deg}, {elevation_deg}")
-            raise ValueError(f"Something went wrong reading gains from {nec_out}")
-
-        return gains_at_point
-
-    def read_radiation_pattern(self, filepath, azimuth_deg = None, elevation_deg = None):
-        """
-            Read the radiation pattern into a Python dictionary:
-            'az_deg': float,
-            'el_deg': float,
-            'vert_gain_dBi': float,
-            'horiz_gain_dBi': float,
-            'total_gain_dBi': float,
-            'axial_ratio_dB': float,
-            'tilt_deg': float,
-            'sense': string,
-            'E_theta_mag': float,
-            'E_theta_phase_deg': float,
-            'E_phi_mag': float,
-            'E_phi_phase_deg': float
-        """
-        
-        data = []
-        thetas = set()
-        phis = set()
-        in_data = False
-        start_lineNo = 1e9
-        with open(filepath) as f:
-            lines = f.readlines()
-        for lineNo, line in enumerate(lines):
-            if ('RADIATION PATTERNS' in line):
-                in_data = True
-                start_lineNo = lineNo + 5
-
-            if (lineNo > start_lineNo and line=="\n"):
-                in_data = False
-                
-            if (in_data and lineNo >= start_lineNo):
-                theta = float(line[0:9])
-                phi = float(line[9:18])
-                thetas.add(theta)
-                phis.add(phi)
-                if (elevation_deg is not None and theta != 90 - elevation_deg):
-                    continue
-                if (azimuth_deg is not None and phi != azimuth_deg):
-                    continue
-                data.append({
-                    'az_deg': phi,
-                    'el_deg': 90 - theta,
-                    'vert_gain_dBi': float(line[18:28]),
-                    'horiz_gain_dBi': float(line[28:36]),
-                    'total_gain_dBi': float(line[36:45]),
-                    'axial_ratio_dB': float(line[45:55]),
-                    'tilt_deg': float(line[55:63]),
-                    'sense': line[63:72].strip(),
-                    'E_theta_mag': float(line[72:87]),
-                    'E_theta_phase_deg': float(line[87:96]),
-                    'E_phi_mag': float(line[96:111]),
-                    'E_phi_phase_deg': float(line[111:119])
-                })
-
-        if (len(data) == 0):
-            print(f"Looking for gain at phi = {azimuth_deg}, theta = {90-elevation_deg} in")
-            print(f"Thetas = {thetas}")
-            print(f"Phis = {phis}")
-            raise EOFError(f"Failed to read needed data in {filepath}. Check for NEC errors.")
-        return data
 
 #===============================================================
 # internal functions for class NECModel
