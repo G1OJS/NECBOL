@@ -8,6 +8,7 @@ model = NECModel(working_dir="nec_wkg",
 model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 14)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0)
+model.set_gain_point(azimuth_deg = 0, elevation_deg = 25)
 
 antenna_components = components ()
 
