@@ -27,8 +27,9 @@ loading_plate_right.translate(dx_m = dplen_m/2, dy_m=0, dz_m=0)
 model.add(loading_plate_right)
 
 model.write_nec() 
-show_wires_from_file(model)
 model.run_nec()
+
+show_wires_from_file(model)
 plot_total_gain(model)
 
 vswr = vswr(model)

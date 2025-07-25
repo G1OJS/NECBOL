@@ -87,6 +87,8 @@ print(gains)
 v_gain = gains['vert_gain_dBi']
 print(f"\nExample: extract vertical gain from gains = {v_gain}")
 
+plot_total_gain(model)
+
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards). Also
 # you don't *have* to call this at all, if you're happy that the antenna geometry is correct and you're just
@@ -94,7 +96,7 @@ print(f"\nExample: extract vertical gain from gains = {v_gain}")
 # apart from the import statements, and stepping through frequency as you wish and printing the results).
 show_wires_from_file(model)
 
-plot_total_gain(model)
+
 
 #-------------------------------------------------------------------------------------------------------------------
 # That's it!

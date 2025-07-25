@@ -79,6 +79,11 @@ def show_wires(model):
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
     ax.set_title(title)
+
+    if (model.vswr is not None):
+        fig.figure.text(0.02,0.05,f"Vswr: {model.vswr:.2f} ")
+    if (model.max_total_gain is not None):
+        fig.figure.text(0.02,0.1,f"Max total gain: {model.max_total_gain:.2f} dBi")
     
     plt.tight_layout()
     plt.show()

@@ -80,7 +80,7 @@ opt = RandomOptimiser(
     cost_fn = cost_function
 )
 
-best_params, best_info = opt.optimise(tty = False)
+best_model, best_params, best_info = opt.optimise(tty = False)
 
 
 

@@ -48,7 +48,7 @@ def vswr(model, Z0 = 50):
 
 def get_gains_at_gain_point(model):
     try:
-        pattern = read_radiation_pattern(model.nec_out, model.az_datum_deg, model.el_datum_deg)
+        pattern = _read_radiation_pattern(model.nec_out, model.az_datum_deg, model.el_datum_deg)
         gains_at_point = [d for d in pattern if (abs(d['elevation_deg'] - model.el_datum_deg) < 0.1) and (abs(d['azimuth_deg'] - model.az_datum_deg) < 0.1)][0]
         
     except (RuntimeError, ValueError):
@@ -56,134 +56,6 @@ def get_gains_at_gain_point(model):
         raise ValueError(f"Something went wrong reading gains from {nec_out}")
 
     return gains_at_point
-
-def read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
-    """
-        Read the radiation pattern into a Python dictionary:
-        'az_deg': float,
-        'el_deg': float,
-        'vert_gain_dBi': float,
-        'horiz_gain_dBi': float,
-        'total_gain_dBi': float,
-        'axial_ratio_dB': float,
-        'tilt_deg': float,
-        'sense': string,
-        'E_theta_mag': float,
-        'E_theta_phase_deg': float,
-        'E_phi_mag': float,
-        'E_phi_phase_deg': float
-    """
-    data = []
-    thetas = set()
-    phis = set()
-    in_data = False
-    start_lineNo = 1e9
-    with open(filepath) as f:
-        lines = f.readlines()
-    for lineNo, line in enumerate(lines):
-        if ('RADIATION PATTERNS' in line):
-            in_data = True
-            start_lineNo = lineNo + 5
-
-        if (lineNo > start_lineNo and line=="\n"):
-            in_data = False
-            
-        if (in_data and lineNo >= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
-            thetas.add(theta)
-            phis.add(phi)
-            if (elevation_deg is not None and theta != 90 - elevation_deg):
-                continue
-            if (azimuth_deg is not None and phi != azimuth_deg):
-                continue
-            data.append({
-                'azimuth_deg': phi,
-                'elevation_deg': 90 - theta,
-                'vert_gain_dBi': float(line[18:28]),
-                'horiz_gain_dBi': float(line[28:36]),
-                'total_gain_dBi': float(line[36:45]),
-                'axial_ratio_dB': float(line[45:55]),
-                'tilt_deg': float(line[55:63]),
-                'sense': line[63:72].strip(),
-                'E_theta_mag': float(line[72:87]),
-                'E_theta_phase_deg': float(line[87:96]),
-                'E_phi_mag': float(line[96:111]),
-                'E_phi_phase_deg': float(line[111:119])
-            })
-
-    if (len(data) == 0):
-        print(f"Looking for gain at phi = {azimuth_deg}, theta = {90 - elevation_deg} in")
-        print(f"Thetas = {thetas}")
-        print(f"Phis = {phis}")
-        raise EOFError(f"Failed to read needed data in {filepath}. Check for NEC errors.")
-    return data
-
-
-def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
-
-    """
-        Read the radiation pattern into a Python dictionary:
-        'az_deg': float,
-        'el_deg': float,
-        'E_theta_mag': float,
-        'E_theta_phase_deg': float,
-        'E_phi_mag': float,
-        'E_phi_phase_deg': float
-        'vert_gain_dBi': float,
-        'horiz_gain_dBi': float,
-        'total_gain_dBi': float,
-        'rhcp_gain_dBi': float,
-        'lhcp_gain_dBi': float,
-        'axial_ratio_dB': float,
-    """
-    
-    data = []
-    thetas = set()
-    phis = set()
-    in_data = False
-    start_lineNo = 1e9
-    with open(filepath) as f:
-        lines = f.readlines()
-    for lineNo, line in enumerate(lines):
-        if ('RADIATION PATTERNS' in line):
-            in_data = True
-            start_lineNo = lineNo + 5
-
-        if (lineNo > start_lineNo and line=="\n"):
-            in_data = False
-            
-        if (in_data and lineNo >= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
-            thetas.add(theta)
-            phis.add(phi)
-            if (elevation_deg is not None and theta != 90 - elevation_deg):
-                continue
-            if (azimuth_deg is not None and phi != azimuth_deg):
-                continue
-            data.append({
-                'azimuth_deg': phi,
-                'elevation_deg': 90 - theta,
-                'vert_gain_dBi': float(line[18:28]),
-                'horiz_gain_dBi': float(line[28:36]),
-                'total_gain_dBi': float(line[36:45]),
-                'axial_ratio_dB': float(line[45:55]),
-                'tilt_deg': float(line[55:63]),
-                'sense': line[63:72].strip(),
-                'E_theta_mag': float(line[72:87]),
-                'E_theta_phase_deg': float(line[87:96]),
-                'E_phi_mag': float(line[96:111]),
-                'E_phi_phase_deg': float(line[111:119])
-            })
-
-    if (len(data) == 0):
-        print(f"Looking for gain at phi = {azimuth_deg}, theta = {90 - elevation_deg} in")
-        print(f"Thetas = {thetas}")
-        print(f"Phis = {phis}")
-        raise EOFError(f"Failed to read needed data in {filepath}. Check for NEC errors.")
-    return data
-
 
 
 def plot_total_gain(model):
@@ -196,7 +68,7 @@ def plot_total_gain(model):
     import matplotlib.pyplot as plt
     import numpy as np
 
-    pattern_data = read_radiation_pattern(model.nec_out, elevation_deg = model.el_datum_deg)
+    pattern_data = _read_radiation_pattern(model.nec_out, elevation_deg = model.el_datum_deg)
     elevation_deg = model.el_datum_deg
     component = 'total_gain_dBi' 
         
@@ -283,8 +155,8 @@ def _get_complex_component(pat_data, component):
 
 def _plot_difference_field(model1, model2):
     # needs work to check if patterns don't match az, el 1:1 and if model datums are different
-    pattern1 = read_radiation_pattern(model1.nec_out)
-    pattern2 = read_radiation_pattern(model2.nec_out)
+    pattern1 = _read_radiation_pattern(model1.nec_out)
+    pattern2 = _read_radiation_pattern(model2.nec_out)
     diff = _subtract_field_patterns(pattern1, pattern2)
     plot_pattern_gains(diff, elevation_deg = model.el_datum_deg)
 
@@ -301,6 +173,73 @@ def _subtract_field_patterns(pat1, pat2):
         output_pattern.append(_compute_full_farfield_metrics(E_theta, E_phi))
 
     return output_pattern
+
+
+def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
+    """
+        Read the radiation pattern into a Python dictionary:
+        'az_deg': float,
+        'el_deg': float,
+        'vert_gain_dBi': float,
+        'horiz_gain_dBi': float,
+        'total_gain_dBi': float,
+        'axial_ratio_dB': float,
+        'tilt_deg': float,
+        'sense': string,
+        'E_theta_mag': float,
+        'E_theta_phase_deg': float,
+        'E_phi_mag': float,
+        'E_phi_phase_deg': float
+    """
+    data = []
+    thetas = set()
+    phis = set()
+    in_data = False
+    start_lineNo = 1e9
+    with open(filepath) as f:
+        lines = f.readlines()
+    for lineNo, line in enumerate(lines):
+        if ('RADIATION PATTERNS' in line):
+            in_data = True
+            start_lineNo = lineNo + 5
+
+        if (lineNo > start_lineNo and line=="\n"):
+            in_data = False
+            
+        if (in_data and lineNo >= start_lineNo):
+            theta = float(line[0:9])
+            phi = float(line[9:18])
+            thetas.add(theta)
+            phis.add(phi)
+            if (elevation_deg is not None and theta != 90 - elevation_deg):
+                continue
+            if (azimuth_deg is not None and phi != azimuth_deg):
+                continue
+            data.append({
+                'azimuth_deg': phi,
+                'elevation_deg': 90 - theta,
+                'vert_gain_dBi': float(line[18:28]),
+                'horiz_gain_dBi': float(line[28:36]),
+                'total_gain_dBi': float(line[36:45]),
+                'axial_ratio_dB': float(line[45:55]),
+                'tilt_deg': float(line[55:63]),
+                'sense': line[63:72].strip(),
+                'E_theta_mag': float(line[72:87]),
+                'E_theta_phase_deg': float(line[87:96]),
+                'E_phi_mag': float(line[96:111]),
+                'E_phi_phase_deg': float(line[111:119])
+            })
+
+    if (len(data) == 0):
+        print(f"Looking for gain at phi = {azimuth_deg}, theta = {90 - elevation_deg} in")
+        print(f"Thetas = {thetas}")
+        print(f"Phis = {phis}")
+        raise EOFError(f"Failed to read needed data in {filepath}. Check for NEC errors.")
+
+    return data
+
+
+
 
 import math
 import cmath
@@ -374,5 +313,9 @@ def _compute_full_farfield_metrics(E_theta, E_phi):
         'polarization_sense': polarization_sense
     }
 
+def _get_available_results(model):
+    # need to add here whether over full pattern or e.g. azimuth cut
+ #   model.max_total_gain = max(d['total_gain_dBi'] for d in pattern_data)
+    model.vswr = vswr(model)
 
     

@@ -54,7 +54,7 @@ def cost_function(model):
 params = {'d_mm': 200, 'h_mm': 200, 'main_wire_diameter_mm': 5, 'feed_gap_mm': 10}
 
 best_model, best_params, best_info = RandomOptimiser(build_csc, params, cost_function).optimise(tty=False)
-show_wires_from_file(model)
+show_wires_from_file(best_model)
 
 print(f"\n\nEnd of example")
 

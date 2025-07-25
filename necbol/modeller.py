@@ -62,6 +62,8 @@ class NECModel:
         self.EX_tag = 999
         self.LOADS = []
         self.LOADS_start_tag = 8000
+        self.max_total_gain = None
+        self.vswr = None
 
     def set_name(self, name):
         """
