@@ -43,9 +43,9 @@ def show_wires_from_file(model):
                     x2, y2, z2 = map(float, parts[6:9])
                     tag = int(parts[1])
                     model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag))
-    show_wires(model_tmp)
+    _show_wires(model_tmp)
 
-def show_wires(model):
+def _show_wires(model):
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
 
