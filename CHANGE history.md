@@ -1,46 +1,48 @@
 #V3.0.0
 
-#### set_gain_point(azimuth, elevation), set_gain_hemisphere_1deg(),  set_gain_sphere_1deg(), set_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation)
+Version 3 makes some changes to various functions to enable:
+* moving towards allowing several concurrent models in the same file
+* preparing for detailed comparison of results, extraction of scattered fields from objects, delta dB plots etc
+* moving towards adding a frequency sweep feature and add VSWR bandwidth as an optimisation target
+* moving towards allowing gain parameters computed over a range of angles as optimiser targets (e.g. max vertical gain, min gain in a spefified direction, front to back ratio)
+* simplifying and automating gain pattern resolution and range settings
+
+The detailed changes are listed below.
+
+### Gain point and Angular range and resolution functions
+set_gain_point(azimuth, elevation), set_gain_hemisphere_1deg(),  set_gain_sphere_1deg(), set_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation)
 Minor change to set_gain_point(azimuth_deg, elevation_deg)
 New function 
 set_angular_resolution(az_step_deg, el_step_deg) works intelligently with ground specification to determine whether a full sphere or half sphere is requested.
 
+#### start_geometry function
+No longer needed
 
-#### h_gain(), v_gain(), tot_gain() 
-replaced by get_gains_at_gain_point(model) 
-
-#### vswr(Z0 = 50)
-Replaced by vswr(model, Z0 = 50)
-
-#### plot_gain(pattern_data, elevation_deg, component, polar=True)   
-Replaced by plot_total_gain(model)
-
-#### optimise(model, verbose=False, tty=True):
-optimise(azimuth_deg = 0, elevation_deg = 5, verbose=False, tty=True, show_geometry = True)
-
-#### def place_feed(geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
+#### Feed and Load placement functions
+def place_feed(geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
 place_feed( geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1)
 
-#### def place_[parallel|series]_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1) 
+def place_[parallel|series]_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1) 
 place_RLC_load(geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1)
 
-#### def read_radiation_pattern():
-No longer needed as a user function
+### Simple model results parameters
+h_gain(), v_gain(), tot_gain(), vswr(Z0 = 50)
+replaced by get_gains_at_gain_point(model) 
+Replaced by vswr(model, Z0 = 50)
 
-#### show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer")
+#### Results plotting functions
+plot_gain(pattern_data, elevation_deg, component, polar=True)   
+Replaced by plot_total_gain(model)
+
+def read_radiation_pattern() is no longer needed as a user function
+
+#### Wire Frame viewer functions
+show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer")
 show_wires(model)
 show_wires_from_file(model)
 
-
-#### start_geometry(comments="No comments specified")
-No longer needed
-
-
-#### def thin_sheetmodel, sigma_not_used, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
-thin_sheet(model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
-
-
-
+#### Thin Sheet Model 
+The positional argument 'sigma' is removed. If used to create a conducting sheet, the conductivity is either perfect or as specied in the global 'set_wire_conductivity(sigma)' function. This model still requires validation for the production of a thin dielectric sheet.
 
 # V2.1.0
 Changes forced by 'stretching test case' of building a model of a car passenger cell with a handheld transmitter inside. This requires meshed grids to connect cleanly, which requires 0,1,2,3 or 4 edges to be left 'open' *and* requires changes to the wire connection decision functions:
