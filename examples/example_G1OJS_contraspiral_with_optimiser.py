@@ -44,7 +44,7 @@ def build_contraspiral(d_mm, l_mm, main_wire_diameter_mm,
                                                     wire_diameter_mm = coupling_loop_wire_diameter_mm)
     
     model.place_feed(coupling_loop, feed_alpha_object=0)
-#    model.place_series_RLC_load(top_helix, R_ohms = 0, L_uH = 0, C_pf = 50, load_alpha_object=0.5)
+#    model.place_RLC_load(top_helix, R_Ohms = 0, L_uH = 0, C_pf = 50, load_type='parallel', load_alpha_object=0.5)
 
     cl_offset_z_mm = cl_alpha*l_mm
     cl_offset_x_mm = (d_mm - cld_mm - coupling_loop_wire_diameter_mm - main_wire_diameter_mm)/2
