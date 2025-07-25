@@ -46,11 +46,10 @@ are replaced by
 * plot_gain(pattern_data, elevation_deg, component, polar=True)   
 
 is replaced by 
-* plot_total_gain(model)
-which is intended as a 'quick look' function to be augmented by upcoming detailed analysis options
+* plot_pattern_gains(model)
+which is intended as a flexible plot which can overlay several field components
 
-* read_radiation_pattern()
-is no longer needed as a user function
+* read_radiation_pattern() is no longer needed as a user function
 
 #### Wire Frame viewer functions
 * show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer")
