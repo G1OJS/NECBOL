@@ -80,9 +80,12 @@ model.run_nec()
 # azimuth and elevation of the gain point for confirmation and to keep the data together
 gains = model.get_gains_at_gain_point()
 vswr = model.vswr()
-print(f"{gains}, vswr:{vswr:.2f}")
+
+print(f"vswr:{vswr:.2f}")
+print("\nFull set of info from nec output for the gain point:")
+print(gains)
 v_gain = gains['vert_gain_dBi']
-print(f"Vertical gain from gains = {v_gain}")
+print(f"\nExample: extract vertical gain from gains = {v_gain}")
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards). Also
