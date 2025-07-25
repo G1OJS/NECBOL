@@ -262,17 +262,18 @@ class components:
         return obj
 
 
+
     def thin_sheet(self, model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
+
         """
         Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         Models *either* conductive or dielectric sheet, not both.
-        Set epsillon_r to 1.0 for conductive sheet
-        Set epsillon_r > 1.0 for dielectric sheet (conductivity value is then not used)
+        Set epsillon_r to 1.0 for perfectly conducting sheet
+        Set epsillon_r > 1.0 for dielectric sheet 
 
         Arguments:
             model - the object model being built
-            sigma - conductivity in mhos/metre
             epsillon_r - relative dielectric constant
             force_odd = true ensures wires cross at y=z=0
             The four 'close_' parameters determine whether or not the edges are 'sealed' with a final wire (if True) or
@@ -310,10 +311,14 @@ class components:
             H = (nZ-1)*dG
             dY = dG
             dZ = dG
+            dS = dG
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
-        
+
+        wire_radius_m = thickness_m/2
+
+
         # Create sheet
         i0 = 0 if close_start else 1
         i1 = nY if close_end else nY-1
@@ -329,12 +334,14 @@ class components:
             nSegs = nY-1
             obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
+
         # add distributed capacitive load to the iTag of this object if dielectric
         if(epsillon_r > 1.0):
             E0 = 8.854188 * 1e-12
             C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * thickness_m
             # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
             model.LOADS.append({'iTag': iTag, 'load_type': 'series_per_metre', 'RoLuCp': (0, 0, C_pF_per_metre), 'alpha': None})
+
                     
         return obj
 

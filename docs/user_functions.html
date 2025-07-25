@@ -226,16 +226,17 @@
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
 </pre>
+
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></div>
+
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         Models *either* conductive or dielectric sheet, not both.
-        Set epsillon_r to 1.0 for conductive sheet
-        Set epsillon_r &gt; 1.0 for dielectric sheet (conductivity value is then not used)
+        Set epsillon_r to 1.0 for perfectly conducting sheet
+        Set epsillon_r &gt; 1.0 for dielectric sheet 
 
         Arguments:
             model - the object model being built
-            sigma - conductivity in mhos/metre
             epsillon_r - relative dielectric constant
             force_odd = true ensures wires cross at y=z=0
             The four &#x27;close_&#x27; parameters determine whether or not the edges are &#x27;sealed&#x27; with a final wire (if True) or
