@@ -1,4 +1,4 @@
-#V3.0.0
+# V3.0.0
 
 Version 3 makes some changes to various functions to enable:
 * moving towards allowing several concurrent models in the same file
@@ -10,36 +10,55 @@ Version 3 makes some changes to various functions to enable:
 The detailed changes are listed below.
 
 ### Gain point and Angular range and resolution functions
-set_gain_point(azimuth, elevation), set_gain_hemisphere_1deg(),  set_gain_sphere_1deg(), set_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation)
-Minor change to set_gain_point(azimuth_deg, elevation_deg)
-New function 
-set_angular_resolution(az_step_deg, el_step_deg) works intelligently with ground specification to determine whether a full sphere or half sphere is requested.
+* set_gain_point(azimuth, elevation),
+* set_gain_hemisphere_1deg(),
+* set_gain_sphere_1deg(),
+* set_gain_az_arc(azimuth_start, azimuth_stop, nPoints, elevation)
+  
+These are now all replaced by:
+* set_gain_point(azimuth_deg, elevation_deg)
+* set_angular_resolution(az_step_deg, el_step_deg)
+  
+The last function works intelligently with ground specification to determine whether a full sphere or half sphere is requested.
 
-#### start_geometry function
+### start_geometry function
 No longer needed
 
-#### Feed and Load placement functions
-def place_feed(geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
-place_feed( geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1)
+### Load placement functions
 
-def place_[parallel|series]_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1) 
-place_RLC_load(geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1)
+* place_parallel_RLC_load(......) and
+* place_series_RLC_load(......)
+
+are replaced by
+* place_RLC_load(...... load_type = 'series'|'parallel', ............)
 
 ### Simple model results parameters
-h_gain(), v_gain(), tot_gain(), vswr(Z0 = 50)
-replaced by get_gains_at_gain_point(model) 
-Replaced by vswr(model, Z0 = 50)
+* h_gain(),
+* v_gain(),
+* tot_gain(),
+* vswr(Z0 = 50)
+
+are replaced by 
+* get_gains_at_gain_point(model) and
+* vswr(model, Z0 = 50)
 
 #### Results plotting functions
-plot_gain(pattern_data, elevation_deg, component, polar=True)   
-Replaced by plot_total_gain(model)
+* plot_gain(pattern_data, elevation_deg, component, polar=True)   
 
-def read_radiation_pattern() is no longer needed as a user function
+is replaced by 
+* plot_total_gain(model)
+which is intended as a 'quick look' function to be augmented by upcoming detailed analysis options
+
+* read_radiation_pattern()
+is no longer needed as a user function
 
 #### Wire Frame viewer functions
-show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer")
-show_wires(model)
-show_wires_from_file(model)
+* show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer")
+
+is replaced by 
+* show_wires_from_file(model)
+
+which avoids the need to pass ex_tag and get details of load tag numbers from the model
 
 #### Thin Sheet Model 
 The positional argument 'sigma' is removed. If used to create a conducting sheet, the conductivity is either perfect or as specied in the global 'set_wire_conductivity(sigma)' function. This model still requires validation for the production of a thin dielectric sheet.
