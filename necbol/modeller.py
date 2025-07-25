@@ -99,17 +99,6 @@ class NECModel:
         self.az_datum_deg = azimuth_deg
         self.el_datum_deg = elevation_deg
 
-    def set_frequency_sweep(self, MHz, MHz_stop, MHz_step):
-        """
-            Set parameters for frequency sweep. This also sets the angular pattern resolution
-            to 10 degrees in azimuth and elevation to limit the size of output files           
-        """
-        self.MHz_stop = MHz_stop
-        self.MHz_step = MHz_step
-        self.MHz = MHz
-        lambda_m = 300/MHz_stop
-        self.segLength_m = lambda_m / self.nSegs_per_wavelength
-        self.set_angular_resolution(10,10)
 
     def set_angular_resolution(self, az_step_deg, el_step_deg):
         """
@@ -255,6 +244,20 @@ class NECModel:
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
+
+
+    def _set_frequency_sweep(self, MHz, MHz_stop, MHz_step):
+        """
+            Set parameters for frequency sweep. This also sets the angular pattern resolution
+            to 10 degrees in azimuth and elevation to limit the size of output files           
+        """
+        self.MHz_stop = MHz_stop
+        self.MHz_step = MHz_step
+        self.MHz = MHz
+        lambda_m = 300/MHz_stop
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+        self.set_angular_resolution(10,10)
+
 
     def _set_theta_grid_from_el_datum(self, el_datum_deg, el_step_deg, hemisphere = True):
         theta_datum = 90 - el_datum_deg

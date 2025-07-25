@@ -95,7 +95,15 @@ def plot_total_gain(model):
     plt.show()
 
 
-def plot_pattern_gains(pattern_data, azimuth_deg = None, elevation_deg = None, components = ['gain_total_dBi']):
+
+#==================================================================
+# Internal functions
+#==================================================================
+
+import numpy as np
+import copy
+
+def _plot_pattern_gains(pattern_data, azimuth_deg = None, elevation_deg = None, components = ['gain_total_dBi']):
     import matplotlib.pyplot as plt
     import numpy as np
         
@@ -139,12 +147,6 @@ def plot_pattern_gains(pattern_data, azimuth_deg = None, elevation_deg = None, c
     plt.show(block=False)
 
 
-#==================================================================
-# Internal functions
-#==================================================================
-
-import numpy as np
-import copy
 
 def _get_complex_component(pat_data, component):
     m = np.array([d[component + '_mag'] for d in pat_data])
@@ -158,7 +160,7 @@ def _plot_difference_field(model1, model2):
     pattern1 = _read_radiation_pattern(model1.nec_out)
     pattern2 = _read_radiation_pattern(model2.nec_out)
     diff = _subtract_field_patterns(pattern1, pattern2)
-    plot_pattern_gains(diff, elevation_deg = model.el_datum_deg)
+    _plot_pattern_gains(diff, elevation_deg = model.el_datum_deg)
 
 def _subtract_field_patterns(pat1, pat2):
     Z_theta_1 = _get_complex_component(pat1, 'E_theta')
