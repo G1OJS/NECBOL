@@ -28,36 +28,7 @@
         and the ability to save output data in a suitable format for onward analysis
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(pattern_data, azimuth_deg = None, elevation_deg = None, components = ['gain_total_dBi']):</span></div>
-<br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class GeometryObject:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(**params):</span></div>
-<pre class ='docstring content'>            Translate an object by dx, dy, dz
-            Arguments are dx_{units}, dy_{units}, dz_{units}
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY():</span></div>
-<pre class ='docstring content'>            Rotate the object through 90 degrees around X
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX():</span></div>
-<pre class ='docstring content'>            Rotate the object through 90 degrees around Y
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(angle_deg):</span></div>
-<pre class ='docstring content'>            Rotate the object through angle_deg degrees around X
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(angle_deg):</span></div>
-<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Y
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(angle_deg):</span></div>
-<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Z
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(other, tol=1e-3, verbose = False):</span></div>
-<pre class ='docstring content'>            Check both ends of the wire to see if they lie on any wires in the specified object,
-            and if so, split the wires of the specified object so that NEC considers them to be
-            a valid T junction. Usage is:
-
-            wire.connect_ends(object, [tol in m], [verbose])
-
-            if verbose is True, details of the wire connection(s) are printed
-</pre>
-<hr><div><span class ='class signature'>class NECModel:</span></div>
+<br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class NECModel:</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(name):</span></div>
 <pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
             output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
@@ -93,7 +64,7 @@
                 sigma (float): conductivity of the ground in mhos/meter
                 origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_RLC_load(geomObj, R_ohms, L_uH, C_pf, load_type = 'Series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_RLC_load(geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
 <pre class ='docstring content'>            inserts a single segment containing an RLC load into an existing geometry object
             Position within the object is specied as
             EITHER:
@@ -133,6 +104,35 @@
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprun_nec():</span></div>
 <pre class ='docstring content'>            Pass the model file to NEC for analysis and wait for the output.
+</pre>
+<hr><div><span class ='class signature'>class GeometryObject:</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(**params):</span></div>
+<pre class ='docstring content'>            Translate an object by dx, dy, dz
+            Arguments are dx_{units}, dy_{units}, dz_{units}
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY():</span></div>
+<pre class ='docstring content'>            Rotate the object through 90 degrees around X
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX():</span></div>
+<pre class ='docstring content'>            Rotate the object through 90 degrees around Y
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around X
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Y
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Z
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(other, tol=1e-3, verbose = False):</span></div>
+<pre class ='docstring content'>            Check both ends of the wire to see if they lie on any wires in the specified object,
+            and if so, split the wires of the specified object so that NEC considers them to be
+            a valid T junction. Usage is:
+
+            wire.connect_ends(object, [tol in m], [verbose])
+
+            if verbose is True, details of the wire connection(s) are printed
 </pre>
 <br><div class = 'filename'>visualiser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(model):</span></div>
 <pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
