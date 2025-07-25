@@ -42,7 +42,7 @@ def show_wires_from_file(file_path, ex_tag, color='blue', title = "3D Viewer"):
                     wires.append(((x1, y1, z1), (x2, y2, z2), tag))
     _show_wires(wires, ex_tag, title, color=color)
 
-def plot_gain(pattern_data, elevation_deg, component, polar=True):
+def plot_gain(model):
     """
         This is a very basic plot routine providing polar and rectangular plots
         with gain range covering 40 dB max to min.
@@ -51,39 +51,31 @@ def plot_gain(pattern_data, elevation_deg, component, polar=True):
     """
     import matplotlib.pyplot as plt
     import numpy as np
-        
-    # Filter data for fixed elevation (theta)
-    theta_cut = 90 - elevation_deg
-    print(f"Plotting gain for elevation = {elevation_deg} i.e. theta = {theta_cut}")
-    az_cut = [d for d in pattern_data if abs(d['theta'] - theta_cut) < 0.1]
 
-    # Sort by phi (just in case)
-    az_cut.sort(key=lambda d: d['phi'])
+    pattern_data = model.read_radiation_pattern(model.nec_out)
+    elevation_deg = model.el_datum_deg
+    component = 'total_gain_dBi' 
+        
+    # Filter data for fixed elevation 
+    print(f"Plotting gain for elevation = {elevation_deg}")
+    az_cut = [d for d in pattern_data if abs(d['el_deg'] - elevation_deg) < 0.1]
 
     # Extract azimuth (phi) and gain
-    phi_deg = [d['phi'] for d in az_cut]
+    az_deg = [d['az_deg'] for d in az_cut]
     gain_db = [d[component] for d in az_cut]
     max_gain = np.max(gain_db)
 
-    title = f'{component} at elevation = {elevation_deg}°'
+    title = f'{component} at elevation = {elevation_deg}° for {model.model_name}'
 
-    if polar:
-        phi_rad = np.radians(phi_deg)
-        fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-        ax.plot(phi_rad, gain_db, label=title)
-        ax.set_title(title)
-        ax.grid(True)
-        ax.set_rmax(max_gain)
-        ax.set_rmin(max_gain-40)
-        ax.set_rlabel_position(90)
-    else:
-        fig, ax = plt.subplots()
-        ax.plot(phi_deg, gain_db, label=title)
-        ax.set_xlabel('Azimuth φ (degrees)')
-        ax.set_ylabel('Gain (dB)')
-        ax.set_ylim([max_gain-40,max_gain])
-        ax.grid(True)
-  
+    az_rad = np.radians(az_deg)
+    fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+    ax.plot(az_rad, gain_db, label=title)
+    ax.set_title(title)
+    ax.grid(True)
+    ax.set_rmax(max_gain)
+    ax.set_rmin(max_gain-40)
+    ax.set_rlabel_position(90)
+
     plt.show()
 
 

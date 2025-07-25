@@ -278,16 +278,18 @@ class NECModel:
         self.MHz = None
         self.MHz_stop = None
         self.MHz_step = None
+        self.origin_height_m = 0
         self.segLength_m
-        self.az_step_deg = 1
-        self.el_step_deg = 1
+        self.el_datum_deg = 0
+        self.az_datum_deg = 0
+        self.az_step_deg = 10
+        self.el_step_deg = 5
         self.ground_sigma = 0
         self.ground_Er = 1.0
         self.geometry = []
         self.EX_tag = 999
         self.LOADS = []
         self.LD_start_tag = 8000
-        self.elevation_in_fsweep_deg
 
     def set_name(self, name):
         """
@@ -314,7 +316,28 @@ class NECModel:
         self.MHz = MHz
         lambda_m = 300/MHz
         self.segLength_m = lambda_m / self.nSegs_per_wavelength
-        
+
+    def set_gain_point(self, azimuth_deg, elevation_deg):
+        """
+            Set the azimuth and elevation of a single gain point that
+            must appear in the output radiation pattern
+        """
+        self.az_datum_deg = azimuth_deg
+        self.el_datum_deg = elevation_deg
+
+    def set_frequency_sweep(self, MHz, MHz_stop, MHz_step):
+        """
+            Set parameters for frequency sweep. This also sets the angular pattern resolution
+            to 10 degrees in azimuth and elevation to limit the size of output files
+            default value of 5 deg is safe for over ground and free space             
+        """
+        self.MHz_stop = MHz_stop
+        self.MHz_step = MHz_step
+        self.MHz = MHz
+        lambda_m = 300/MHz_stop
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+        self.set_angular_resolution(10,10)
+
     def set_angular_resolution(self, az_step_deg, el_step_deg):
         """
             Set resolution required in az and el in degrees
@@ -323,19 +346,7 @@ class NECModel:
         self.az_step_deg = az_step_deg
         self.el_step_deg = el_step_deg
 
-    def set_frequency_sweep(self, MHz, MHz_stop, MHz_step, elevation_deg = 5):
-        """
-
-            default value of 5 deg is safe for over ground and free space             
-        """
-        self.MHz_stop = MHz_stop
-        self.MHz_step = MHz_step
-        self.MHz = MHz
-        lambda_m = 300/MHz_stop
-        self.segLength_m = lambda_m / self.nSegs_per_wavelength
-        self.elevation_in_fsweep_deg = elevation_deg
-
-    def set_ground(self, eps_r, sigma, **params):
+    def set_ground(self, eps_r, sigma, **origin_height):
         """
             Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
             If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
@@ -347,6 +358,12 @@ class NECModel:
                 sigma (float): conductivity of the ground in mhos/meter
                 origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
         """
+        self.ground_Er = eps_r
+        self.ground_sigma = sigma
+        if(eps_r >1.0):
+            self.origin_height_m = self._units._from_suffixed_dimensions(origin_height)['origin_height_m']
+            if(self.el_datum_deg <= 0):
+                self.el_datum_deg = 1
 
     def place_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_type = 'Series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
         """
@@ -368,7 +385,6 @@ class NECModel:
         iTag = self.LOADS_start_Tag + len(self.LOADS)
         model.LOADS.append({'iTag': iTag, 'type': load_type, 'value': (R_Ohms, L_uH * 1e-6, C_pf * 1e-12), 'alpha': None})
         self._insert_special_segment(geomObj, iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-
 
     def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
         """
@@ -417,14 +433,13 @@ class NECModel:
                     f.write(' '.join([f"{B[i]:.3f} " for i in range(3)]))
                     f.write(f" {w['wr']}\n")
 
-            # 2. Write GE card, Ground Card, and RP card
+            # 2. Write GE card, Ground Card, and GM card to set origin height
             if self.ground_Er == 1.0:
                 f.write("GE 0\n")
             else:
-                origin_height_m = self._units._from_suffixed_dimensions(params)['origin_height_m']
+                f.write(f"GM 0 0 0 0 0 0 0 {self.origin_height_m:.3f}\n")
                 f.write("GE -1\n")
-                f.write(f"GN 2 0 0 0 {Er:.3f} {sigma:.3f} \n")
-                f.write(f"GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n")
+                f.write(f"GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n")
 
             # 3. Write out the loads
             for LD in self.LOADS:
@@ -441,11 +456,16 @@ class NECModel:
             f.write(f"FR 0 1 0 0 {self.MHz:.3f} 0\n")
 
             # 6. Pattern points
-            # update logic to calculate nTheta, nPhi and set nTheta to 1 if fsweep & set theta0 = 90-elevation_deg
-            if self.ground_Er == 1.0:
-                f.write("RP 0 181 361 1003 -180 0 1 1\n")
-            else:
-                f.write(f"RP 0 91 361 1003 0 0 1 1\n")
+            # Need to update logic to set nTheta to 1 if fsweep 
+            n_phi = 1 + int(360 / self.az_step_deg)
+            d_phi = 360 / (n_phi - 1)
+            phi_start_deg = self.az_datum_deg
+            if self.ground_Er == 1.0:  # free space, no ground card, full sphere is appropriate
+                theta_start_deg, d_theta, n_theta = self._set_theta_grid_from_el_datum(self.el_datum_deg, self.el_step_deg, hemisphere = False)
+                f.write(f"RP 0 {n_theta} {n_phi} 1003 {theta_start_deg} {phi_start_deg} {d_theta} {d_phi}\n")
+            else:                       # ground exists, upper hemisphere is appropriate
+                theta_start_deg, d_theta, n_theta = self._set_theta_grid_from_el_datum(self.el_datum_deg, self.el_step_deg, hemisphere = True)
+                f.write(f"RP 0 {n_theta} {n_phi} 1003 {theta_start_deg} {phi_start_deg} {d_theta} {d_phi}\n")
                 
             f.write("EN")
 
@@ -455,24 +475,6 @@ class NECModel:
         """
         
         subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
-
-    def h_gain(self):
-        """
-            Return the horizontal polarisation gain at the specified single gain point
-        """
-        return self._get_single_point_gains()['h_gain']
-
-    def v_gain(self):
-        """
-            Return the vertical polarisation gain at the specified single gain point
-        """
-        return self._get_single_point_gains()['v_gain']
-
-    def tot_gain(self):
-        """
-            Return the total gain at the specified single gain point
-        """
-        return self._get_single_point_gains()['total']
 
     def vswr(self, Z0 = 50):
         """
@@ -496,53 +498,97 @@ class NECModel:
         gamma = (z_in - Z0) / (z_in + Z0)
         return (1 + abs(gamma)) / (1 - abs(gamma))
 
-    def read_radiation_pattern(self):
-        """
-            read the radiation pattern from the model.nec_out file
-            into a list of dictionaries with format:
-                {'theta': theta,
-                'phi': phi,
-                'gain_vert_db': gain_vert,
-                'gain_horz_db': gain_horz,
-                'gain_total_db': gain_total,
-                'axial_ratio': axial_ratio,
-                'tilt_deg': tilt_deg,
-                'sense': sense,
-                'E_theta_mag': e_theta_mag,
-                'E_theta_phase_deg': e_theta_phase,
-                'E_phi_mag': e_phi_mag,
-                'E_phi_phase_deg': e_phi_phase}
-                
-        """
+    def get_gains_at_gain_point(self):
+        try:
+            pattern = self.read_radiation_pattern(self.nec_out, self.az_datum_deg, self.el_datum_deg )
+            gains_at_point = [d for d in pattern if (abs(d['el_deg'] - self.el_datum_deg) < 0.1) and (abs(d['az_deg'] - self.az_datum_deg) < 0.1)][0]
+            
+        except (RuntimeError, ValueError):
+            print("Trying to read gains at {azimuth_deg}, {elevation_deg}")
+            raise ValueError(f"Something went wrong reading gains from {nec_out}")
 
-        return _read_radiation_pattern(self.nec_out)
+        return gains_at_point
+
+    def read_radiation_pattern(self, filepath, azimuth_deg = None, elevation_deg = None):
+        """
+            Read the radiation pattern into a Python dictionary:
+            'az_deg': float,
+            'el_deg': float,
+            'vert_gain_dBi': float,
+            'horiz_gain_dBi': float,
+            'total_gain_dBi': float,
+            'axial_ratio_dB': float,
+            'tilt_deg': float,
+            'sense': string,
+            'E_theta_mag': float,
+            'E_theta_phase_deg': float,
+            'E_phi_mag': float,
+            'E_phi_phase_deg': float
+        """
+        
+        data = []
+        thetas = set()
+        phis = set()
+        in_data = False
+        start_lineNo = 1e9
+        with open(filepath) as f:
+            lines = f.readlines()
+        for lineNo, line in enumerate(lines):
+            if ('RADIATION PATTERNS' in line):
+                in_data = True
+                start_lineNo = lineNo + 5
+
+            if (lineNo > start_lineNo and line=="\n"):
+                in_data = False
+                
+            if (in_data and lineNo >= start_lineNo):
+                theta = float(line[0:9])
+                phi = float(line[9:18])
+                thetas.add(theta)
+                phis.add(phi)
+                if (elevation_deg is not None and theta != 90 - elevation_deg):
+                    continue
+                if (azimuth_deg is not None and phi != azimuth_deg):
+                    continue
+                data.append({
+                    'az_deg': phi,
+                    'el_deg': 90 - theta,
+                    'vert_gain_dBi': float(line[18:28]),
+                    'horiz_gain_dBi': float(line[28:36]),
+                    'total_gain_dBi': float(line[36:45]),
+                    'axial_ratio_dB': float(line[45:55]),
+                    'tilt_deg': float(line[55:63]),
+                    'sense': line[63:72].strip(),
+                    'E_theta_mag': float(line[72:87]),
+                    'E_theta_phase_deg': float(line[87:96]),
+                    'E_phi_mag': float(line[96:111]),
+                    'E_phi_phase_deg': float(line[111:119])
+                })
+
+        if (len(data) == 0):
+            print(f"Looking for gain at phi = {azimuth_deg}, theta = {90-elevation_deg} in")
+            print(f"Thetas = {thetas}")
+            print(f"Phis = {phis}")
+            raise EOFError(f"Failed to read needed data in {filepath}. Check for NEC errors.")
+        return data
 
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
-    def _get_single_point_gains(self):
-        # this will be refactored to call _read_radiation_pattern
-        # and store the result, so that if it is called again
-        # the read is not needed
-        # Also, either using interpolation or aligning a cut / sphere with the
-        # needed point may provide efficiencies (and maintainability, more importantly)
-        try:
-            with open(self.nec_out) as f:
-                while "RADIATION PATTERNS" not in f.readline():
-                    pass
-                for _ in range(5):
-                    l = f.readline()
-                if self.verbose:
-                    print("Gains line:", l.strip())
-        except (RuntimeError, ValueError):
-            raise ValueError(f"Something went wrong reading gains from {nec_out}")
 
-        return {
-            "v_gain": float(l[21:29]),
-            "h_gain": float(l[29:37]),
-            "total": float(l[37:45]),
-        }
+    def _set_theta_grid_from_el_datum(self, el_datum_deg, el_step_deg, hemisphere = True):
+        theta_datum = 90 - el_datum_deg
+        d_theta = el_step_deg
+        theta_range = 90 if hemisphere else 180
 
+        theta_start = theta_datum % d_theta
+        # Fix float errors (e.g. 0.0000001)
+        theta_start = round(theta_start, 6)
+
+        # Clip to max range
+        max_theta = theta_start + d_theta * (int((theta_range - theta_start) / d_theta))
+        n_theta = 1 + int((max_theta - theta_start) / d_theta)
+        return theta_start, d_theta, n_theta
 
     def _write_runner_files(self):
         """
@@ -598,51 +644,6 @@ class NECModel:
             geomObj._add_wire(w["iTag"] , nS2, *D, *B, w["wr"])
             
 
-def _read_radiation_pattern(filepath):        
-    data = []
-    in_data = False
-    start_lineNo = 1e9
-    with open(filepath) as f:
-        lines = f.readlines()
-    for lineNo, line in enumerate(lines):
-        if ('RADIATION PATTERNS' in line):
-            in_data = True
-            start_lineNo = lineNo + 5
 
-        if (lineNo > start_lineNo and line=="\n"):
-            in_data = False
-            
-        if (in_data and lineNo >= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
-            gain_vert = float(line[18:28])
-            gain_horz = float(line[28:36])
-            gain_total = float(line[36:45])
-            axial_ratio = float(line[45:55])
-            tilt_deg = float(line[55:63])
-            # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
-            sense = line[63:72].strip()
-            e_theta_mag = float(line[72:87])
-            e_theta_phase = float(line[87:96])
-            e_phi_mag = float(line[96:111])
-            e_phi_phase = float(line[111:119])
-
-            data.append({
-                'theta': theta,
-                'phi': phi,
-                'gain_vert_db': gain_vert,
-                'gain_horz_db': gain_horz,
-                'gain_total_db': gain_total,
-                'axial_ratio': axial_ratio,
-                'tilt_deg': tilt_deg,
-                'sense': sense,
-                'E_theta_mag': e_theta_mag,
-                'E_theta_phase_deg': e_theta_phase,
-                'E_phi_mag': e_phi_mag,
-                'E_phi_phase_deg': e_phi_phase
-            })
-
-
-    return data
 
 

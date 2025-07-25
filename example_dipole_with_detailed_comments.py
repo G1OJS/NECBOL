@@ -27,14 +27,13 @@ model.set_wire_conductivity(sigma = 58000000)
 model.set_frequency(MHz = 144.2)
 
 # Azimuth and elevation of the gain point (leave at 0,0 if you only want vswr)
-
+model.set_gain_point(azimuth_deg = 0, elevation_deg = 20)
 
 # Ground type. Currently limited to simple choices. If eps_r = 1, or if you omit this line,
 # nec is told to use no ground. Othewise you should set the origin height so that the antenna reference
 # point X,Y,Z = (0,0,0) is set to be the specified distance above ground.
 # You can specify this in m, mm, cm, in, or ft (e.g. origin_height_ft = 30.33)
 model.set_ground(eps_r = 11, sigma = 0.01, origin_height_m = 8.0) 
-
 
 #-------------------------------------------------------------------------------------------------------------------
 # Now we define the antenna geometry
@@ -72,18 +71,18 @@ model.add(dipole)
 model.write_nec()
 # now ask nec to analyse the nec input file and produce a nec output file
 model.run_nec()
-h_gain=0
-v_gain=0
-tot_gain=0
-
-vswr = model.vswr()
 
 #-------------------------------------------------------------------------------------------------------------------
 # And now a very minimal way of returning the extracted results for you to see
 #-------------------------------------------------------------------------------------------------------------------
 
-# print the results
-print(f"H gain: {h_gain} dBi, V gain: {v_gain} dBi, Total gain: {tot_gain} dBi, vswr:{vswr:.2f}")
+# simple printout of gains and vswr. note that get_gains_at_gain_point() also returns the
+# azimuth and elevation of the gain point for confirmation and to keep the data together
+gains = model.get_gains_at_gain_point()
+vswr = model.vswr()
+print(f"{gains}, vswr:{vswr:.2f}")
+v_gain = gains['vert_gain_dBi']
+print(f"Vertical gain from gains = {v_gain}")
 
 # show the geometry (if desired, you can do this immediately following model.write_nec(),
 # but you'll have to close the geometry window if you want anything to happen afterwards). Also
@@ -91,6 +90,9 @@ print(f"H gain: {h_gain} dBi, V gain: {v_gain} dBi, Total gain: {tot_gain} dBi, 
 # optimising parameters or doing frequency sweeps (there's no harm in putting a big loop around all of the above,
 # apart from the import statements, and stepping through frequency as you wish and printing the results).
 show_wires_from_file(model.nec_in, model.EX_tag, title=model.model_name)
+
+
+plot_gain(model)
 
 #-------------------------------------------------------------------------------------------------------------------
 # That's it!
