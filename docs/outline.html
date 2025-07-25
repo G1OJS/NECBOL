@@ -325,16 +325,18 @@ import os
         self.MHz = None
         self.MHz_stop = None
         self.MHz_step = None
+        self.origin_height_m = 0
         self.segLength_m
-        self.az_step_deg = 1
-        self.el_step_deg = 1
+        self.el_datum_deg = 0
+        self.az_datum_deg = 0
+        self.az_step_deg = 10
+        self.el_step_deg = 5
         self.ground_sigma = 0
         self.ground_Er = 1.0
         self.geometry = []
         self.EX_tag = 999
         self.LOADS = []
         self.LD_start_tag = 8000
-        self.elevation_in_fsweep_deg
 
 </pre>
 </details>
@@ -378,7 +380,42 @@ import os
 <pre class ='body content'>        self.MHz = MHz
         lambda_m = 300/MHz
         self.segLength_m = lambda_m / self.nSegs_per_wavelength
-        
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_gain_point(self, azimuth_deg, elevation_deg):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set the azimuth and elevation of a single gain point that
+            must appear in the output radiation pattern
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.az_datum_deg = azimuth_deg
+        self.el_datum_deg = elevation_deg
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def set_frequency_sweep(self, MHz, MHz_stop, MHz_step):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            Set parameters for frequency sweep. This also sets the angular pattern resolution
+            to 10 degrees in azimuth and elevation to limit the size of output files
+</pre>
+<details><summary><span class ='default signature'> default value of 5 deg is safe for over ground and free space</span></summary>
+<pre class ='default content'></pre>
+</details>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.MHz_stop = MHz_stop
+        self.MHz_step = MHz_step
+        self.MHz = MHz
+        lambda_m = 300/MHz_stop
+        self.segLength_m = lambda_m / self.nSegs_per_wavelength
+        self.set_angular_resolution(10,10)
+
 </pre>
 </details>
 </details>
@@ -396,27 +433,7 @@ import os
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def set_frequency_sweep(self, MHz, MHz_stop, MHz_step, elevation_deg = 5):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>
-</pre>
-<details><summary><span class ='default signature'> default value of 5 deg is safe for over ground and free space</span></summary>
-<pre class ='default content'></pre>
-</details>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.MHz_stop = MHz_stop
-        self.MHz_step = MHz_step
-        self.MHz = MHz
-        lambda_m = 300/MHz_stop
-        self.segLength_m = lambda_m / self.nSegs_per_wavelength
-        self.elevation_in_fsweep_deg = elevation_deg
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def set_ground(self, eps_r, sigma, **params):</span></summary>
+<details><summary><span class ='def signature'>🧾 def set_ground(self, eps_r, sigma, **origin_height):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
@@ -431,7 +448,14 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'></pre>
+<pre class ='body content'>        self.ground_Er = eps_r
+        self.ground_sigma = sigma
+        if(eps_r &gt;1.0):
+            self.origin_height_m = self._units._from_suffixed_dimensions(origin_height)[&#x27;origin_height_m&#x27;]
+            if(self.el_datum_deg &lt;= 0):
+                self.el_datum_deg = 1
+
+</pre>
 </details>
 </details>
 <details><summary><span class ='def signature'>🧾 def place_RLC_load(self, geomObj, R_ohms, L_uH, C_pf, load_type = 'Series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></summary>
@@ -457,7 +481,6 @@ import os
 <pre class ='body content'>        iTag = self.LOADS_start_Tag + len(self.LOADS)
         model.LOADS.append({&#x27;iTag&#x27;: iTag, &#x27;type&#x27;: load_type, &#x27;value&#x27;: (R_Ohms, L_uH * 1e-6, C_pf * 1e-12), &#x27;alpha&#x27;: None})
         self._insert_special_segment(geomObj, iTag, load_alpha_object, load_wire_index, load_alpha_wire)
-
 
 </pre>
 </details>
@@ -524,14 +547,13 @@ import os
                     f.write(&#x27; &#x27;.join([f&quot;{B[i]:.3f} &quot; for i in range(3)]))
                     f.write(f&quot; {w[&#x27;wr&#x27;]}\n&quot;)
 
-            # 2. Write GE card, Ground Card, and RP card
+            # 2. Write GE card, Ground Card, and GM card to set origin height
             if self.ground_Er == 1.0:
                 f.write(&quot;GE 0\n&quot;)
             else:
-                origin_height_m = self._units._from_suffixed_dimensions(params)[&#x27;origin_height_m&#x27;]
+                f.write(f&quot;GM 0 0 0 0 0 0 0 {self.origin_height_m:.3f}\n&quot;)
                 f.write(&quot;GE -1\n&quot;)
-                f.write(f&quot;GN 2 0 0 0 {Er:.3f} {sigma:.3f} \n&quot;)
-                f.write(f&quot;GM 0 0 0 0 0 0 0 {origin_height_m:.3f}\n&quot;)
+                f.write(f&quot;GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n&quot;)
 
             # 3. Write out the loads
             for LD in self.LOADS:
@@ -548,11 +570,16 @@ import os
             f.write(f&quot;FR 0 1 0 0 {self.MHz:.3f} 0\n&quot;)
 
             # 6. Pattern points
-            # update logic to calculate nTheta, nPhi and set nTheta to 1 if fsweep &amp; set theta0 = 90-elevation_deg
-            if self.ground_Er == 1.0:
-                f.write(&quot;RP 0 181 361 1003 -180 0 1 1\n&quot;)
-            else:
-                f.write(f&quot;RP 0 91 361 1003 0 0 1 1\n&quot;)
+            # Need to update logic to set nTheta to 1 if fsweep 
+            n_phi = 1 + int(360 / self.az_step_deg)
+            d_phi = 360 / (n_phi - 1)
+            phi_start_deg = self.az_datum_deg
+            if self.ground_Er == 1.0:  # free space, no ground card, full sphere is appropriate
+                theta_start_deg, d_theta, n_theta = self._set_theta_grid_from_el_datum(self.el_datum_deg, self.el_step_deg, hemisphere = False)
+                f.write(f&quot;RP 0 {n_theta} {n_phi} 1003 {theta_start_deg} {phi_start_deg} {d_theta} {d_phi}\n&quot;)
+            else:                       # ground exists, upper hemisphere is appropriate
+                theta_start_deg, d_theta, n_theta = self._set_theta_grid_from_el_datum(self.el_datum_deg, self.el_step_deg, hemisphere = True)
+                f.write(f&quot;RP 0 {n_theta} {n_phi} 1003 {theta_start_deg} {phi_start_deg} {d_theta} {d_phi}\n&quot;)
                 
             f.write(&quot;EN&quot;)
 
@@ -567,42 +594,6 @@ import os
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def h_gain(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the horizontal polarisation gain at the specified single gain point
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return self._get_single_point_gains()[&#x27;h_gain&#x27;]
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def v_gain(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the vertical polarisation gain at the specified single gain point
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return self._get_single_point_gains()[&#x27;v_gain&#x27;]
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def tot_gain(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Return the total gain at the specified single gain point
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return self._get_single_point_gains()[&#x27;total&#x27;]
 
 </pre>
 </details>
@@ -635,58 +626,104 @@ import os
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def read_radiation_pattern(self):</span></summary>
+<details><summary><span class ='def signature'> def get_gains_at_gain_point(self):</span></summary>
+<pre class ='def content'>        try:
+            pattern = self.read_radiation_pattern(self.nec_out, self.az_datum_deg, self.el_datum_deg )
+            gains_at_point = [d for d in pattern if (abs(d[&#x27;el_deg&#x27;] - self.el_datum_deg) &lt; 0.1) and (abs(d[&#x27;az_deg&#x27;] - self.az_datum_deg) &lt; 0.1)][0]
+            
+        except (RuntimeError, ValueError):
+            print(&quot;Trying to read gains at {azimuth_deg}, {elevation_deg}&quot;)
+            raise ValueError(f&quot;Something went wrong reading gains from {nec_out}&quot;)
+
+        return gains_at_point
+
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def read_radiation_pattern(self, filepath, azimuth_deg = None, elevation_deg = None):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            read the radiation pattern from the model.nec_out file
-            into a list of dictionaries with format:
-                {&#x27;theta&#x27;: theta,
-                &#x27;phi&#x27;: phi,
-                &#x27;gain_vert_db&#x27;: gain_vert,
-                &#x27;gain_horz_db&#x27;: gain_horz,
-                &#x27;gain_total_db&#x27;: gain_total,
-                &#x27;axial_ratio&#x27;: axial_ratio,
-                &#x27;tilt_deg&#x27;: tilt_deg,
-                &#x27;sense&#x27;: sense,
-                &#x27;E_theta_mag&#x27;: e_theta_mag,
-                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
-                &#x27;E_phi_mag&#x27;: e_phi_mag,
-                &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
-                
+<pre class ='docstring content'>            Read the radiation pattern into a Python dictionary:
+            &#x27;az_deg&#x27;: float,
+            &#x27;el_deg&#x27;: float,
+            &#x27;vert_gain_dBi&#x27;: float,
+            &#x27;horiz_gain_dBi&#x27;: float,
+            &#x27;total_gain_dBi&#x27;: float,
+            &#x27;axial_ratio_dB&#x27;: float,
+            &#x27;tilt_deg&#x27;: float,
+            &#x27;sense&#x27;: string,
+            &#x27;E_theta_mag&#x27;: float,
+            &#x27;E_theta_phase_deg&#x27;: float,
+            &#x27;E_phi_mag&#x27;: float,
+            &#x27;E_phi_phase_deg&#x27;: float
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        return _read_radiation_pattern(self.nec_out)
+<pre class ='body content'>        data = []
+        thetas = set()
+        phis = set()
+        in_data = False
+        start_lineNo = 1e9
+        with open(filepath) as f:
+            lines = f.readlines()
+        for lineNo, line in enumerate(lines):
+            if (&#x27;RADIATION PATTERNS&#x27; in line):
+                in_data = True
+                start_lineNo = lineNo + 5
+
+            if (lineNo &gt; start_lineNo and line==&quot;\n&quot;):
+                in_data = False
+                
+            if (in_data and lineNo &gt;= start_lineNo):
+                theta = float(line[0:9])
+                phi = float(line[9:18])
+                thetas.add(theta)
+                phis.add(phi)
+                if (elevation_deg is not None and theta != 90 - elevation_deg):
+                    continue
+                if (azimuth_deg is not None and phi != azimuth_deg):
+                    continue
+                data.append({
+                    &#x27;az_deg&#x27;: phi,
+                    &#x27;el_deg&#x27;: 90 - theta,
+                    &#x27;vert_gain_dBi&#x27;: float(line[18:28]),
+                    &#x27;horiz_gain_dBi&#x27;: float(line[28:36]),
+                    &#x27;total_gain_dBi&#x27;: float(line[36:45]),
+                    &#x27;axial_ratio_dB&#x27;: float(line[45:55]),
+                    &#x27;tilt_deg&#x27;: float(line[55:63]),
+                    &#x27;sense&#x27;: line[63:72].strip(),
+                    &#x27;E_theta_mag&#x27;: float(line[72:87]),
+                    &#x27;E_theta_phase_deg&#x27;: float(line[87:96]),
+                    &#x27;E_phi_mag&#x27;: float(line[96:111]),
+                    &#x27;E_phi_phase_deg&#x27;: float(line[111:119])
+                })
+
+        if (len(data) == 0):
+            print(f&quot;Looking for gain at phi = {azimuth_deg}, theta = {90-elevation_deg} in&quot;)
+            print(f&quot;Thetas = {thetas}&quot;)
+            print(f&quot;Phis = {phis}&quot;)
+            raise EOFError(f&quot;Failed to read needed data in {filepath}. Check for NEC errors.&quot;)
+        return data
 
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
+
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'> def _get_single_point_gains(self):</span></summary>
-<pre class ='def content'>        # this will be refactored to call _read_radiation_pattern
-        # and store the result, so that if it is called again
-        # the read is not needed
-        # Also, either using interpolation or aligning a cut / sphere with the
-        # needed point may provide efficiencies (and maintainability, more importantly)
-        try:
-            with open(self.nec_out) as f:
-                while &quot;RADIATION PATTERNS&quot; not in f.readline():
-                    pass
-                for _ in range(5):
-                    l = f.readline()
-                if self.verbose:
-                    print(&quot;Gains line:&quot;, l.strip())
-        except (RuntimeError, ValueError):
-            raise ValueError(f&quot;Something went wrong reading gains from {nec_out}&quot;)
+<details><summary><span class ='def signature'> def _set_theta_grid_from_el_datum(self, el_datum_deg, el_step_deg, hemisphere = True):</span></summary>
+<pre class ='def content'>        theta_datum = 90 - el_datum_deg
+        d_theta = el_step_deg
+        theta_range = 90 if hemisphere else 180
 
-        return {
-            &quot;v_gain&quot;: float(l[21:29]),
-            &quot;h_gain&quot;: float(l[29:37]),
-            &quot;total&quot;: float(l[37:45]),
-        }
+        theta_start = theta_datum % d_theta
+        # Fix float errors (e.g. 0.0000001)
+        theta_start = round(theta_start, 6)
 
+        # Clip to max range
+        max_theta = theta_start + d_theta * (int((theta_range - theta_start) / d_theta))
+        n_theta = 1 + int((max_theta - theta_start) / d_theta)
+        return theta_start, d_theta, n_theta
 
 </pre>
 </details>
@@ -753,59 +790,12 @@ import os
             geomObj._add_wire(w[&quot;iTag&quot;] , nS2, *D, *B, w[&quot;wr&quot;])
             
 
-</pre>
-</details>
-</details>
-</details>
-<details><summary><span class ='def signature'> def _read_radiation_pattern(filepath):</span></summary>
-<pre class ='def content'>    data = []
-    in_data = False
-    start_lineNo = 1e9
-    with open(filepath) as f:
-        lines = f.readlines()
-    for lineNo, line in enumerate(lines):
-        if (&#x27;RADIATION PATTERNS&#x27; in line):
-            in_data = True
-            start_lineNo = lineNo + 5
 
-        if (lineNo &gt; start_lineNo and line==&quot;\n&quot;):
-            in_data = False
-            
-        if (in_data and lineNo &gt;= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
-            gain_vert = float(line[18:28])
-            gain_horz = float(line[28:36])
-            gain_total = float(line[36:45])
-            axial_ratio = float(line[45:55])
-            tilt_deg = float(line[55:63])
-            # SENSE is a string (LINEAR, LHCP, RHCP, etc.)
-            sense = line[63:72].strip()
-            e_theta_mag = float(line[72:87])
-            e_theta_phase = float(line[87:96])
-            e_phi_mag = float(line[96:111])
-            e_phi_phase = float(line[111:119])
-
-            data.append({
-                &#x27;theta&#x27;: theta,
-                &#x27;phi&#x27;: phi,
-                &#x27;gain_vert_db&#x27;: gain_vert,
-                &#x27;gain_horz_db&#x27;: gain_horz,
-                &#x27;gain_total_db&#x27;: gain_total,
-                &#x27;axial_ratio&#x27;: axial_ratio,
-                &#x27;tilt_deg&#x27;: tilt_deg,
-                &#x27;sense&#x27;: sense,
-                &#x27;E_theta_mag&#x27;: e_theta_mag,
-                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
-                &#x27;E_phi_mag&#x27;: e_phi_mag,
-                &#x27;E_phi_phase_deg&#x27;: e_phi_phase
-            })
-
-
-    return data
 
 
 </pre>
+</details>
+</details>
 </details>
 <br><div class = 'filename'>optimisers.py</div><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
@@ -862,7 +852,7 @@ import random, sys
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def optimise(self, model,  verbose=False, tty=True):</span></summary>
+<details><summary><span class ='def signature'>🧾 def optimise(self, azimuth_deg = 0, elevation_deg = 5, verbose=False, tty=True, show_geometry = True):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
@@ -880,7 +870,8 @@ import random, sys
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        best_params = self.x_baseline.copy()
-        best_model = self.build_fn(model, **best_params)
+        best_model = self.build_fn(**best_params)
+        best_model.set_angular_resolution(10,10)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -894,7 +885,8 @@ import random, sys
         try:
             for i in range(self.max_iter):
                 test_params = self._random_variation(best_params)
-                test_model = self.build_fn(model, **test_params)
+                test_model = self.build_fn(**test_params)
+                test_model.set_angular_resolution(10,10)
                 test_model.write_nec()
                 test_model.run_nec()
                 result = self.cost_fn(test_model)
@@ -934,7 +926,7 @@ import random, sys
         except KeyboardInterrupt:
             print(&quot;\nINTERRUPTED by user input&quot;)
             
-        best_model = self.build_fn(model, **best_params)
+        best_model = self.build_fn(**best_params)
         best_model.write_nec()
         best_model.run_nec()
         result = self.cost_fn(best_model)
@@ -944,7 +936,7 @@ import random, sys
         print(&quot;# &quot;+ initial_message)
         print(f&quot;# []   FINAL: {final_info} with {self._format_params(best_params)}&quot;)
         
-        return best_params, final_info
+        return best_model, best_params, final_info
 </pre>
 </details>
 </details>
@@ -977,7 +969,7 @@ import random, sys
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def plot_gain(pattern_data, elevation_deg, component, polar=True):</span></summary>
+<details><summary><span class ='def signature'>🧾 def plot_gain(model):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        This is a very basic plot routine providing polar and rectangular plots
@@ -989,39 +981,31 @@ import random, sys
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>    import matplotlib.pyplot as plt
     import numpy as np
-        
-    # Filter data for fixed elevation (theta)
-    theta_cut = 90 - elevation_deg
-    print(f&quot;Plotting gain for elevation = {elevation_deg} i.e. theta = {theta_cut}&quot;)
-    az_cut = [d for d in pattern_data if abs(d[&#x27;theta&#x27;] - theta_cut) &lt; 0.1]
 
-    # Sort by phi (just in case)
-    az_cut.sort(key=lambda d: d[&#x27;phi&#x27;])
+    pattern_data = model.read_radiation_pattern(model.nec_out)
+    elevation_deg = model.el_datum_deg
+    component = &#x27;total_gain_dBi&#x27; 
+        
+    # Filter data for fixed elevation 
+    print(f&quot;Plotting gain for elevation = {elevation_deg}&quot;)
+    az_cut = [d for d in pattern_data if abs(d[&#x27;el_deg&#x27;] - elevation_deg) &lt; 0.1]
 
     # Extract azimuth (phi) and gain
-    phi_deg = [d[&#x27;phi&#x27;] for d in az_cut]
+    az_deg = [d[&#x27;az_deg&#x27;] for d in az_cut]
     gain_db = [d[component] for d in az_cut]
     max_gain = np.max(gain_db)
 
-    title = f&#x27;{component} at elevation = {elevation_deg}°&#x27;
+    title = f&#x27;{component} at elevation = {elevation_deg}° for {model.model_name}&#x27;
 
-    if polar:
-        phi_rad = np.radians(phi_deg)
-        fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
-        ax.plot(phi_rad, gain_db, label=title)
-        ax.set_title(title)
-        ax.grid(True)
-        ax.set_rmax(max_gain)
-        ax.set_rmin(max_gain-40)
-        ax.set_rlabel_position(90)
-    else:
-        fig, ax = plt.subplots()
-        ax.plot(phi_deg, gain_db, label=title)
-        ax.set_xlabel(&#x27;Azimuth φ (degrees)&#x27;)
-        ax.set_ylabel(&#x27;Gain (dB)&#x27;)
-        ax.set_ylim([max_gain-40,max_gain])
-        ax.grid(True)
-  
+    az_rad = np.radians(az_deg)
+    fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
+    ax.plot(az_rad, gain_db, label=title)
+    ax.set_title(title)
+    ax.grid(True)
+    ax.set_rmax(max_gain)
+    ax.set_rmin(max_gain-40)
+    ax.set_rlabel_position(90)
+
     plt.show()
 
 

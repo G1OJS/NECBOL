@@ -42,15 +42,20 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz):</span></div>
 <pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
 </pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(azimuth_deg, elevation_deg):</span></div>
+<pre class ='docstring content'>            Set the azimuth and elevation of a single gain point that
+            must appear in the output radiation pattern
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency_sweep(MHz, MHz_stop, MHz_step):</span></div>
+<pre class ='docstring content'>            Set parameters for frequency sweep. This also sets the angular pattern resolution
+            to 10 degrees in azimuth and elevation to limit the size of output files
+</pre>
+<hr><div><span class ='default signature'>default value of 5 deg is safe for over ground and free space</span></div>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_angular_resolution(az_step_deg, el_step_deg):</span></div>
 <pre class ='docstring content'>            Set resolution required in az and el in degrees
             If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency_sweep(MHz, MHz_stop, MHz_step, elevation_deg = 5):</span></div>
-<pre class ='docstring content'>
-</pre>
-<hr><div><span class ='default signature'>default value of 5 deg is safe for over ground and free space</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **params):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **origin_height):</span></div>
 <pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
             If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
             If you don&#x27;t call this function, free space will be assumed.
@@ -102,40 +107,30 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbsprun_nec():</span></div>
 <pre class ='docstring content'>            Pass the model file to NEC for analysis and wait for the output.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsph_gain():</span></div>
-<pre class ='docstring content'>            Return the horizontal polarisation gain at the specified single gain point
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspv_gain():</span></div>
-<pre class ='docstring content'>            Return the vertical polarisation gain at the specified single gain point
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptot_gain():</span></div>
-<pre class ='docstring content'>            Return the total gain at the specified single gain point
-</pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspvswr(Z0 = 50):</span></div>
 <pre class ='docstring content'>            Return the antenna VSWR at the feed point assuming a 50 ohm system
             Or another value if specified
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspread_radiation_pattern():</span></div>
-<pre class ='docstring content'>            read the radiation pattern from the model.nec_out file
-            into a list of dictionaries with format:
-                {&#x27;theta&#x27;: theta,
-                &#x27;phi&#x27;: phi,
-                &#x27;gain_vert_db&#x27;: gain_vert,
-                &#x27;gain_horz_db&#x27;: gain_horz,
-                &#x27;gain_total_db&#x27;: gain_total,
-                &#x27;axial_ratio&#x27;: axial_ratio,
-                &#x27;tilt_deg&#x27;: tilt_deg,
-                &#x27;sense&#x27;: sense,
-                &#x27;E_theta_mag&#x27;: e_theta_mag,
-                &#x27;E_theta_phase_deg&#x27;: e_theta_phase,
-                &#x27;E_phi_mag&#x27;: e_phi_mag,
-                &#x27;E_phi_phase_deg&#x27;: e_phi_phase}
-                
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspget_gains_at_gain_point():</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspread_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):</span></div>
+<pre class ='docstring content'>            Read the radiation pattern into a Python dictionary:
+            &#x27;az_deg&#x27;: float,
+            &#x27;el_deg&#x27;: float,
+            &#x27;vert_gain_dBi&#x27;: float,
+            &#x27;horiz_gain_dBi&#x27;: float,
+            &#x27;total_gain_dBi&#x27;: float,
+            &#x27;axial_ratio_dB&#x27;: float,
+            &#x27;tilt_deg&#x27;: float,
+            &#x27;sense&#x27;: string,
+            &#x27;E_theta_mag&#x27;: float,
+            &#x27;E_theta_phase_deg&#x27;: float,
+            &#x27;E_phi_mag&#x27;: float,
+            &#x27;E_phi_phase_deg&#x27;: float
 </pre>
 <br><div class = 'filename'>optimisers.py</div><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
 <pre class ='docstring content'>        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(model,  verbose=False, tty=True):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(azimuth_deg = 0, elevation_deg = 5, verbose=False, tty=True, show_geometry = True):</span></div>
 <pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
             and comparing the user-specified cost function with the best achieved so far. If the test gives a better
             cost, the test is adopted as the new baseline.
@@ -153,7 +148,7 @@
         then displays the geometry in a 3D projection. The feed is highligted in red.
         Loads are highlighted in green.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(pattern_data, elevation_deg, component, polar=True):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_gain(model):</span></div>
 <pre class ='docstring content'>        This is a very basic plot routine providing polar and rectangular plots
         with gain range covering 40 dB max to min.
         Later versions of necbol will include more customisable plot functions
