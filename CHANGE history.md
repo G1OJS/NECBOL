@@ -1,7 +1,7 @@
 ---
-permalink:change-history
+layout: default
+permalink: change-history
 ---
-
 # V3.0.0
 
 Version 3 makes some changes to various functions to enable:
