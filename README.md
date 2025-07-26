@@ -17,8 +17,8 @@
 - **More coming soon**: See [next steps/future plans](https://github.com/G1OJS/NECBOL/blob/main/TO_DO.md)
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
 - **Example files**: Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
-
-![Capture](https://github.com/user-attachments/assets/f8d57095-cbbd-4a02-9e40-2d81520a3799)
+  
+![Capture](https://github.com/user-attachments/assets/d9144a6c-4d3f-4bd6-9a4b-52559dc10600)
 
 ## 🛠 Installation
 
