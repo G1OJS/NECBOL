@@ -1,7 +1,28 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>outline.html</title><link rel='stylesheet' href='./outline.css' /><body>
-<br><div class = 'filename'>__init__.py</div><br><br><div class = 'filename'>analyser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<br><div class = 'filename'>__init__.py</div><br><details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>    Standard Python initialiser handling imports from modules and version number
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>from necbol.components import *
+from necbol.visualiser import *
+from necbol.analyser import *
+from necbol.modeller import *
+from necbol.optimisers import *
+
+from importlib.metadata import version
+try:
+    __version__ = version(&quot;necbol&quot;)
+except:
+    __version__ = &quot;&quot;
+print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
+
+
+</pre>
+</details>
+<br><div class = 'filename'>analyser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
 </pre>
 </details>
