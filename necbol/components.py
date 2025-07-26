@@ -297,9 +297,14 @@ class components:
         height_m = dimensions_m.get('height_m')
         grid_pitch_m = dimensions_m.get('grid_pitch_m')
         thickness_m = dimensions_m.get('thickness_m')
+        if('wire_radius_m' in dimensions_m.keys()):
+            wire_radius_m = dimensions_m.get('wire_diameter_m')/2
+        else:
+            wire_radius_m = 0.0005
           
         dG = grid_pitch_m
         wire_radius_m = thickness_m/2
+        wire_radius_m = 0.0005
         
         nY = int(length_m / dG) + 1
         nZ = int(height_m / dG) + 1
@@ -315,8 +320,6 @@ class components:
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
-
-        wire_radius_m = thickness_m/2
 
 
         # Create sheet

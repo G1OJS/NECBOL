@@ -1,0 +1,24 @@
+                                                - - - RADIATION PATTERNS - - -
+
+  - - ANGLES - -           - POWER GAINS -       - - - POLARIZATION - - -    - - - E(THETA) - - -    - - - E(PHI) - - -
+  THETA     PHI        VERT.   HOR.    TOTAL      AXIAL     TILT   SENSE     MAGNITUDE    PHASE      MAGNITUDE    PHASE 
+ DEGREES  DEGREES       DB      DB      DB        RATIO     DEG.              VOLTS/M    DEGREES      VOLTS/M    DEGREES
+012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+_6543210__6543210____6543210_6543210_6543210____6543210__6543210_6543210__CBA9876543210__6543210__CBA9876543210__6543210
+    0.00     0.00    -999.99   -1.89   -1.89    0.00000    90.00  LINEAR    0.00000E+00     0.00    4.04820E-01    55.56
+    5.00     0.00     -23.07   -1.88   -1.85    0.00000    85.02  LINEAR    3.53177E-02    55.55    4.05225E-01    55.55
+
+param		fst	lst	width Python
+	
+Theta_deg	1	7	6	[1:8]
+Phi_deg		10	16	6	[10:17]
+v_gain		21	27	6	[21:28]
+h_gain		29	35	6	[29:36]
+t_gain		37	43	6	[37:44]
+Ax		48	54	6	[48:55]
+tilt		57	63	6	[57:64]
+sense		65	71	6	[65:72]
+e_theta_mag	74	86	12	[74:87]
+e_theta_deg	88	95	7	[88:96]
+e_phi_mag	98	110	12	[98:111]
+e_phi_deg	112	119	7	[112:120]

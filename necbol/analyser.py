@@ -130,12 +130,16 @@ def _get_complex_component(pat_data, component):
     return Z
 
 
-def _plot_difference_field(model1, model2):
+def _plot_difference_field(model_A, model_B, **kwargs):
+    import copy
     # needs work to check if patterns don't match az, el 1:1 and if model datums are different
-    pattern1 = _read_radiation_pattern(model1.nec_out)
-    pattern2 = _read_radiation_pattern(model2.nec_out)
-    diff = _subtract_field_patterns(pattern1, pattern2)
-    _plot_pattern_gains(diff, elevation_deg = model.el_datum_deg)
+    pattern_A = _read_radiation_pattern(model_A.nec_out)
+    pattern_B = _read_radiation_pattern(model_B.nec_out)
+    model_diff = copy.deepcopy(model_A)
+    model_diff.set_name(f"Scattered field {model_A.model_name} minus {model_A.model_name}")
+    diff_pattern = _subtract_field_patterns(pattern_A, pattern_B)
+    _write_radiation_pattern(diff_pattern, model_diff.nec_out)
+    plot_pattern_gains(model_diff, **kwargs)
 
 def _subtract_field_patterns(pat1, pat2):
     Z_theta_1 = _get_complex_component(pat1, 'E_theta')
@@ -144,19 +148,55 @@ def _subtract_field_patterns(pat1, pat2):
     Z_phi_2 = _get_complex_component(pat2, 'E_phi')
 
     output_pattern = []
-    for i, d in enumerate(pattern1):
+    for i, d in enumerate(pat1):
         E_theta = Z_theta_1[i] - Z_theta_2[i]
         E_phi = Z_phi_1[i] - Z_phi_2[i]
-        output_pattern.append(_compute_full_farfield_metrics(E_theta, E_phi))
+        diff_dict = _compute_full_farfield_metrics(E_theta, E_phi)
+        diff_dict.update({'azimuth_deg':d['azimuth_deg']})
+        diff_dict.update({'elevation_deg':d['elevation_deg']})
+        output_pattern.append(diff_dict)
 
     return output_pattern
+
+
+def _write_radiation_pattern(pattern, file_path):
+    field_formats = [
+        "8.2f", "9.2f", "11.2f", "8.2f", "8.2f",
+        "11.5f", "9.2f", "8s",
+        "15.5e", "9.2f", "15.5e", "9.2f"
+    ]
+    op_keys = [
+        'elevation_deg', 'azimuth_deg', 'vert_gain_dBi', 'horiz_gain_dBi', 'total_gain_dBi',
+        'axial_ratio_dB', 'tilt_deg', 'sense',
+        'E_theta_mag', 'E_theta_phase_deg', 'E_phi_mag', 'E_phi_phase_deg'
+    ]
+
+    with open(file_path, "w") as f:
+        f.write("                                                - - - RADIATION PATTERNS - - -\n")
+        f.write("\n")
+        f.write("  - - ANGLES - -           - POWER GAINS -       - - - POLARIZATION - - -    - - - E(THETA) - - -    - - - E(PHI) - - -\n")
+        f.write("  THETA     PHI        VERT.   HOR.    TOTAL      AXIAL     TILT   SENSE     MAGNITUDE    PHASE      MAGNITUDE    PHASE \n")
+        f.write(" DEGREES  DEGREES       DB      DB      DB        RATIO     DEG.              VOLTS/M    DEGREES      VOLTS/M    DEGREES\n")
+        
+        for row in pattern:
+            line = ""
+            for fmt, key in zip(field_formats, op_keys):
+                val = row[key]
+                if(key == 'elevation_deg'):
+                    val = 90-val
+                if(key == 'sense'):
+                    val = ' '+val
+                line += f"{val:{fmt}}"
+            f.write(line.rstrip() + "\n")
+
+
 
 
 def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
     """
         Read the radiation pattern into a Python dictionary:
-        'az_deg': float,
-        'el_deg': float,
+        'azimuth_deg': float,
+        'elevation_deg': float,
         'vert_gain_dBi': float,
         'horiz_gain_dBi': float,
         'total_gain_dBi': float,
@@ -184,8 +224,8 @@ def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
             in_data = False
             
         if (in_data and lineNo >= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
+            theta = float(line[1:8])
+            phi = float(line[10:17])
             thetas.add(theta)
             phis.add(phi)
             if (elevation_deg is not None and theta != 90 - elevation_deg):
@@ -195,16 +235,16 @@ def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
             data.append({
                 'azimuth_deg': phi,
                 'elevation_deg': 90 - theta,
-                'vert_gain_dBi': float(line[18:28]),
-                'horiz_gain_dBi': float(line[28:36]),
-                'total_gain_dBi': float(line[36:45]),
-                'axial_ratio_dB': float(line[45:55]),
-                'tilt_deg': float(line[55:63]),
-                'sense': line[63:72].strip(),
-                'E_theta_mag': float(line[72:87]),
-                'E_theta_phase_deg': float(line[87:96]),
-                'E_phi_mag': float(line[96:111]),
-                'E_phi_phase_deg': float(line[111:119])
+                'vert_gain_dBi': float(line[21:28]),
+                'horiz_gain_dBi': float(line[29:36]),
+                'total_gain_dBi': float(line[37:44]),
+                'axial_ratio_dB': float(line[48:55]),
+                'tilt_deg': float(line[57:64]),
+                'sense': line[65:72].strip(),
+                'E_theta_mag': float(line[74:87]),
+                'E_theta_phase_deg': float(line[88:96]),
+                'E_phi_mag': float(line[98:111]),
+                'E_phi_phase_deg': float(line[112:120])
             })
 
     if (len(data) == 0):
@@ -222,6 +262,12 @@ import math
 import cmath
 
 def _compute_full_farfield_metrics(E_theta, E_phi):
+
+    # Phase & magnitude
+    E_theta_phase_deg = 180*cmath.phase(E_theta)/cmath.pi
+    E_phi_phase_deg = 180*cmath.phase(E_phi)/cmath.pi
+    E_theta_mag = abs(E_theta)
+    E_phi_mag = abs(E_phi)
 
     # Total field magnitude squared
     total_power = abs(E_theta)**2 + abs(E_phi)**2
@@ -276,19 +322,20 @@ def _compute_full_farfield_metrics(E_theta, E_phi):
     horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power > 0 else -math.inf
 
     return {
+        'vert_gain_dBi': vert_gain_dBi,
+        'horiz_gain_dBi': horiz_gain_dBi,
+        'total_gain_dBi': total_gain_dBi,
+        'axial_ratio_dB': axial_ratio_dB,
+        'tilt_deg': polarization_tilt_deg,
+        'sense': polarization_sense,
         'E_theta_mag': E_theta_mag,
         'E_theta_phase_deg': E_theta_phase_deg,
         'E_phi_mag': E_phi_mag,
         'E_phi_phase_deg': E_phi_phase_deg,
-        'total_gain_dBi': total_gain_dBi,
-        'vert_gain_dBi': vert_gain_dBi,
-        'horiz_gain_dBi': horiz_gain_dBi,
         'rhcp_gain_dBi': rhcp_gain_dBi,
-        'lhcp_gain_dBi': lhcp_gain_dBi,
-        'axial_ratio_dB': axial_ratio_dB,
-        'polarization_tilt_deg': polarization_tilt_deg,
-        'polarization_sense': polarization_sense
+        'lhcp_gain_dBi': lhcp_gain_dBi
     }
+
 
 def _get_available_results(model):
     # need to add here whether over full pattern or e.g. azimuth cut
