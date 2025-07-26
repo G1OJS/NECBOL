@@ -9,14 +9,13 @@
 - **Automatic wire joining**: Automatically connects wire ends to other wires, simplifying model creation.
 - **Flexible connector placement**: Add connectors between specific points on different objects.
 - **Configurable simulation parameters**: Set frequency, ground type, and pattern observation points.
-- **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector
+- **Current component library**: Helix, circular arc/loop, rectangular loop, straight wire, straight connector, thin sheet
 - **Easy to place**: feedpoint, series RLC load(s), prarallel RLC load(s) specified in ohms, uH and pF
 - **Easy to define meshed grids** which can also be joined edge to edge to create box structures (see the [car model](https://github.com/G1OJS/NECBOL/blob/main/example_handheld_in_a_car.py))
 - **Dielectric sheet model**: currently experimental, not validated, built in to a flat sheet geometry component
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
-- **More coming soon**: See [next steps/future plans](https://github.com/G1OJS/NECBOL/blob/main/TO_DO.md)
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
-- **Example files**: Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
+- **Example files**: Include Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
   
 ![Capture](https://github.com/user-attachments/assets/d9144a6c-4d3f-4bd6-9a4b-52559dc10600)
 
