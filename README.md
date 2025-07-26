@@ -1,6 +1,6 @@
 # NECBOL [![PyPI Downloads](https://static.pepy.tech/badge/necbol)](https://pepy.tech/projects/necbol) 
 
-**NECBOL** is a Python library that provides a geometry-first interface for building antenna models using the NEC (Numerical Electromagnetics Code) engine. 
+**NECBOL** is a Python library that provides a geometry-first interface for building antenna models using the NEC (Numerical Electromagnetics Code) engine.  
 
 ## Features
 
