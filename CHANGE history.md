@@ -1,5 +1,4 @@
 ---
-layout: default
 permalink: change-history
 ---
 # V3.0.0
