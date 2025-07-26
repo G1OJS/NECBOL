@@ -287,7 +287,8 @@ class components:
             the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the
             grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
 
-        Dimensions are length_, height_, thickness_, grid_pitch_
+        Required dimensions are length_, height_, thickness_, grid_pitch_
+        Optinally, wire_diameter_ may be specified (default is 1mm)
         """
         
         print("NOTE: The thin_sheet model has been tested functionally but not validated quantitavely")
