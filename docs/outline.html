@@ -614,9 +614,9 @@ import os
                 f.write(f&quot;GM 0 0 0 0 0 0 0 {self.origin_height_m:.3f}\n&quot;)
                 f.write(&quot;GE -1\n&quot;)
                 f.write(f&quot;GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n&quot;)
-
+            
             # Write EK card
-                f.write(&quot;EK\n&quot;)
+            f.write(&quot;EK\n&quot;)
 
             # Write out the loads
             for LD in self.LOADS:
