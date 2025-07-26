@@ -203,9 +203,9 @@ class NECModel:
                 f.write(f"GM 0 0 0 0 0 0 0 {self.origin_height_m:.3f}\n")
                 f.write("GE -1\n")
                 f.write(f"GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n")
-
+            
             # Write EK card
-                f.write("EK\n")
+            f.write("EK\n")
 
             # Write out the loads
             for LD in self.LOADS:
