@@ -123,12 +123,16 @@ import copy
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def _plot_difference_field(model1, model2):</span></summary>
-<pre class ='def content'>    # needs work to check if patterns don&#x27;t match az, el 1:1 and if model datums are different
-    pattern1 = _read_radiation_pattern(model1.nec_out)
-    pattern2 = _read_radiation_pattern(model2.nec_out)
-    diff = _subtract_field_patterns(pattern1, pattern2)
-    _plot_pattern_gains(diff, elevation_deg = model.el_datum_deg)
+<details><summary><span class ='def signature'> def _plot_difference_field(model_A, model_B, **kwargs):</span></summary>
+<pre class ='def content'>    import copy
+    # needs work to check if patterns don&#x27;t match az, el 1:1 and if model datums are different
+    pattern_A = _read_radiation_pattern(model_A.nec_out)
+    pattern_B = _read_radiation_pattern(model_B.nec_out)
+    model_diff = copy.deepcopy(model_A)
+    model_diff.set_name(f&quot;Scattered field {model_A.model_name} minus {model_A.model_name}&quot;)
+    diff_pattern = _subtract_field_patterns(pattern_A, pattern_B)
+    _write_radiation_pattern(diff_pattern, model_diff.nec_out)
+    plot_pattern_gains(model_diff, **kwargs)
 
 </pre>
 </details>
@@ -139,12 +143,50 @@ import copy
     Z_phi_2 = _get_complex_component(pat2, &#x27;E_phi&#x27;)
 
     output_pattern = []
-    for i, d in enumerate(pattern1):
+    for i, d in enumerate(pat1):
         E_theta = Z_theta_1[i] - Z_theta_2[i]
         E_phi = Z_phi_1[i] - Z_phi_2[i]
-        output_pattern.append(_compute_full_farfield_metrics(E_theta, E_phi))
+        diff_dict = _compute_full_farfield_metrics(E_theta, E_phi)
+        diff_dict.update({&#x27;azimuth_deg&#x27;:d[&#x27;azimuth_deg&#x27;]})
+        diff_dict.update({&#x27;elevation_deg&#x27;:d[&#x27;elevation_deg&#x27;]})
+        output_pattern.append(diff_dict)
 
     return output_pattern
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _write_radiation_pattern(pattern, file_path):</span></summary>
+<pre class ='def content'>    field_formats = [
+        &quot;8.2f&quot;, &quot;9.2f&quot;, &quot;11.2f&quot;, &quot;8.2f&quot;, &quot;8.2f&quot;,
+        &quot;11.5f&quot;, &quot;9.2f&quot;, &quot;8s&quot;,
+        &quot;15.5e&quot;, &quot;9.2f&quot;, &quot;15.5e&quot;, &quot;9.2f&quot;
+    ]
+    op_keys = [
+        &#x27;elevation_deg&#x27;, &#x27;azimuth_deg&#x27;, &#x27;vert_gain_dBi&#x27;, &#x27;horiz_gain_dBi&#x27;, &#x27;total_gain_dBi&#x27;,
+        &#x27;axial_ratio_dB&#x27;, &#x27;tilt_deg&#x27;, &#x27;sense&#x27;,
+        &#x27;E_theta_mag&#x27;, &#x27;E_theta_phase_deg&#x27;, &#x27;E_phi_mag&#x27;, &#x27;E_phi_phase_deg&#x27;
+    ]
+
+    with open(file_path, &quot;w&quot;) as f:
+        f.write(&quot;                                                - - - RADIATION PATTERNS - - -\n&quot;)
+        f.write(&quot;\n&quot;)
+        f.write(&quot;  - - ANGLES - -           - POWER GAINS -       - - - POLARIZATION - - -    - - - E(THETA) - - -    - - - E(PHI) - - -\n&quot;)
+        f.write(&quot;  THETA     PHI        VERT.   HOR.    TOTAL      AXIAL     TILT   SENSE     MAGNITUDE    PHASE      MAGNITUDE    PHASE \n&quot;)
+        f.write(&quot; DEGREES  DEGREES       DB      DB      DB        RATIO     DEG.              VOLTS/M    DEGREES      VOLTS/M    DEGREES\n&quot;)
+        
+        for row in pattern:
+            line = &quot;&quot;
+            for fmt, key in zip(field_formats, op_keys):
+                val = row[key]
+                if(key == &#x27;elevation_deg&#x27;):
+                    val = 90-val
+                if(key == &#x27;sense&#x27;):
+                    val = &#x27; &#x27;+val
+                line += f&quot;{val:{fmt}}&quot;
+            f.write(line.rstrip() + &quot;\n&quot;)
+
+
 
 
 </pre>
@@ -153,8 +195,8 @@ import copy
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
-        &#x27;az_deg&#x27;: float,
-        &#x27;el_deg&#x27;: float,
+        &#x27;azimuth_deg&#x27;: float,
+        &#x27;elevation_deg&#x27;: float,
         &#x27;vert_gain_dBi&#x27;: float,
         &#x27;horiz_gain_dBi&#x27;: float,
         &#x27;total_gain_dBi&#x27;: float,
@@ -184,8 +226,8 @@ import copy
             in_data = False
             
         if (in_data and lineNo &gt;= start_lineNo):
-            theta = float(line[0:9])
-            phi = float(line[9:18])
+            theta = float(line[1:8])
+            phi = float(line[10:17])
             thetas.add(theta)
             phis.add(phi)
             if (elevation_deg is not None and theta != 90 - elevation_deg):
@@ -195,16 +237,16 @@ import copy
             data.append({
                 &#x27;azimuth_deg&#x27;: phi,
                 &#x27;elevation_deg&#x27;: 90 - theta,
-                &#x27;vert_gain_dBi&#x27;: float(line[18:28]),
-                &#x27;horiz_gain_dBi&#x27;: float(line[28:36]),
-                &#x27;total_gain_dBi&#x27;: float(line[36:45]),
-                &#x27;axial_ratio_dB&#x27;: float(line[45:55]),
-                &#x27;tilt_deg&#x27;: float(line[55:63]),
-                &#x27;sense&#x27;: line[63:72].strip(),
-                &#x27;E_theta_mag&#x27;: float(line[72:87]),
-                &#x27;E_theta_phase_deg&#x27;: float(line[87:96]),
-                &#x27;E_phi_mag&#x27;: float(line[96:111]),
-                &#x27;E_phi_phase_deg&#x27;: float(line[111:119])
+                &#x27;vert_gain_dBi&#x27;: float(line[21:28]),
+                &#x27;horiz_gain_dBi&#x27;: float(line[29:36]),
+                &#x27;total_gain_dBi&#x27;: float(line[37:44]),
+                &#x27;axial_ratio_dB&#x27;: float(line[48:55]),
+                &#x27;tilt_deg&#x27;: float(line[57:64]),
+                &#x27;sense&#x27;: line[65:72].strip(),
+                &#x27;E_theta_mag&#x27;: float(line[74:87]),
+                &#x27;E_theta_phase_deg&#x27;: float(line[88:96]),
+                &#x27;E_phi_mag&#x27;: float(line[98:111]),
+                &#x27;E_phi_phase_deg&#x27;: float(line[112:120])
             })
 
     if (len(data) == 0):
@@ -225,7 +267,13 @@ import cmath
 </details>
 </details>
 <details><summary><span class ='def signature'> def _compute_full_farfield_metrics(E_theta, E_phi):</span></summary>
-<pre class ='def content'>    # Total field magnitude squared
+<pre class ='def content'>    # Phase &amp; magnitude
+    E_theta_phase_deg = 180*cmath.phase(E_theta)/cmath.pi
+    E_phi_phase_deg = 180*cmath.phase(E_phi)/cmath.pi
+    E_theta_mag = abs(E_theta)
+    E_phi_mag = abs(E_phi)
+
+    # Total field magnitude squared
     total_power = abs(E_theta)**2 + abs(E_phi)**2
     total_gain_dBi = 10 * math.log10(total_power) if total_power &gt; 0 else -math.inf
 
@@ -278,19 +326,20 @@ import cmath
     horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power &gt; 0 else -math.inf
 
     return {
+        &#x27;vert_gain_dBi&#x27;: vert_gain_dBi,
+        &#x27;horiz_gain_dBi&#x27;: horiz_gain_dBi,
+        &#x27;total_gain_dBi&#x27;: total_gain_dBi,
+        &#x27;axial_ratio_dB&#x27;: axial_ratio_dB,
+        &#x27;tilt_deg&#x27;: polarization_tilt_deg,
+        &#x27;sense&#x27;: polarization_sense,
         &#x27;E_theta_mag&#x27;: E_theta_mag,
         &#x27;E_theta_phase_deg&#x27;: E_theta_phase_deg,
         &#x27;E_phi_mag&#x27;: E_phi_mag,
         &#x27;E_phi_phase_deg&#x27;: E_phi_phase_deg,
-        &#x27;total_gain_dBi&#x27;: total_gain_dBi,
-        &#x27;vert_gain_dBi&#x27;: vert_gain_dBi,
-        &#x27;horiz_gain_dBi&#x27;: horiz_gain_dBi,
         &#x27;rhcp_gain_dBi&#x27;: rhcp_gain_dBi,
-        &#x27;lhcp_gain_dBi&#x27;: lhcp_gain_dBi,
-        &#x27;axial_ratio_dB&#x27;: axial_ratio_dB,
-        &#x27;polarization_tilt_deg&#x27;: polarization_tilt_deg,
-        &#x27;polarization_sense&#x27;: polarization_sense
+        &#x27;lhcp_gain_dBi&#x27;: lhcp_gain_dBi
     }
+
 
 </pre>
 </details>
@@ -551,7 +600,7 @@ import os
                 LDTAG = LD[&#x27;iTag&#x27;]
                 R_Ohms, L_uH , C_pF = LD[&#x27;RoLuCp&#x27;]
                 # these strings are set programatically so shouldn&#x27;t need an error trap
-                f.write(f&quot;LD {LDTAG} {LDTYP} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n&quot;)
+                f.write(f&quot;LD {LDTYP} {LDTAG} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n&quot;)
 
             # 4. Feed
             f.write(f&quot;EX 0 {self.EX_tag} 1 0 1 0\n&quot;)
@@ -1550,9 +1599,14 @@ from necbol.modeller import GeometryObject,_units
         height_m = dimensions_m.get(&#x27;height_m&#x27;)
         grid_pitch_m = dimensions_m.get(&#x27;grid_pitch_m&#x27;)
         thickness_m = dimensions_m.get(&#x27;thickness_m&#x27;)
+        if(&#x27;wire_radius_m&#x27; in dimensions_m.keys()):
+            wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
+        else:
+            wire_radius_m = 0.0005
           
         dG = grid_pitch_m
         wire_radius_m = thickness_m/2
+        wire_radius_m = 0.0005
         
         nY = int(length_m / dG) + 1
         nZ = int(height_m / dG) + 1
@@ -1568,8 +1622,6 @@ from necbol.modeller import GeometryObject,_units
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
-
-        wire_radius_m = thickness_m/2
 
 
         # Create sheet
