@@ -595,7 +595,7 @@ import os
         with open(self.nec_in, &quot;w&quot;) as f:
             f.write(&quot;CM\nCE\n&quot;)
             
-            # 1. Write GW lines for all geometry
+            # Write GW lines for all geometry
             for geomObj in self.geometry:
                 for w in geomObj._get_wires():
                     A = np.array(w[&quot;a&quot;], dtype=float)
@@ -607,7 +607,7 @@ import os
                     f.write(&#x27; &#x27;.join([f&quot;{B[i]:.3f} &quot; for i in range(3)]))
                     f.write(f&quot; {w[&#x27;wr&#x27;]}\n&quot;)
 
-            # 2. Write GE card, Ground Card, and GM card to set origin height
+            # Write GE card, Ground Card, and GM card to set origin height
             if self.ground_Er == 1.0:
                 f.write(&quot;GE 0\n&quot;)
             else:
@@ -615,7 +615,10 @@ import os
                 f.write(&quot;GE -1\n&quot;)
                 f.write(f&quot;GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n&quot;)
 
-            # 3. Write out the loads
+            # Write EK card
+                f.write(&quot;EK\n&quot;)
+
+            # Write out the loads
             for LD in self.LOADS:
                 LDTYP = [&#x27;series&#x27;,&#x27;parallel&#x27;,&#x27;series_per_metre&#x27;,&#x27;parallel_per_metre&#x27;,&#x27;impedance_not_used&#x27;,&#x27;conductivity&#x27;].index(LD[&#x27;load_type&#x27;])
                 LDTAG = LD[&#x27;iTag&#x27;]
@@ -623,15 +626,14 @@ import os
                 # these strings are set programatically so shouldn&#x27;t need an error trap
                 f.write(f&quot;LD {LDTYP} {LDTAG} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n&quot;)
 
-            # 4. Feed
+            # Feed
             f.write(f&quot;EX 0 {self.EX_tag} 1 0 1 0\n&quot;)
 
-            # 5. Frequency
+            # Frequency
             # update to include sweep
             f.write(f&quot;FR 0 1 0 0 {self.MHz:.3f} 0\n&quot;)
 
-            # 6. Pattern points
-            # Need to update logic to set nTheta to 1 if fsweep 
+            # Pattern points
             n_phi = 1 + int(360 / self.az_step_deg)
             d_phi = 360 / (n_phi - 1)
             phi_start_deg = self.az_datum_deg
@@ -1473,7 +1475,7 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def helix(self,  wires_per_turn, sense, **dimensions):</span></summary>
+<details><summary><span class ='def signature'>🧾 def helix(self, wires_per_turn, sense, taper_factor = 1.0, **dimensions):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Create a single helix with axis = Z axis
@@ -1507,12 +1509,14 @@ from necbol.modeller import GeometryObject,_units
         for i in range(n_wires):
             phi1 = phi_sign * delta_phi * i
             phi2 = phi_sign * delta_phi * (i + 1)
+            z1 = delta_z_m * i
+            z2 = delta_z_m * (i + 1)
+            alpha = 0.5*(z1+z2)/length_m
+            r = radius_m * (alpha + taper_factor * (1-alpha))
             x1 = radius_m * math.cos(phi1)
             y1 = radius_m * math.sin(phi1)
-            z1 = delta_z_m * i
             x2 = radius_m * math.cos(phi2)
             y2 = radius_m * math.sin(phi2)
-            z2 = delta_z_m * (i + 1)
             obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
