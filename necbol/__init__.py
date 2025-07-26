@@ -1,3 +1,6 @@
+"""
+    Standard Python initialiser handling imports from modules and version number
+"""
 from necbol.components import *
 from necbol.visualiser import *
 from necbol.analyser import *
