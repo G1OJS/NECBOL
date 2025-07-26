@@ -16,6 +16,7 @@
 - **Optimiser**: Optimise VSWR and / or Gain in a specified direction 
 - **Extensible design**: It's written in Python, so you can use the core and add your own code
 - **Example files**: Include Simple dipole, Hentenna with reflector with example parameter sweep, Circular version of Skeleton Slot Cube with Optimiser code
+- **Wire Frame Visualiser shows wire thickness** to help understand wire proximity
   
 ![Capture](https://github.com/user-attachments/assets/d9144a6c-4d3f-4bd6-9a4b-52559dc10600)
 
