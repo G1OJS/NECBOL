@@ -116,7 +116,7 @@ class components:
         obj._add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
-    def helix(self,  wires_per_turn, sense, **dimensions):
+    def helix(self, wires_per_turn, sense, taper_factor = 1.0, **dimensions):
         """
         Create a single helix with axis = Z axis
         Arguments_
@@ -147,12 +147,14 @@ class components:
         for i in range(n_wires):
             phi1 = phi_sign * delta_phi * i
             phi2 = phi_sign * delta_phi * (i + 1)
+            z1 = delta_z_m * i
+            z2 = delta_z_m * (i + 1)
+            alpha = 0.5*(z1+z2)/length_m
+            r = radius_m * (alpha + taper_factor * (1-alpha))
             x1 = radius_m * math.cos(phi1)
             y1 = radius_m * math.sin(phi1)
-            z1 = delta_z_m * i
             x2 = radius_m * math.cos(phi2)
             y2 = radius_m * math.sin(phi2)
-            z2 = delta_z_m * (i + 1)
             obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj

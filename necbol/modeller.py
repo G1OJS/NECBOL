@@ -184,7 +184,7 @@ class NECModel:
         with open(self.nec_in, "w") as f:
             f.write("CM\nCE\n")
             
-            # 1. Write GW lines for all geometry
+            # Write GW lines for all geometry
             for geomObj in self.geometry:
                 for w in geomObj._get_wires():
                     A = np.array(w["a"], dtype=float)
@@ -196,7 +196,7 @@ class NECModel:
                     f.write(' '.join([f"{B[i]:.3f} " for i in range(3)]))
                     f.write(f" {w['wr']}\n")
 
-            # 2. Write GE card, Ground Card, and GM card to set origin height
+            # Write GE card, Ground Card, and GM card to set origin height
             if self.ground_Er == 1.0:
                 f.write("GE 0\n")
             else:
@@ -204,7 +204,10 @@ class NECModel:
                 f.write("GE -1\n")
                 f.write(f"GN 2 0 0 0 {self.ground_Er:.3f} {self.ground_sigma:.3f} \n")
 
-            # 3. Write out the loads
+            # Write EK card
+                f.write("EK\n")
+
+            # Write out the loads
             for LD in self.LOADS:
                 LDTYP = ['series','parallel','series_per_metre','parallel_per_metre','impedance_not_used','conductivity'].index(LD['load_type'])
                 LDTAG = LD['iTag']
@@ -212,15 +215,14 @@ class NECModel:
                 # these strings are set programatically so shouldn't need an error trap
                 f.write(f"LD {LDTYP} {LDTAG} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n")
 
-            # 4. Feed
+            # Feed
             f.write(f"EX 0 {self.EX_tag} 1 0 1 0\n")
 
-            # 5. Frequency
+            # Frequency
             # update to include sweep
             f.write(f"FR 0 1 0 0 {self.MHz:.3f} 0\n")
 
-            # 6. Pattern points
-            # Need to update logic to set nTheta to 1 if fsweep 
+            # Pattern points
             n_phi = 1 + int(360 / self.az_step_deg)
             d_phi = 360 / (n_phi - 1)
             phi_start_deg = self.az_datum_deg

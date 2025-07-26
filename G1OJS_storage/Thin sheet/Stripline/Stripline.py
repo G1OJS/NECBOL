@@ -15,10 +15,10 @@ model.set_angular_resolution(az_step_deg = 1, el_step_deg = 1)
 
 antenna_components = components ()
 
-h = 50
-w = 150
-le = 5000
-ws = 300
+h = 6
+w = 200
+le = 1000
+ws = 400
 dg = 50
 
 dipole = antenna_components.wire_Z(length_mm = h, wire_diameter_mm = 1)
