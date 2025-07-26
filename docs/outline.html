@@ -1041,11 +1041,15 @@ import os
 </details>
 </details>
 <br><div class = 'filename'>visualiser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>import copy
+<pre class ='body content'>import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+
+import copy
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model):</span></summary>
+<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
@@ -1065,28 +1069,29 @@ import os
                     x1, y1, z1 = map(float, parts[3:6])
                     x2, y2, z2 = map(float, parts[6:9])
                     tag = int(parts[1])
-                    model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag))
-    _show_wires(model_tmp)
+                    radius = parts[9]
+                    model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
+    _show_wires(model_tmp, n_strands, color, alpha)
+
 
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'> def _show_wires(model):</span></summary>
-<pre class ='def content'>    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D
-
-    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
+<details><summary><span class ='def signature'> def _show_wires(model, n_strands, color, alpha):</span></summary>
+<pre class ='def content'>    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
     title = &quot;Geometry for &quot; + model.model_name
 
-    for start, end, tag in model.wires:
-        line_color = &#x27;black&#x27;
+    s,c = _trig(n_strands)
+
+    for start, end, tag, radius in model.wires:
+        wire_color = color
         if (tag == model.EX_tag):
-            line_color = &#x27;red&#x27;
+            wire_color = &#x27;red&#x27;
         if (tag in [load[&#x27;iTag&#x27;] for load in model.LOADS]):
-            line_color = &#x27;green&#x27;       
-        ax.plot(*zip(start, end), color=line_color if (tag!=model.EX_tag) else &#x27;red&#x27;)
+            wire_color = &#x27;green&#x27;
+        _render_wire(ax, start, end, radius, s,c, color = wire_color, alpha=alpha)
 
     plt.draw()  # ensure autoscale limits are calculated
 
@@ -1112,10 +1117,59 @@ import os
         fig.figure.text(0.02,0.1,f&quot;Max total gain: {model.max_total_gain:.2f} dBi&quot;)
     
     plt.tight_layout()
+
     plt.show()
+    
 
 
-                                            
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _trig(n_strands):</span></summary>
+<pre class ='def content'>    if(n_strands &lt;2):
+        return([0],[0]) # dummy values not used
+    angles = np.linspace(0, 2*np.pi, n_strands, endpoint=False)
+    cosines = np.cos(angles)
+    sines = np.sin(angles)
+    return sines, cosines
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _fast_perpendicular(v, threshold=100):</span></summary>
+<pre class ='def content'>    vx, vy, vz = abs(v[0]), abs(v[1]), abs(v[2])
+    if threshold * vz &gt; vx and threshold * vz &gt; vy:
+        # v is nearly aligned with z-axis; project to XZ
+        u = np.array([-v[2], 0.0, v[0]])
+    else:
+        # project to XY
+        u = np.array([-v[1], v[0], 0.0])
+    return u 
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _render_wire(ax, start, end, radius, sines,cosines, color, alpha):</span></summary>
+<pre class ='def content'>    if(len(sines) &lt;2):
+        s = start
+        e = end
+        ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color, alpha = alpha)
+        return
+    
+    axis = np.array(end) - np.array(start)
+    fast_perp = _fast_perpendicular(axis)
+    ortho_perp = np.cross(axis, fast_perp)  # axis × u
+    u = (float(radius) * fast_perp) / np.linalg.norm(fast_perp)
+    v = (float(radius) * ortho_perp) / np.linalg.norm(ortho_perp)
+    # Generate strand offsets by rotating u around axis
+    for i, s in enumerate(sines):
+        offset = s * u + cosines[i]* v
+        s = np.array(start) + offset
+        e = np.array(end) + offset
+        ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color, alpha = alpha)
+
+
+
+
+
 </pre>
 </details>
 <br><div class = 'filename'>optimisers.py</div><br><details><summary><span class ='body signature'> body</span></summary>
