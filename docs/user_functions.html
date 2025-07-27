@@ -6,7 +6,7 @@
         Or another value if specified
 </pre>
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspget_gains_at_gain_point(model):</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_range_dB = 30):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_max = 0, gain_scale_range_dB = 30):</span></div>
 <pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
         &#x27;azimuth_deg&#x27;: float,
         &#x27;elevation_deg&#x27;: float,
@@ -235,7 +235,7 @@
         Returns:
             obj (GeometryObject): The constructed geometry object representing the helix.
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(model, epsillon_r = 1.0, conductivity = 1e12, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></div>
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
         

@@ -68,7 +68,7 @@ print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
 
 </pre>
 </details>
-<details><summary><span class ='def signature'> def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_range_dB = 30):</span></summary>
+<details><summary><span class ='def signature'> def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_max = 0, gain_scale_range_dB = 30):</span></summary>
 <pre class ='def content'>    import matplotlib.pyplot as plt
     import numpy as np
 
@@ -100,7 +100,7 @@ print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
  
     fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
 
-    scl_max = -100
+    scl_max = gain_scale_max
     for comp in components:
         gain = [d[comp] for d in cut]
         scl_max = max(scl_max,max(gain))
@@ -111,6 +111,7 @@ print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
     ax.set_title(title)
     ax.grid(True)
 
+    scl_max = 5 * (1+ int(scl_max/5))
     ax.set_rmax(scl_max)
     ax.set_rmin(scl_max - gain_scale_range_dB )
     ax.set_rlabel_position(90)
@@ -446,8 +447,8 @@ import os
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        self.default_wire_sigma = sigma
-        self.LD_WIRECOND = f&quot;LD 5 0 0 0 {sigma:.6f} \n&quot;
-
+        self.LOADS.append({&#x27;iTag&#x27;: 0, &#x27;load_type&#x27;: &#x27;conductivity&#x27;, &#x27;RoLuCp&#x27;: (sigma, 0, 0), &#x27;alpha&#x27;: None})
+  
 </pre>
 </details>
 </details>
@@ -1651,7 +1652,7 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
+<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, epsillon_r = 1.0, conductivity = 1e12, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
@@ -1736,7 +1737,8 @@ from necbol.modeller import GeometryObject,_units
 
         # add distributed capacitive load to the obj.base_tag of this object if dielectric
         if(epsillon_r == 1.0):
-            print(f&quot;\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres&quot;)
+            print(f&quot;\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres and conductivity = {conductivity:8.4e} mhos/metre&quot;)
+            model.LOADS.append({&#x27;iTag&#x27;: obj.base_tag, &#x27;load_type&#x27;: &#x27;conductivity&#x27;, &#x27;RoLuCp&#x27;: (conductivity, 0, 0), &#x27;alpha&#x27;: None})
         else:
             E0 = 8.854188 * 1e-12
             C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * dielectric_thickness_m
