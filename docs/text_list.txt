@@ -1,0 +1,66 @@
+class GeometryObject:
+class NECModel:
+class RandomOptimiser:
+class _units:
+class components:
+def __init__(self, build_fn, param_init, cost_fn, bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):
+def __init__(self, starting_tag_nr = 0):
+def __init__(self, wires):
+def __init__(self, working_dir, nec_exe_path, model_name = "Unnamed_Antennna", verbose=False):
+def _add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
+def _compute_full_farfield_metrics(E_theta, E_phi):
+def _cos_sin(self,angle_deg):
+def _cosine_series(s, terms):
+def _fast_perpendicular(v, threshold=100):
+def _format_params(self, params):
+def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:
+def _get_available_results(model):
+def _get_complex_component(pat_data, component):
+def _get_wires(self):
+def _insert_special_segment(self, geomObj, item_iTag, item_alpha_object, item_wire_index, item_alpha_wire):
+def _new_geometry_object(self):
+def _plot_difference_field(model_A, model_B, **kwargs):
+def _point_on_object(self,geom_object, wire_index, alpha_wire):
+def _point_should_connect_to_wire(self,P, wire, tol=1e-3):
+def _random_variation(self, x):
+def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
+def _render_wire(ax, start, end, radius, sines,cosines, color, alpha):
+def _rotate(self, R):
+def _same_line_print(self,text):
+def _set_frequency_sweep(self, MHz, MHz_stop, MHz_step):
+def _set_theta_grid_from_el_datum(self, el_datum_deg, el_step_deg, hemisphere = True):
+def _subtract_field_patterns(pat1, pat2):
+def _trig(n_strands):
+def _write_radiation_pattern(pattern, file_path):
+def _write_runner_files(self):
+def add(self, geomObj, wireframe_color = 'darkgoldenrod'):
+def circular_arc(self, n_wires, arc_phi_deg, **dimensions):
+def connect_ends(self, other, tol=1e-3, verbose = False):
+def connector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):
+def copy_of(self, existing_obj):
+def flexi_helix(self, sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):
+def get_gains_at_gain_point(model):
+def helix(self, wires_per_turn, sense, taper_factor = 1.0, **dimensions):
+def optimise(self, verbose=False, tty=True, show_geometry = True):
+def place_RLC_load(self, geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):
+def place_feed(self,  geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):
+def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_max = 0, gain_scale_range_dB = 30):
+def rect_loop_XZ(self, **dimensions):
+def rotate_ZtoX(self):
+def rotate_ZtoY(self):
+def rotate_around_X(self, angle_deg):
+def rotate_around_Y(self, angle_deg):
+def rotate_around_Z(self, angle_deg):
+def run_nec(self):
+def set_angular_resolution(self, az_step_deg, el_step_deg):
+def set_frequency(self, MHz):
+def set_gain_point(self, azimuth_deg, elevation_deg):
+def set_ground(self, eps_r, sigma, **origin_height):
+def set_name(self, name):
+def set_wire_conductivity(self, sigma):
+def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):
+def thin_sheet(self, model, epsillon_r = 1.0, conductivity = 1e12, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
+def translate(self, **params):
+def vswr(model, Z0 = 50):
+def wire_Z(self, **dimensions):
+def write_nec(self):
