@@ -1,5 +1,5 @@
-#import sys
-#sys.path.insert(0, r"C:\Users\drala\Documents\Projects\GitHub\NECBOL")
+import sys
+sys.path.insert(0, r"C:\Users\drala\Documents\Projects\GitHub\NECBOL")
 
 from necbol import *
 from necbol.analyser import _plot_difference_field
