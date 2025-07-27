@@ -417,6 +417,7 @@ import os
         self.LOADS_start_tag = 8000
         self.max_total_gain = None
         self.vswr = None
+        self.tags_info = []
 
 </pre>
 </details>
@@ -568,7 +569,7 @@ import os
 </pre>
 </details>
 </details>
-<details><summary><span class ='def signature'>🧾 def add(self, geomObj):</span></summary>
+<details><summary><span class ='def signature'>🧾 def add(self, geomObj, wireframe_color = 'darkgoldenrod'):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
@@ -576,7 +577,9 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.geometry.append(geomObj)
+<pre class ='body content'>        geomObj.wireframe_color = wireframe_color
+        self.tags_info.append({&#x27;base_tag&#x27;:geomObj.base_tag,&#x27;wf_col&#x27;:geomObj.wireframe_color})
+        self.geometry.append(geomObj)
 
 </pre>
 </details>
@@ -598,6 +601,7 @@ import os
             # Write GW lines for all geometry
             for geomObj in self.geometry:
                 for w in geomObj._get_wires():
+                    #print(f&quot;Write wire with tag {w[&#x27;iTag&#x27;]}&quot;)
                     A = np.array(w[&quot;a&quot;], dtype=float)
                     B = np.array(w[&quot;b&quot;], dtype=float)
                     if(w[&#x27;nS&#x27;] == 0): # calculate and update number of segments only if not already present
@@ -749,6 +753,7 @@ import os
 
         if (wLen &lt;= self.segLength_m):
             # feed segment is all of this wire, so no need to split
+            # print(f&quot;Change wire itag from {w[&#x27;iTag&#x27;]} to {item_iTag}&quot;)
             w[&#x27;nS&#x27;] = 1
             w[&#x27;iTag&#x27;] = item_iTag
         else:
@@ -778,6 +783,7 @@ import os
 <details><summary><span class ='def signature'> def __init__(self, wires):</span></summary>
 <pre class ='def content'>        self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
         self._units = _units()
+        self.wireframe_color = None
 
 </pre>
 </details>
@@ -1072,7 +1078,7 @@ import copy
 
 </pre>
 </details>
-<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3):</span></summary>
+<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
@@ -1081,8 +1087,8 @@ import copy
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>    model_tmp = copy.deepcopy(model)
-    model_tmp.wires = []
+<pre class ='body content'>    model_wires = copy.deepcopy(model)
+    model_wires.wires = []
     with open(model.nec_in, &#x27;r&#x27;) as f:
         for line in f:
             if line.startswith(&quot;GW&quot;):
@@ -1093,23 +1099,22 @@ import copy
                     x2, y2, z2 = map(float, parts[6:9])
                     tag = int(parts[1])
                     radius = parts[9]
-                    model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
-    _show_wires(model_tmp, n_strands, color, alpha)
+                    model_wires.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
 
 
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'> def _show_wires(model, n_strands, color, alpha):</span></summary>
-<pre class ='def content'>    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
+    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
     fig = plt.figure()
     ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
+    ax.view_init(view_el, view_az)
     title = &quot;Geometry for &quot; + model.model_name
 
     s,c = _trig(n_strands)
 
-    for start, end, tag, radius in model.wires:
+    for start, end, tag, radius in model_wires.wires:
         wire_color = color
+        for item in model.tags_info:
+            if (tag == item[&#x27;base_tag&#x27;]):
+                wire_color = item[&#x27;wf_col&#x27;]
         if (tag == model.EX_tag):
             wire_color = &#x27;red&#x27;
         if (tag in [load[&#x27;iTag&#x27;] for load in model.LOADS]):
@@ -1147,6 +1152,7 @@ import copy
 
 
 </pre>
+</details>
 </details>
 <details><summary><span class ='def signature'> def _trig(n_strands):</span></summary>
 <pre class ='def content'>    if(n_strands &lt;2):
@@ -1375,7 +1381,9 @@ from necbol.modeller import GeometryObject,_units
 <details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>        self.object_counter += 1
         iTag = self.object_counter
-        return iTag, GeometryObject([])
+        obj = GeometryObject([])
+        obj.base_tag = iTag
+        return obj
 
 </pre>
 </details>
@@ -1387,9 +1395,9 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         for w in existing_obj.wires:
-            obj._add_wire(iTag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
+            obj._add_wire(obj.base_tag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
         return obj
         
 </pre>
@@ -1411,11 +1419,11 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
         wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
-        obj._add_wire(iTag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
         return obj
     
 </pre>
@@ -1437,15 +1445,15 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
         half_width_m = dimensions_m.get(&#x27;width_m&#x27;)/2
         wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2        
-        obj._add_wire(iTag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
-        obj._add_wire(iTag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
-        obj._add_wire(iTag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
-        obj._add_wire(iTag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
         return obj
 
 </pre>
@@ -1466,10 +1474,10 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         from_point = obj._point_on_object(from_object, from_wire_index, from_alpha_wire)
         to_point = obj._point_on_object(to_object, to_wire_index, to_alpha_wire)
-        obj._add_wire(iTag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
+        obj._add_wire(obj.base_tag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
         return obj
 
 </pre>
@@ -1493,7 +1501,7 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
         length_m = dimensions_m.get(&#x27;length_m&#x27;)
@@ -1517,7 +1525,7 @@ from necbol.modeller import GeometryObject,_units
             y1 = radius_m * math.sin(phi1)
             x2 = radius_m * math.cos(phi2)
             y2 = radius_m * math.sin(phi2)
-            obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(obj.base_tag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
@@ -1558,7 +1566,7 @@ from necbol.modeller import GeometryObject,_units
 <pre class ='def content'>            return sum(A * math.cos(i * math.pi * s + P) for i, (A, P) in enumerate(terms))
 
         # === Parameter unpacking and setup ===
-        iTag, obj = self._new_geometry_object()
+        obj = self._new_geometry_object()
         dimensions_m = self._units._from_suffixed_dimensions(dimensions)
 
         l_m = dimensions_m.get(&#x27;length_m&#x27;)
@@ -1597,7 +1605,7 @@ from necbol.modeller import GeometryObject,_units
         for i in range(n_segments):
             x1, y1, z1 = points[i]
             x2, y2, z2 = points[i + 1]
-            obj._add_wire(iTag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(obj.base_tag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         return obj
 
@@ -1621,7 +1629,7 @@ from necbol.modeller import GeometryObject,_units
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
         wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2    
@@ -1634,7 +1642,7 @@ from necbol.modeller import GeometryObject,_units
             ca, sa = obj._cos_sin(delta_phi_deg * (i+1))
             x2 = radius_m * ca
             y2 = radius_m * sa
-            obj._add_wire(iTag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
+            obj._add_wire(obj.base_tag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
 
         return obj
 
@@ -1648,9 +1656,10 @@ from necbol.modeller import GeometryObject,_units
 <details><summary><span class ='docstring signature'> docstring</span></summary>
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
-        Models *either* conductive or dielectric sheet, not both.
-        Set epsillon_r to 1.0 for perfectly conducting sheet
-        Set epsillon_r &gt; 1.0 for dielectric sheet 
+        
+        Models *either* conductive or dielectric sheet, not both:
+            Set epsillon_r to 1.0 for conducting sheet
+            Set epsillon_r &gt; 1.0 for dielectric sheet 
 
         Arguments:
             model - the object model being built
@@ -1667,27 +1676,32 @@ from necbol.modeller import GeometryObject,_units
             the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the
             grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
 
-        Required dimensions are length_, height_, thickness_, grid_pitch_
-        Optinally, wire_diameter_ may be specified (default is 1mm)
+        Required dimensions are:
+            length_
+            height_
+            grid_pitch_
+            dielectric_thickness_ (for dielectric sheets only)
+        Optional dimensions are:
+            conducting_wire_diameter_ (for conducting sheets only, default is 1mm)
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        print(&quot;NOTE: The thin_sheet model has been tested functionally but not validated quantitavely&quot;)
-        iTag, obj = self._new_geometry_object()
+<pre class ='body content'>        obj = self._new_geometry_object()
         dimensions_m = self._units._from_suffixed_dimensions(dimensions)
         length_m = dimensions_m.get(&#x27;length_m&#x27;)
         height_m = dimensions_m.get(&#x27;height_m&#x27;)
         grid_pitch_m = dimensions_m.get(&#x27;grid_pitch_m&#x27;)
-        thickness_m = dimensions_m.get(&#x27;thickness_m&#x27;)
-        if(&#x27;wire_radius_m&#x27; in dimensions_m.keys()):
-            wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
-        else:
+
+        if (epsillon_r &gt; 1.0):
+            dielectric_thickness_m = dimensions_m.get(&#x27;dielectric_thickness_m&#x27;)
             wire_radius_m = 0.0005
-          
+        else:
+            if(&#x27;conducting_wire_diameter_m&#x27; in dimensions_m):
+                wire_radius_m = dimensions_m.get(&#x27;conducting_wire_diameter_m&#x27;)/2
+            else:
+                wire_radius_m = 0.0005
+            
         dG = grid_pitch_m
-        wire_radius_m = thickness_m/2
-        wire_radius_m = 0.0005
-        
         nY = int(length_m / dG) + 1
         nZ = int(height_m / dG) + 1
         if (force_odd):
@@ -1702,6 +1716,7 @@ from necbol.modeller import GeometryObject,_units
         else:
             dY = L/(nY-1)
             dZ = H/(nz-1)
+            dS = 0.5*(dY+dZ)
 
 
         # Create sheet
@@ -1712,20 +1727,23 @@ from necbol.modeller import GeometryObject,_units
         for i in range(i0, i1):     # make z wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dY, -H/2, 0, -L/2+i*dY, H/2]
             nSegs = nZ-1
-            obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(obj.base_tag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
         for j in range(j0, j1):     # make y wires
             x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dZ, 0, L/2, -H/2+j*dZ]
             nSegs = nY-1
-            obj._add_wire(iTag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+            obj._add_wire(obj.base_tag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
 
-
-        # add distributed capacitive load to the iTag of this object if dielectric
-        if(epsillon_r &gt; 1.0):
+        # add distributed capacitive load to the obj.base_tag of this object if dielectric
+        if(epsillon_r == 1.0):
+            print(f&quot;\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres&quot;)
+        else:
             E0 = 8.854188 * 1e-12
-            C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * thickness_m
+            C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * dielectric_thickness_m
             # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
-            model.LOADS.append({&#x27;iTag&#x27;: iTag, &#x27;load_type&#x27;: &#x27;series_per_metre&#x27;, &#x27;RoLuCp&#x27;: (0, 0, C_pF_per_metre), &#x27;alpha&#x27;: None})
+            model.LOADS.append({&#x27;iTag&#x27;: obj.base_tag, &#x27;load_type&#x27;: &#x27;series_per_metre&#x27;, &#x27;RoLuCp&#x27;: (0, 0, C_pF_per_metre), &#x27;alpha&#x27;: None})
+            print(f&quot;\nAdded thin dielectric sheet comrising wires with diameter {wire_radius_m * 2} metres \n and capacitance loading {C_pF_per_metre:.6f} pF / metre&quot;)
+            print(&quot;NOTE: The thin dielectric sheet model has been tested functionally but not validated quantitavely&quot;)
 
                     
         return obj

@@ -82,7 +82,7 @@
               which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
               wire divided by that wire&#x27;s length
 </pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd(geomObj):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd(geomObj, wireframe_color = 'darkgoldenrod'):</span></div>
 <pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
             to the component after this point are ignored.
 </pre>
@@ -122,7 +122,7 @@
 
             if verbose is True, details of the wire connection(s) are printed
 </pre>
-<br><div class = 'filename'>visualiser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3):</span></div>
+<br><div class = 'filename'>visualiser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):</span></div>
 <pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
         then displays the geometry in a 3D projection. The feed is highligted in red.
         Loads are highlighted in green.
@@ -238,9 +238,10 @@
 <hr><div><span class ='def signature'>&nbsp&nbsp&nbspthin_sheet(model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></div>
 <pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
         which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
-        Models *either* conductive or dielectric sheet, not both.
-        Set epsillon_r to 1.0 for perfectly conducting sheet
-        Set epsillon_r &gt; 1.0 for dielectric sheet 
+        
+        Models *either* conductive or dielectric sheet, not both:
+            Set epsillon_r to 1.0 for conducting sheet
+            Set epsillon_r &gt; 1.0 for dielectric sheet 
 
         Arguments:
             model - the object model being built
@@ -257,8 +258,13 @@
             the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the
             grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
 
-        Required dimensions are length_, height_, thickness_, grid_pitch_
-        Optinally, wire_diameter_ may be specified (default is 1mm)
+        Required dimensions are:
+            length_
+            height_
+            grid_pitch_
+            dielectric_thickness_ (for dielectric sheets only)
+        Optional dimensions are:
+            conducting_wire_diameter_ (for conducting sheets only, default is 1mm)
 </pre>
 
 <br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite 1.4.0 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
