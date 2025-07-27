@@ -40,6 +40,3 @@ Documentation is work in progress. In the meantime:
   
 * You can browse the source files in the [necbol folder](https://github.com/G1OJS/NECBOL/tree/main/necbol) (however note that they may be ahead of the release on pip).
 
-* Please look at the [change history](https://g1ojs.github.io/NECBOL/change-history), especally if you've used previous versions
-  
-* Note that the TO_DO list has been deleted and captured in GitHub issues
