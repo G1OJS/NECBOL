@@ -267,7 +267,7 @@ class components:
 
 
 
-    def thin_sheet(self, model, epsillon_r, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
+    def thin_sheet(self, model, epsillon_r = 1.0, conductivity = 1e12, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):
 
         """
         Creates a grid of wires interconnected at segment level to economically model a flat sheet
@@ -351,7 +351,8 @@ class components:
 
         # add distributed capacitive load to the obj.base_tag of this object if dielectric
         if(epsillon_r == 1.0):
-            print(f"\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres")
+            print(f"\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres and conductivity = {conductivity:8.4e} mhos/metre")
+            model.LOADS.append({'iTag': obj.base_tag, 'load_type': 'conductivity', 'RoLuCp': (conductivity, 0, 0), 'alpha': None})
         else:
             E0 = 8.854188 * 1e-12
             C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * dielectric_thickness_m

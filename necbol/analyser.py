@@ -58,7 +58,7 @@ def get_gains_at_gain_point(model):
     return gains_at_point
 
 
-def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_range_dB = 30):
+def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_max = 0, gain_scale_range_dB = 30):
     import matplotlib.pyplot as plt
     import numpy as np
 
@@ -90,7 +90,7 @@ def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, componen
  
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
 
-    scl_max = -100
+    scl_max = gain_scale_max
     for comp in components:
         gain = [d[comp] for d in cut]
         scl_max = max(scl_max,max(gain))
@@ -101,6 +101,7 @@ def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, componen
     ax.set_title(title)
     ax.grid(True)
 
+    scl_max = 5 * (1+ int(scl_max/5))
     ax.set_rmax(scl_max)
     ax.set_rmin(scl_max - gain_scale_range_dB )
     ax.set_rlabel_position(90)

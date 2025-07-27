@@ -82,8 +82,8 @@ class NECModel:
             Set wire conductivity to be assumed for all wires that don't have an explicitly-set load.
         """
         self.default_wire_sigma = sigma
-        self.LD_WIRECOND = f"LD 5 0 0 0 {sigma:.6f} \n"
-
+        self.LOADS.append({'iTag': 0, 'load_type': 'conductivity', 'RoLuCp': (sigma, 0, 0), 'alpha': None})
+  
     def set_frequency(self, MHz):
         """
             Request NEC to perform all analysis at the specified frequency. 
