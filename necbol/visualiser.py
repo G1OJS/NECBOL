@@ -29,14 +29,14 @@ import numpy as np
 
 import copy
 
-def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3):
+def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):
     """
         Opens the specified nec input file (*.nec) and reads the geometry,
         then displays the geometry in a 3D projection. The feed is highligted in red.
         Loads are highlighted in green.
     """
-    model_tmp = copy.deepcopy(model)
-    model_tmp.wires = []
+    model_wires = copy.deepcopy(model)
+    model_wires.wires = []
     with open(model.nec_in, 'r') as f:
         for line in f:
             if line.startswith("GW"):
@@ -47,21 +47,22 @@ def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 
                     x2, y2, z2 = map(float, parts[6:9])
                     tag = int(parts[1])
                     radius = parts[9]
-                    model_tmp.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
-    _show_wires(model_tmp, n_strands, color, alpha)
+                    model_wires.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
 
-
-def _show_wires(model, n_strands, color, alpha):
 
     print("Drawing geometry. Please close the geometry window to continue.")
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
+    ax.view_init(view_el, view_az)
     title = "Geometry for " + model.model_name
 
     s,c = _trig(n_strands)
 
-    for start, end, tag, radius in model.wires:
+    for start, end, tag, radius in model_wires.wires:
         wire_color = color
+        for item in model.tags_info:
+            if (tag == item['base_tag']):
+                wire_color = item['wf_col']
         if (tag == model.EX_tag):
             wire_color = 'red'
         if (tag in [load['iTag'] for load in model.LOADS]):

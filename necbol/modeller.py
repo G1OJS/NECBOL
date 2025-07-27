@@ -64,6 +64,7 @@ class NECModel:
         self.LOADS_start_tag = 8000
         self.max_total_gain = None
         self.vswr = None
+        self.tags_info = []
 
     def set_name(self, name):
         """
@@ -166,11 +167,13 @@ class NECModel:
         """
         self._insert_special_segment(geomObj, self.EX_tag, feed_alpha_object, feed_wire_index, feed_alpha_wire)
    
-    def add(self, geomObj):
+    def add(self, geomObj, wireframe_color = 'darkgoldenrod'):
         """
             Add a completed component to the specified model: model_name.add(component_name). Any changes made
             to the component after this point are ignored.
         """
+        geomObj.wireframe_color = wireframe_color
+        self.tags_info.append({'base_tag':geomObj.base_tag,'wf_col':geomObj.wireframe_color})
         self.geometry.append(geomObj)
 
     def write_nec(self):
@@ -187,6 +190,7 @@ class NECModel:
             # Write GW lines for all geometry
             for geomObj in self.geometry:
                 for w in geomObj._get_wires():
+                    #print(f"Write wire with tag {w['iTag']}")
                     A = np.array(w["a"], dtype=float)
                     B = np.array(w["b"], dtype=float)
                     if(w['nS'] == 0): # calculate and update number of segments only if not already present
@@ -313,6 +317,7 @@ class NECModel:
 
         if (wLen <= self.segLength_m):
             # feed segment is all of this wire, so no need to split
+            # print(f"Change wire itag from {w['iTag']} to {item_iTag}")
             w['nS'] = 1
             w['iTag'] = item_iTag
         else:
@@ -337,6 +342,7 @@ class GeometryObject:
     def __init__(self, wires):
         self.wires = wires  # list of wire dicts with iTag, nS, x1, y1, ...
         self._units = _units()
+        self.wireframe_color = None
 
     def translate(self, **params):
         """
