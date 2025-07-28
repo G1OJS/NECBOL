@@ -11,6 +11,7 @@ def _add_wire(self, iTag, nS, x1, y1, z1, x2, y2, z2, wr):
 def _compute_full_farfield_metrics(E_theta, E_phi):
 def _cos_sin(self,angle_deg):
 def _cosine_series(s, terms):
+def _extract_pattern_grid_info(pattern):
 def _fast_perpendicular(v, threshold=100):
 def _format_params(self, params):
 def _from_suffixed_dimensions(self, params: dict, whitelist=[]) -> dict:
