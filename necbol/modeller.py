@@ -28,6 +28,7 @@ import math
 import warnings
 import subprocess
 import os
+import time
 
 #=================================================================================
 # NEC Wrapper functions for writing .nec file and reading output
@@ -181,6 +182,7 @@ class NECModel:
             Write the entire model to the NEC input file ready for analysis. At this point, the function
             "show_wires_from_file" may be used to see the specified geometry in a 3D view.
         """
+        print("Writing NEC input file")
         self._write_runner_files()
         
         # open the .nec file
@@ -241,16 +243,47 @@ class NECModel:
 
     def run_nec(self):
         """
-            Pass the model file to NEC for analysis and wait for the output.
+        Pass the model file to NEC for analysis and wait for the output.
         """
-        
-        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+        try:
+            os.remove(self.nec_out)
+        except FileNotFoundError:
+            pass
+
+        print("Running NEC")
+        subprocess.Popen([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+
+        factored = False
+        pattern_started = False
+        st = time.time()
+
+        while True:
+            try:
+                with open(self.nec_out, "r") as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if "FACTOR=" in line and not factored:
+                            factored = True
+                            print("Matrix factored")
+                        if "RADIATION" in line and not pattern_started:
+                            pattern_started = True
+                            print("Calculating pattern")
+                        if "ERROR" in line:
+                            raise Exception(f"NEC Error: {line.strip()}")
+                        if "RUN" in line:
+                            print("NEC run completed")
+                            return  # success
+            except FileNotFoundError:
+                pass  # Output not yet created
+                if time.time() - st > 10:
+                    raise Exception("Timeout waiting for NEC to start")
+
+            time.sleep(0.5)
 
 
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
-
 
     def _set_frequency_sweep(self, MHz, MHz_stop, MHz_step):
         """

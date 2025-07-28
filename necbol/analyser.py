@@ -73,7 +73,7 @@ def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, componen
 
     # Filter data for fixed elevation (theta)
     if(elevation_deg is not None):
-        print(f"Plotting gain for elevation = {elevation_deg}")
+        print(f"Reading gain pattern for elevation = {elevation_deg}")
         pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = azimuth_deg, elevation_deg = None)
         
         cut = [d for d in pattern_data if abs(d['elevation_deg'] - elevation_deg) < 0.1]
@@ -82,7 +82,7 @@ def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, componen
 
     # Filter data for fixed azimuth (phi)
     if(azimuth_deg is not None):
-        print(f"Plotting gain for azimuth = {azimuth_deg}")
+        print(f"Reading gain pattern for azimuth = {azimuth_deg}")
         pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = None, elevation_deg = elevation_deg)
         cut = [d for d in pattern_data if abs(d['azimuth_deg'] - azimuth_deg) < 0.1]
         angle_deg = [d['elevation_deg'] for d in cut]
@@ -90,6 +90,7 @@ def plot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, componen
  
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
 
+    print("Plotting gain pattern")
     scl_max = gain_scale_max
     for comp in components:
         gain = [d[comp] for d in cut]
