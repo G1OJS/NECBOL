@@ -172,7 +172,11 @@ def _write_radiation_pattern(pattern, file_path):
         'E_theta_mag', 'E_theta_phase_deg', 'E_phi_mag', 'E_phi_phase_deg'
     ]
 
+    n_theta, n_phi, theta_step, phi_step = _extract_pattern_grid_info(pattern)
+    print(n_theta, n_phi, theta_step, phi_step )
+    
     with open(file_path, "w") as f:
+        f.write(f" ***** DATA CARD NO.  5   RP   0   {n_theta}    {n_phi}  1003 0 0  {theta_step:.1f}  {phi_step:.1f} 0.0 0.0\n\n")
         f.write("                                                - - - RADIATION PATTERNS - - -\n")
         f.write("\n")
         f.write("  - - ANGLES - -           - POWER GAINS -       - - - POLARIZATION - - -    - - - E(THETA) - - -    - - - E(PHI) - - -\n")
@@ -190,7 +194,7 @@ def _write_radiation_pattern(pattern, file_path):
                 line += f"{val:{fmt}}"
             f.write(line.rstrip() + "\n")
 
-
+        f.write("\n RUN TIME =   0\n")
 
 
 def _read_radiation_pattern(filepath, azimuth_deg = None, elevation_deg = None):
@@ -272,7 +276,7 @@ def _compute_full_farfield_metrics(E_theta, E_phi):
 
     # Total field magnitude squared
     total_power = abs(E_theta)**2 + abs(E_phi)**2
-    total_gain_dBi = 10 * math.log10(total_power) if total_power > 0 else -math.inf
+    total_gain_dBi = 10 * math.log10(total_power) if total_power > 0 else -999
 
     # RHCP and LHCP components
     E_rhcp = (E_theta - 1j * E_phi) / math.sqrt(2)
@@ -281,19 +285,19 @@ def _compute_full_farfield_metrics(E_theta, E_phi):
     rhcp_power = abs(E_rhcp)**2
     lhcp_power = abs(E_lhcp)**2
 
-    rhcp_gain_dBi = 10 * math.log10(rhcp_power) if rhcp_power > 0 else -math.inf
-    lhcp_gain_dBi = 10 * math.log10(lhcp_power) if lhcp_power > 0 else -math.inf
+    rhcp_gain_dBi = 10 * math.log10(rhcp_power) if rhcp_power > 0 else -999
+    lhcp_gain_dBi = 10 * math.log10(lhcp_power) if lhcp_power > 0 else -999
 
     # Axial ratio in dB
     max_pol_power = max(rhcp_power, lhcp_power)
     min_pol_power = min(rhcp_power, lhcp_power)
     if min_pol_power == 0:
-        axial_ratio_dB = float('inf')
+        axial_ratio_dB = 999
     else:
         axial_ratio_dB = 10 * math.log10(max_pol_power / min_pol_power)
 
     # Polarization sense
-    if axial_ratio_dB == float('inf'):
+    if axial_ratio_dB == 999:
         polarization_sense = "Linear"
     elif rhcp_power > lhcp_power:
         polarization_sense = "RHCP"
@@ -319,8 +323,8 @@ def _compute_full_farfield_metrics(E_theta, E_phi):
     vert_power = abs(E_theta)**2
     horiz_power = abs(E_phi)**2
 
-    vert_gain_dBi = 10 * math.log10(vert_power) if vert_power > 0 else -math.inf
-    horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power > 0 else -math.inf
+    vert_gain_dBi = 10 * math.log10(vert_power) if vert_power > 0 else -999
+    horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power > 0 else -999
 
     return {
         'vert_gain_dBi': vert_gain_dBi,
@@ -336,6 +340,34 @@ def _compute_full_farfield_metrics(E_theta, E_phi):
         'rhcp_gain_dBi': rhcp_gain_dBi,
         'lhcp_gain_dBi': lhcp_gain_dBi
     }
+
+
+def _extract_pattern_grid_info(pattern):
+    # Compute theta and phi for each entry
+    for entry in pattern:
+        entry['theta_deg'] = 90.0 - entry['elevation_deg']
+        entry['phi_deg'] = entry['azimuth_deg']
+
+    # Extract sorted unique theta and phi values
+    theta_vals = sorted(set(round(e['theta_deg'], 5) for e in pattern))
+    phi_vals = sorted(set(round(e['phi_deg'], 5) for e in pattern))
+
+    # Determine steps (assuming uniform grid)
+    if len(theta_vals) > 1:
+        theta_step = round(theta_vals[1] - theta_vals[0], 5)
+    else:
+        theta_step = 0.0
+
+    if len(phi_vals) > 1:
+        phi_step = round(phi_vals[1] - phi_vals[0], 5)
+    else:
+        phi_step = 0.0
+
+    n_theta = len(theta_vals)
+    n_phi = len(phi_vals)
+
+    return n_theta, n_phi, theta_step, phi_step
+
 
 
 def _get_available_results(model):

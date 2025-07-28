@@ -217,7 +217,7 @@ class NECModel:
                 LDTAG = LD['iTag']
                 R_Ohms, L_uH , C_pF = LD['RoLuCp']
                 # these strings are set programatically so shouldn't need an error trap
-                f.write(f"LD {LDTYP} {LDTAG} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n")
+                f.write(f"LD {LDTYP} {LDTAG} 0 0 {R_Ohms:8.4e} {L_uH * 1e-6:8.4e} {C_pF * 1e-12:8.4e}\n")
 
             # Feed
             f.write(f"EX 0 {self.EX_tag} 1 0 1 0\n")
