@@ -190,7 +190,11 @@ import copy
         &#x27;E_theta_mag&#x27;, &#x27;E_theta_phase_deg&#x27;, &#x27;E_phi_mag&#x27;, &#x27;E_phi_phase_deg&#x27;
     ]
 
+    n_theta, n_phi, theta_step, phi_step = _extract_pattern_grid_info(pattern)
+    print(n_theta, n_phi, theta_step, phi_step )
+    
     with open(file_path, &quot;w&quot;) as f:
+        f.write(f&quot; ***** DATA CARD NO.  5   RP   0   {n_theta}    {n_phi}  1003 0 0  {theta_step:.1f}  {phi_step:.1f} 0.0 0.0\n\n&quot;)
         f.write(&quot;                                                - - - RADIATION PATTERNS - - -\n&quot;)
         f.write(&quot;\n&quot;)
         f.write(&quot;  - - ANGLES - -           - POWER GAINS -       - - - POLARIZATION - - -    - - - E(THETA) - - -    - - - E(PHI) - - -\n&quot;)
@@ -208,7 +212,7 @@ import copy
                 line += f&quot;{val:{fmt}}&quot;
             f.write(line.rstrip() + &quot;\n&quot;)
 
-
+        f.write(&quot;\n RUN TIME =   0\n&quot;)
 
 
 </pre>
@@ -297,7 +301,7 @@ import cmath
 
     # Total field magnitude squared
     total_power = abs(E_theta)**2 + abs(E_phi)**2
-    total_gain_dBi = 10 * math.log10(total_power) if total_power &gt; 0 else -math.inf
+    total_gain_dBi = 10 * math.log10(total_power) if total_power &gt; 0 else -999
 
     # RHCP and LHCP components
     E_rhcp = (E_theta - 1j * E_phi) / math.sqrt(2)
@@ -306,19 +310,19 @@ import cmath
     rhcp_power = abs(E_rhcp)**2
     lhcp_power = abs(E_lhcp)**2
 
-    rhcp_gain_dBi = 10 * math.log10(rhcp_power) if rhcp_power &gt; 0 else -math.inf
-    lhcp_gain_dBi = 10 * math.log10(lhcp_power) if lhcp_power &gt; 0 else -math.inf
+    rhcp_gain_dBi = 10 * math.log10(rhcp_power) if rhcp_power &gt; 0 else -999
+    lhcp_gain_dBi = 10 * math.log10(lhcp_power) if lhcp_power &gt; 0 else -999
 
     # Axial ratio in dB
     max_pol_power = max(rhcp_power, lhcp_power)
     min_pol_power = min(rhcp_power, lhcp_power)
     if min_pol_power == 0:
-        axial_ratio_dB = float(&#x27;inf&#x27;)
+        axial_ratio_dB = 999
     else:
         axial_ratio_dB = 10 * math.log10(max_pol_power / min_pol_power)
 
     # Polarization sense
-    if axial_ratio_dB == float(&#x27;inf&#x27;):
+    if axial_ratio_dB == 999:
         polarization_sense = &quot;Linear&quot;
     elif rhcp_power &gt; lhcp_power:
         polarization_sense = &quot;RHCP&quot;
@@ -344,8 +348,8 @@ import cmath
     vert_power = abs(E_theta)**2
     horiz_power = abs(E_phi)**2
 
-    vert_gain_dBi = 10 * math.log10(vert_power) if vert_power &gt; 0 else -math.inf
-    horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power &gt; 0 else -math.inf
+    vert_gain_dBi = 10 * math.log10(vert_power) if vert_power &gt; 0 else -999
+    horiz_gain_dBi = 10 * math.log10(horiz_power) if horiz_power &gt; 0 else -999
 
     return {
         &#x27;vert_gain_dBi&#x27;: vert_gain_dBi,
@@ -361,6 +365,36 @@ import cmath
         &#x27;rhcp_gain_dBi&#x27;: rhcp_gain_dBi,
         &#x27;lhcp_gain_dBi&#x27;: lhcp_gain_dBi
     }
+
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _extract_pattern_grid_info(pattern):</span></summary>
+<pre class ='def content'>    # Compute theta and phi for each entry
+    for entry in pattern:
+        entry[&#x27;theta_deg&#x27;] = 90.0 - entry[&#x27;elevation_deg&#x27;]
+        entry[&#x27;phi_deg&#x27;] = entry[&#x27;azimuth_deg&#x27;]
+
+    # Extract sorted unique theta and phi values
+    theta_vals = sorted(set(round(e[&#x27;theta_deg&#x27;], 5) for e in pattern))
+    phi_vals = sorted(set(round(e[&#x27;phi_deg&#x27;], 5) for e in pattern))
+
+    # Determine steps (assuming uniform grid)
+    if len(theta_vals) &gt; 1:
+        theta_step = round(theta_vals[1] - theta_vals[0], 5)
+    else:
+        theta_step = 0.0
+
+    if len(phi_vals) &gt; 1:
+        phi_step = round(phi_vals[1] - phi_vals[0], 5)
+    else:
+        phi_step = 0.0
+
+    n_theta = len(theta_vals)
+    n_phi = len(phi_vals)
+
+    return n_theta, n_phi, theta_step, phi_step
+
 
 
 </pre>
@@ -629,7 +663,7 @@ import os
                 LDTAG = LD[&#x27;iTag&#x27;]
                 R_Ohms, L_uH , C_pF = LD[&#x27;RoLuCp&#x27;]
                 # these strings are set programatically so shouldn&#x27;t need an error trap
-                f.write(f&quot;LD {LDTYP} {LDTAG} 0 0 {R_Ohms} {L_uH * 1e-6} {C_pF * 1e-12}\n&quot;)
+                f.write(f&quot;LD {LDTYP} {LDTAG} 0 0 {R_Ohms:8.4e} {L_uH * 1e-6:8.4e} {C_pF * 1e-12:8.4e}\n&quot;)
 
             # Feed
             f.write(f&quot;EX 0 {self.EX_tag} 1 0 1 0\n&quot;)
