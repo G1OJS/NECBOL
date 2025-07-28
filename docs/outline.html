@@ -83,7 +83,7 @@ print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
 
     # Filter data for fixed elevation (theta)
     if(elevation_deg is not None):
-        print(f&quot;Plotting gain for elevation = {elevation_deg}&quot;)
+        print(f&quot;Reading gain pattern for elevation = {elevation_deg}&quot;)
         pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = azimuth_deg, elevation_deg = None)
         
         cut = [d for d in pattern_data if abs(d[&#x27;elevation_deg&#x27;] - elevation_deg) &lt; 0.1]
@@ -92,7 +92,7 @@ print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
 
     # Filter data for fixed azimuth (phi)
     if(azimuth_deg is not None):
-        print(f&quot;Plotting gain for azimuth = {azimuth_deg}&quot;)
+        print(f&quot;Reading gain pattern for azimuth = {azimuth_deg}&quot;)
         pattern_data = _read_radiation_pattern(model.nec_out, azimuth_deg = None, elevation_deg = elevation_deg)
         cut = [d for d in pattern_data if abs(d[&#x27;azimuth_deg&#x27;] - azimuth_deg) &lt; 0.1]
         angle_deg = [d[&#x27;elevation_deg&#x27;] for d in cut]
@@ -100,6 +100,7 @@ print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
  
     fig, ax = plt.subplots(subplot_kw={&#x27;projection&#x27;: &#x27;polar&#x27;})
 
+    print(&quot;Plotting gain pattern&quot;)
     scl_max = gain_scale_max
     for comp in components:
         gain = [d[comp] for d in cut]
@@ -413,6 +414,7 @@ import math
 import warnings
 import subprocess
 import os
+import time
 
 #=================================================================================
 # NEC Wrapper functions for writing .nec file and reading output
@@ -627,7 +629,8 @@ import os
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self._write_runner_files()
+<pre class ='body content'>        print(&quot;Writing NEC input file&quot;)
+        self._write_runner_files()
         
         # open the .nec file
         with open(self.nec_in, &quot;w&quot;) as f:
@@ -691,17 +694,49 @@ import os
 <details><summary><span class ='def signature'>🧾 def run_nec(self):</span></summary>
 <pre class ='def content'></pre>
 <details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            Pass the model file to NEC for analysis and wait for the output.
+<pre class ='docstring content'>        Pass the model file to NEC for analysis and wait for the output.
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        subprocess.run([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+<pre class ='body content'>        try:
+            os.remove(self.nec_out)
+        except FileNotFoundError:
+            pass
+
+        print(&quot;Running NEC&quot;)
+        subprocess.Popen([self.nec_bat], creationflags=subprocess.CREATE_NO_WINDOW)
+
+        factored = False
+        pattern_started = False
+        st = time.time()
+
+        while True:
+            try:
+                with open(self.nec_out, &quot;r&quot;) as f:
+                    lines = f.readlines()
+                    for line in lines:
+                        if &quot;FACTOR=&quot; in line and not factored:
+                            factored = True
+                            print(&quot;Matrix factored&quot;)
+                        if &quot;RADIATION&quot; in line and not pattern_started:
+                            pattern_started = True
+                            print(&quot;Calculating pattern&quot;)
+                        if &quot;ERROR&quot; in line:
+                            raise Exception(f&quot;NEC Error: {line.strip()}&quot;)
+                        if &quot;RUN&quot; in line:
+                            print(&quot;NEC run completed&quot;)
+                            return  # success
+            except FileNotFoundError:
+                pass  # Output not yet created
+                if time.time() - st &gt; 10:
+                    raise Exception(&quot;Timeout waiting for NEC to start&quot;)
+
+            time.sleep(0.5)
 
 
 #===============================================================
 # internal functions for class NECModel
 #===============================================================
-
 
 </pre>
 </details>
