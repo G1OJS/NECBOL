@@ -1,0 +1,33 @@
+CM
+CM
+CM
+CM forw: 86, 58 ; back: 86, 238
+CE
+SY BASE=7.3
+SY GAP = 0.03
+SY WD=0.005
+SY Lt=1.
+SY Ld = 0.3
+SY Lstub=0.352525
+
+
+
+GW	1	19	GAP/2	0.	0	GAP/2+Lt	0.0	0	WD/2
+GW	2	19	-GAP/2	0.	0	-GAP/2-Lt	0.0	0	WD/2
+GW	5	5	-GAP/2	0	0	-GAP/2		0	-Lstub	WD/2
+GW	6	5	GAP/2	0	0	GAP/2		0	-Lstub	WD/2
+GW	7	1	-GAP/2	0	-Lstub	GAP/2		0	-Lstub	WD/2
+
+GW	8	3	GAP/2+Lt	0.0	0	GAP/2+Lt	0.0	-Ld	WD/2
+GW	9	3	-GAP/2-Lt	0.0	0	-GAP/2-Lt	0.0	-Ld	WD/2
+
+
+GM	0	0	0	0	-32	0	0	BASE
+
+GE -1
+GN 2 0 0 0 11 0.01
+EX  0    7    1    0  1.
+FR,0,1,0,0,144
+PQ -1
+PT -1
+RP,0,60,120,1003,-88,1,3,3
