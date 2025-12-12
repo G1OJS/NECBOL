@@ -5,14 +5,15 @@ CE
 SY BASE=7.3
 SY GAP = 0.03
 SY WD=0.005
-SY LD=1.186521
+SY Yd=0.624258
+SY Xd=1.15246
+SY Zd=0.1004
 SY Lstub=0.313637
-SY Ang = 30
 
 
 
-GW	1	19	GAP/2	0.	0	GAP/2+LD*cos(Ang)	0.0	-LD*sin(Ang)	WD/2
-GW	2	19	-GAP/2	0.	0	-GAP/2-LD*cos(Ang)	0.0	-LD*sin(Ang)	WD/2
+GW	1	19	GAP/2	0.	0	GAP/2+Xd	Yd	Zd	WD/2
+GW	2	19	-GAP/2	0.	0	-GAP/2-Xd	Yd	Zd	WD/2
 GW	5	5	-GAP/2	0	0	-GAP/2		0	-Lstub	WD/2
 GW	6	5	GAP/2	0	0	GAP/2		0	-Lstub	WD/2
 GW	7	1	-GAP/2	0	-Lstub	GAP/2		0	-Lstub	WD/2

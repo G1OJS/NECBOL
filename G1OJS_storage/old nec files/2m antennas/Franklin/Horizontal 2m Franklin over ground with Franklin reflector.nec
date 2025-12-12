@@ -7,9 +7,8 @@ SY GAP = 0.03
 SY WD=0.005
 SY LD=1.263648
 SY LR=1.248417
-SY Dref=0.381215
-SY Zref=-0.3
-SY Yref=0.3
+SY Zref=0
+SY Yref=-0.4
 SY Lstub=0.332031
 SY LstubR=0.381773
 SY RefScale = 0.9
@@ -27,7 +26,7 @@ GW	16	5	GAP/2	Yref	Zref	GAP/2		Yref	Zref-LstubR	WD/2
 GW	17	1	-GAP/2	Yref	Zref-LstubR	GAP/2	Yref	Zref-LstubR	WD/2
 
 
-GM	0	0	0	0	0	0	0	BASE
+GM	0	0	0	0	-32	0	0	BASE
 
 GE -1
 GN 2 0 0 0 11 0.01
