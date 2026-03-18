@@ -1,26 +1,414 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>outline.html</title><link rel='stylesheet' href='./outline.css' /><body>
-<br><div class = 'filename'>__init__.py</div><br><details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>    Standard Python initialiser handling imports from modules and version number
+<br><div class = 'filename'>components.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>import numpy as np
+import math
+from necbol.modeller import GeometryObject,_units
+
+#=================================================================================
+# Cannonical components
+#=================================================================================
+
+</pre>
+</details>
+<details><summary><span class ='class signature'> class components:</span></summary>
+<pre class ='class content'></pre>
+<details><summary><span class ='def signature'>🧾 def __init__(self, starting_tag_nr = 0):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
+        and loads the _units module class _units()
 </pre>
 </details>
 <details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>from necbol.components import *
-from necbol.visualiser import *
-from necbol.analyser import *
-from necbol.modeller import *
-from necbol.optimisers import *
+<pre class ='body content'>        self.object_counter = starting_tag_nr
+        self._units = _units()
 
-from importlib.metadata import version
-try:
-    __version__ = version(&quot;necbol&quot;)
-except:
-    __version__ = &quot;&quot;
-print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def _new_geometry_object(self):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        self.object_counter += 1
+        iTag = self.object_counter
+        obj = GeometryObject([])
+        obj.base_tag = iTag
+        return obj
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def copy_of(self, existing_obj):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        for w in existing_obj.wires:
+            obj._add_wire(obj.base_tag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
+        return obj
+        
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def wire_Z(self, **dimensions):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Create a straight wire aligned along the Z-axis, centered at the origin.
+
+        The wire extends from -length/2 to +length/2 on the Z-axis, with the specified diameter.
+
+        dimensions:
+            length_{units_string} (float): Length of the wire. 
+            wire_diameter_{units_string} (float): Diameter of the wire.
+            In each case, the unit suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
+        Returns:
+            obj (GeometryObject): The constructed geometry object with the defined wire.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
+        half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
+        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
+        obj._add_wire(obj.base_tag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
+        return obj
+    
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def rect_loop_XZ(self, **dimensions):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
+        The &#x27;side&#x27; wires extend from Z=-length/2 to Z=+length/2 at X = +/- width/2.
+        The &#x27;top/bottom&#x27; wires extend from X=-width/2 to X=+width/2 at Z = +/- length/2.
+        dimensions:
+            length_{units_string} (float): &#x27;Length&#x27; (extension along Z) of the rectangle. 
+            width_{units_string} (float): &#x27;Width&#x27; (extension along X) of the rectangle. 
+            wire_diameter_{units_string} (float): Diameter of the wires.
+            In each case, the unit suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
+        Returns:
+            obj (GeometryObject): The constructed geometry object with the defined wires.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
+        half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
+        half_width_m = dimensions_m.get(&#x27;width_m&#x27;)/2
+        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2        
+        obj._add_wire(obj.base_tag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
+        obj._add_wire(obj.base_tag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
+        return obj
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def connector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Create a single wire from a specified point on the from_object to a specified point on the to_object.
+        The point on an object is specified as {ftom|to}_wire_index AND {ftom|to}_alpha_wire, which specify respectively:
+              the i&#x27;th wire in the n wires in the object, and
+              the distance along that wire divided by that wire&#x27;s length
+        Arguments:
+            from_object (GeometryObject), from_wire_index (int, 0 .. n_wires_in_from_object - 1), from_alpha_wire (float, 0 .. 1)
+            to_object (GeometryObject), to_wire_index (int, 0 .. n_wires_in_to_object - 1), to_alpha_wire (float, 0 .. 1)
+        Returns:
+            obj (GeometryObject): The constructed geometry object with the defined wire.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        from_point = obj._point_on_object(from_object, from_wire_index, from_alpha_wire)
+        to_point = obj._point_on_object(to_object, to_wire_index, to_alpha_wire)
+        obj._add_wire(obj.base_tag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
+        return obj
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def helix(self, wires_per_turn, sense, taper_factor = 1.0, **dimensions):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Create a single helix with axis = Z axis
+        Arguments_
+            sense (&quot;LH&quot;|&quot;RH&quot;) - the handedness of the helix          
+            wires_per_turn (int) - the number of wires to use to represent the helix, per turn
+            dimensions:
+                radius_{units} (float) - helix radius 
+                length_{units} (float) - helix length along Z 
+                pitch_{units} (float)  - helix length along Z per whole turn
+                wire_diameter_{units} (float) - diameter of wire making the helix
+                In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
+        Returns:
+            obj (GeometryObject): The constructed geometry object representing the helix.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
+        radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
+        length_m = dimensions_m.get(&#x27;length_m&#x27;)
+        pitch_m = dimensions_m.get(&#x27;pitch_m&#x27;)
+        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
+
+        turns = length_m / pitch_m
+        n_wires = int(turns * wires_per_turn)
+        delta_phi = (2 * math.pi) / wires_per_turn  # angle per segment
+        delta_z_m = pitch_m / wires_per_turn 
+        phi_sign = 1 if sense.upper() == &quot;RH&quot; else -1
+
+        for i in range(n_wires):
+            phi1 = phi_sign * delta_phi * i
+            phi2 = phi_sign * delta_phi * (i + 1)
+            z1 = delta_z_m * i
+            z2 = delta_z_m * (i + 1)
+            alpha = 0.5*(z1+z2)/length_m
+            r = radius_m * (alpha + taper_factor * (1-alpha))
+            x1 = radius_m * math.cos(phi1)
+            y1 = radius_m * math.sin(phi1)
+            x2 = radius_m * math.cos(phi2)
+            y2 = radius_m * math.sin(phi2)
+            obj._add_wire(obj.base_tag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+
+        return obj
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def flexi_helix(self, sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
+
+            r(Z) = r0 * Σ [RA_i * cos(i * π * Z / l + RP_i)] for i=0..n-1
+            p(Z) = p0 * Σ [PA_i * cos(i * π * Z / l + PP_i)] for i=0..n-1
+
+        The geometry is generated by stepping through helical phase (φ), and computing local radius and pitch from cosine series 
+        as functions of normalized φ (mapped to Z via cumulative pitch integration).
+
+        Parameters:
+            sense (str): &quot;RH&quot; or &quot;LH&quot; handedness
+            wires_per_turn (int): Resolution (segments per full turn)
+            n_cos (int): Number of cosine terms
+            r_cos_params (list of tuples): [(RA0, RP0), ...] radius amplitudes and phases
+            p_cos_params (list of tuples): [(PA0, PP0), ...] pitch amplitudes and phases
+            dimensions:
+                l_{units} (float): Approximate helix length along Z
+                r0_{units} (float): Base radius scale factor
+                p0_{units} (float): Base pitch scale factor (length per full turn)
+                wire_diameter_{units} (float): Wire thickness
+
+        Returns:
+            GeometryObject: The constructed helix geometry object.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'></pre>
+</details>
+<details><summary><span class ='def signature'> def _cosine_series(s, terms):</span></summary>
+<pre class ='def content'>            return sum(A * math.cos(i * math.pi * s + P) for i, (A, P) in enumerate(terms))
+
+        # === Parameter unpacking and setup ===
+        obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
+
+        l_m = dimensions_m.get(&#x27;length_m&#x27;)
+        r0_m = dimensions_m.get(&#x27;r0_m&#x27;)
+        p0_m = dimensions_m.get(&#x27;p0_m&#x27;)
+        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;) / 2
+
+        phi_sign = 1 if sense.upper() == &quot;RH&quot; else -1
+
+        # Estimate number of turns from average pitch and total Z span
+        est_turns = l_m / p0_m
+        total_phi = est_turns * 2 * math.pi
+        n_segments = int(wires_per_turn * est_turns)
+
+        # Precompute all phi values
+        phi_list = [i * total_phi / n_segments for i in range(n_segments + 1)]
+
+        # === Generate 3D points ===
+        z = -l_m / 2  # center the helix vertically
+        points = []
+
+        for i, phi in enumerate(phi_list):
+            s = phi / total_phi  # Normalize φ to [0, +1]
+
+            radius = r0_m * _cosine_series(s, r_cos_params)
+            pitch = p0_m * _cosine_series(s, p_cos_params)
+            delta_phi = total_phi / n_segments
+
+            if i &gt; 0:
+                z += pitch * delta_phi / (2 * math.pi)
+            x = radius * math.cos(phi_sign * phi)
+            y = radius * math.sin(phi_sign * phi)
+            points.append((x, y, z))
+
+        # === Create wires ===
+        for i in range(n_segments):
+            x1, y1, z1 = points[i]
+            x2, y2, z2 = points[i + 1]
+            obj._add_wire(obj.base_tag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
+
+        return obj
 
 
 </pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def circular_arc(self, n_wires, arc_phi_deg, **dimensions):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Create a single circular arc in the XY plane centred on the origin
+        Arguments:
+            n_wires (int) - the number of wires to use to represent the arc         
+            arc_phi_deg (float) - the angle subtended at the origin by the arc in degrees. Note that a continuous circular loop can be constructed by specifying arc_phi_deg = 360.
+            dimensions:
+                radius_{units} (float) - helix radius 
+                wire_diameter_{units} (float) - diameter of wire making the helix
+                In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
+        Returns:
+            obj (GeometryObject): The constructed geometry object representing the helix.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
+        radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
+        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2    
+
+        delta_phi_deg = arc_phi_deg / n_wires        
+        for i in range(n_wires):
+            ca, sa = obj._cos_sin(delta_phi_deg * i)
+            x1 = radius_m * ca
+            y1 = radius_m * sa
+            ca, sa = obj._cos_sin(delta_phi_deg * (i+1))
+            x2 = radius_m * ca
+            y2 = radius_m * sa
+            obj._add_wire(obj.base_tag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
+
+        return obj
+
+
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, epsillon_r = 1.0, conductivity = 1e12, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
+        which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
+        
+        Models *either* conductive or dielectric sheet, not both:
+            Set epsillon_r to 1.0 for conducting sheet
+            Set epsillon_r &gt; 1.0 for dielectric sheet 
+
+        Arguments:
+            model - the object model being built
+            epsillon_r - relative dielectric constant
+            force_odd = true ensures wires cross at y=z=0
+            The four &#x27;close_&#x27; parameters determine whether or not the edges are &#x27;sealed&#x27; with a final wire (if True) or
+            not (if False) so that the grid can be joined to other grids without wires overlapping:
+                close_end = True completes the grid with a final end z wire at y = length/2 
+                close_start = True starts the grid with a z wire at y = -length/2 
+                close_top = True completes the grid with a y wire at z = height/2 
+                close_bottom = True starts the grid with a y wire at z = -height/2 
+            enforce_exact_pitch: if True, length and height are adjusted to fit an integer number
+            of grid cells of the specified pitch. If False, length and height remain as specified and
+            the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the
+            grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
+
+        Required dimensions are:
+            length_
+            height_
+            grid_pitch_
+            dielectric_thickness_ (for dielectric sheets only)
+        Optional dimensions are:
+            conducting_wire_diameter_ (for conducting sheets only, default is 1mm)
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        obj = self._new_geometry_object()
+        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
+        length_m = dimensions_m.get(&#x27;length_m&#x27;)
+        height_m = dimensions_m.get(&#x27;height_m&#x27;)
+        grid_pitch_m = dimensions_m.get(&#x27;grid_pitch_m&#x27;)
+
+        if (epsillon_r &gt; 1.0):
+            dielectric_thickness_m = dimensions_m.get(&#x27;dielectric_thickness_m&#x27;)
+            wire_radius_m = 0.0005
+        else:
+            if(&#x27;conducting_wire_diameter_m&#x27; in dimensions_m):
+                wire_radius_m = dimensions_m.get(&#x27;conducting_wire_diameter_m&#x27;)/2
+            else:
+                wire_radius_m = 0.0005
+            
+        dG = grid_pitch_m
+        nY = int(length_m / dG) + 1
+        nZ = int(height_m / dG) + 1
+        if (force_odd):
+            nY += (nY+1) % 2
+            nZ += (nZ+1) % 2
+        if (enforce_exact_pitch):
+            L = (nY-1)*dG
+            H = (nZ-1)*dG
+            dY = dG
+            dZ = dG
+            dS = dG
+        else:
+            dY = L/(nY-1)
+            dZ = H/(nz-1)
+            dS = 0.5*(dY+dZ)
+
+
+        # Create sheet
+        i0 = 0 if close_start else 1
+        i1 = nY if close_end else nY-1
+        j0 = 0 if close_bottom else 1
+        j1 = nZ if close_top else nZ-1
+        for i in range(i0, i1):     # make z wires
+            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dY, -H/2, 0, -L/2+i*dY, H/2]
+            nSegs = nZ-1
+            obj._add_wire(obj.base_tag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+
+        for j in range(j0, j1):     # make y wires
+            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dZ, 0, L/2, -H/2+j*dZ]
+            nSegs = nY-1
+            obj._add_wire(obj.base_tag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
+
+        # add distributed capacitive load to the obj.base_tag of this object if dielectric
+        if(epsillon_r == 1.0):
+            print(f&quot;\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres and conductivity = {conductivity:8.4e} mhos/metre&quot;)
+            model.LOADS.append({&#x27;iTag&#x27;: obj.base_tag, &#x27;load_type&#x27;: &#x27;conductivity&#x27;, &#x27;RoLuCp&#x27;: (conductivity, 0, 0), &#x27;alpha&#x27;: None})
+        else:
+            E0 = 8.854188 * 1e-12
+            C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * dielectric_thickness_m
+            # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
+            model.LOADS.append({&#x27;iTag&#x27;: obj.base_tag, &#x27;load_type&#x27;: &#x27;series_per_metre&#x27;, &#x27;RoLuCp&#x27;: (0, 0, C_pF_per_metre), &#x27;alpha&#x27;: None})
+            print(f&quot;\nAdded thin dielectric sheet comrising wires with diameter {wire_radius_m * 2} metres \n and capacitance loading {C_pF_per_metre:.6f} pF / metre&quot;)
+            print(&quot;NOTE: The thin dielectric sheet model has been tested functionally but not validated quantitavely&quot;)
+
+                    
+        return obj
+
+
+</pre>
+</details>
+</details>
 </details>
 <br><div class = 'filename'>analyser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
 <pre class ='body content'>
@@ -406,6 +794,303 @@ import cmath
     model.vswr = vswr(model)
 
     
+</pre>
+</details>
+<br><div class = 'filename'>visualiser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import numpy as np
+
+import copy
+
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
+        then displays the geometry in a 3D projection. The feed is highligted in red.
+        Loads are highlighted in green.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>    model_wires = copy.deepcopy(model)
+    model_wires.wires = []
+    with open(model.nec_in, &#x27;r&#x27;) as f:
+        for line in f:
+            if line.startswith(&quot;GW&quot;):
+                parts = line.strip().split()
+                if len(parts) &gt;= 9:
+                    # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
+                    x1, y1, z1 = map(float, parts[3:6])
+                    x2, y2, z2 = map(float, parts[6:9])
+                    tag = int(parts[1])
+                    radius = parts[9]
+                    model_wires.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
+
+
+    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
+    ax.view_init(view_el, view_az)
+    title = &quot;Geometry for &quot; + model.model_name
+
+    s,c = _trig(n_strands)
+
+    for start, end, tag, radius in model_wires.wires:
+        wire_color = color
+        for item in model.tags_info:
+            if (tag == item[&#x27;base_tag&#x27;]):
+                wire_color = item[&#x27;wf_col&#x27;]
+        if (tag == model.EX_tag):
+            wire_color = &#x27;red&#x27;
+        if (tag in [load[&#x27;iTag&#x27;] for load in model.LOADS]):
+            wire_color = &#x27;green&#x27;
+        _render_wire(ax, start, end, radius, s,c, color = wire_color, alpha=alpha)
+
+    plt.draw()  # ensure autoscale limits are calculated
+
+    # Get axis limits
+    xlim, ylim, zlim = ax.get_xlim(), ax.get_ylim(), ax.get_zlim()
+    mids = [(lim[0] + lim[1]) / 2 for lim in (xlim, ylim, zlim)]
+    spans = [lim[1] - lim[0] for lim in (xlim, ylim, zlim)]
+    max_range = max(spans)
+
+    # Set equal range around each midpoint
+    ax.set_xlim(mids[0] - max_range/2, mids[0] + max_range/2)
+    ax.set_ylim(mids[1] - max_range/2, mids[1] + max_range/2)
+    ax.set_zlim(mids[2] - max_range/2, mids[2] + max_range/2)
+
+    ax.set_xlabel(&#x27;X&#x27;)
+    ax.set_ylabel(&#x27;Y&#x27;)
+    ax.set_zlabel(&#x27;Z&#x27;)
+    ax.set_title(title)
+
+    if (model.vswr is not None):
+        fig.figure.text(0.02,0.05,f&quot;Vswr: {model.vswr:.2f} &quot;)
+    if (model.max_total_gain is not None):
+        fig.figure.text(0.02,0.1,f&quot;Max total gain: {model.max_total_gain:.2f} dBi&quot;)
+    
+    plt.tight_layout()
+
+    plt.show()
+    
+
+
+
+</pre>
+</details>
+</details>
+<details><summary><span class ='def signature'> def _trig(n_strands):</span></summary>
+<pre class ='def content'>    if(n_strands &lt;2):
+        return([0],[0]) # dummy values not used
+    angles = np.linspace(0, 2*np.pi, n_strands, endpoint=False)
+    cosines = np.cos(angles)
+    sines = np.sin(angles)
+    return sines, cosines
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _fast_perpendicular(v, threshold=100):</span></summary>
+<pre class ='def content'>    vx, vy, vz = abs(v[0]), abs(v[1]), abs(v[2])
+    if threshold * vz &gt; vx and threshold * vz &gt; vy:
+        # v is nearly aligned with z-axis; project to XZ
+        u = np.array([-v[2], 0.0, v[0]])
+    else:
+        # project to XY
+        u = np.array([-v[1], v[0], 0.0])
+    return u 
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _render_wire(ax, start, end, radius, sines,cosines, color, alpha):</span></summary>
+<pre class ='def content'>    if(len(sines) &lt;2):
+        s = start
+        e = end
+        ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color, alpha = alpha)
+        return
+    
+    axis = np.array(end) - np.array(start)
+    fast_perp = _fast_perpendicular(axis)
+    ortho_perp = np.cross(axis, fast_perp)  # axis × u
+    u = (float(radius) * fast_perp) / np.linalg.norm(fast_perp)
+    v = (float(radius) * ortho_perp) / np.linalg.norm(ortho_perp)
+    # Generate strand offsets by rotating u around axis
+    for i, s in enumerate(sines):
+        offset = s * u + cosines[i]* v
+        s = np.array(start) + offset
+        e = np.array(end) + offset
+        ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color, alpha = alpha)
+
+
+
+
+
+</pre>
+</details>
+<br><div class = 'filename'>optimisers.py</div><br><details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>
+import random, sys
+
+</pre>
+</details>
+<details><summary><span class ='class signature'>🧾 class RandomOptimiser:</span></summary>
+<pre class ='class content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'></pre>
+</details>
+<details><summary><span class ='def signature'> def __init__(self, build_fn, param_init, cost_fn, bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):</span></summary>
+<pre class ='def content'>        self.build_fn = build_fn
+        self.param_names = list(param_init.keys())
+        self.x_baseline = param_init.copy()
+        self.bounds = bounds
+        self.cost_fn = cost_fn
+        self.delta_x = delta_init
+        self.min_delta = min_delta
+        self.stall_limit = stall_limit
+        self.max_iter = max_iter
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _format_params(self, params):</span></summary>
+<pre class ='def content'>        s=&quot;{&quot;
+        for k, v in params.items():
+            s = s + f&quot;&#x27;{k}&#x27;: {v:.2f}, &quot;
+        return s[0:-2]+&quot;}&quot;
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _same_line_print(self,text):</span></summary>
+<pre class ='def content'>        sys.stdout.write(f&quot;\r{text}          &quot;)
+        sys.stdout.flush()
+
+</pre>
+</details>
+<details><summary><span class ='def signature'> def _random_variation(self, x):</span></summary>
+<pre class ='def content'>        x_new = x.copy()
+        for name in self.param_names:
+            factor = 1 + random.uniform(-self.delta_x, self.delta_x)
+            val = x[name] * factor
+            x_new[name] = val
+            if(name in self.bounds):
+                minv, maxv = self.bounds[name]
+                x_new[name] = max(min(x_new[name], maxv), minv)
+        return x_new
+
+</pre>
+</details>
+<details><summary><span class ='def signature'>🧾 def optimise(self, verbose=False, tty=True, show_geometry = True):</span></summary>
+<pre class ='def content'></pre>
+<details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
+            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
+            cost, the test is adopted as the new baseline.
+
+            Note that of course this won&#x27;t produce good results for any parameters that start off close to or at
+            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
+            specifications to make this work, but for now you should arrange for the input parameters and their
+            likely useful range to be away from zero, by using an offset.
+
+            If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
+            initialisation to limit their max and min values.
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>        best_params = self.x_baseline.copy()
+        best_model = self.build_fn(**best_params)
+        best_model.set_angular_resolution(10,10)
+        best_model.write_nec()
+        best_model.run_nec()
+        result = self.cost_fn(best_model)
+        best_cost = result[&#x27;cost&#x27;]
+        best_info = result[&#x27;info&#x27;]
+        stall_count = 0
+        print(&quot;\nSTARTING optimiser. Press CTRL-C to stop&quot;)
+        initial_message = f&quot;[] INITIAL: {best_info} with {self._format_params(best_params)}&quot;
+        print(initial_message)
+
+        try:
+            for i in range(self.max_iter):
+                test_params = self._random_variation(best_params)
+                test_model = self.build_fn(**test_params)
+                test_model.set_angular_resolution(10,10)
+                test_model.write_nec()
+                test_model.run_nec()
+                result = self.cost_fn(test_model)
+                test_cost = result[&#x27;cost&#x27;]
+                test_info = result[&#x27;info&#x27;]
+
+                if test_cost &lt; best_cost:
+                    best_cost = test_cost
+                    best_params = test_params
+                    best_info = test_info
+                    stall_count = 0
+                    if(not tty):
+                        print(&quot;&quot;)
+                    self._same_line_print(f&quot;[{i}] IMPROVED: {best_info} with {self._format_params(best_params)}&quot;)
+                    print(&quot;&quot;)
+                else:
+                    stall_count += 1
+                    if(tty):
+                        self._same_line_print(f&quot;[{i}] {test_info}&quot;)
+                    else:
+                        sys.stdout.write(&quot;.&quot;)
+
+                if stall_count &gt;= self.stall_limit:
+                    self.delta_x /= 2
+                    if(self.delta_x &lt; self.min_delta):
+                        if(not tty):
+                            print(&quot;&quot;)
+                        self._same_line_print(f&quot;[{i}] Delta below minimum&quot;)
+                        print(&quot;&quot;)
+                        break
+                    stall_count = 0
+                    if(not tty):
+                        print(&quot;&quot;)
+                    self._same_line_print(f&quot;[{i}] STALLED: Reducing delta to {self.delta_x}&quot;)
+                    print(&quot;&quot;)
+
+        except KeyboardInterrupt:
+            print(&quot;\nINTERRUPTED by user input&quot;)
+            
+        best_model = self.build_fn(**best_params)
+        best_model.write_nec()
+        best_model.run_nec()
+        result = self.cost_fn(best_model)
+        final_info = result[&#x27;info&#x27;]
+        print(&quot;\nFINISHED optimising\n&quot;)
+        print(&quot;# Optimiser Results (copy and paste into your antenna file for reference). \nNote that you can copy the information between the {} to paste in as your new starting parameters.)&quot;)
+        print(&quot;# &quot;+ initial_message)
+        print(f&quot;# []   FINAL: {final_info} with {self._format_params(best_params)}&quot;)
+        
+        return best_model, best_params, final_info
+</pre>
+</details>
+</details>
+</details>
+<br><div class = 'filename'>__init__.py</div><br><details><summary><span class ='docstring signature'> docstring</span></summary>
+<pre class ='docstring content'>    Standard Python initialiser handling imports from modules and version number
+</pre>
+</details>
+<details><summary><span class ='body signature'> body</span></summary>
+<pre class ='body content'>from necbol.components import *
+from necbol.visualiser import *
+from necbol.analyser import *
+from necbol.modeller import *
+from necbol.optimisers import *
+
+from importlib.metadata import version
+try:
+    __version__ = version(&quot;necbol&quot;)
+except:
+    __version__ = &quot;&quot;
+print(f&quot;\nNECBOL V{__version__} by Dr Alan Robinson G1OJS\n\n&quot;)
+
+
 </pre>
 </details>
 <br><div class = 'filename'>modeller.py</div><br><details><summary><span class ='body signature'> body</span></summary>
@@ -1133,691 +1818,6 @@ import time
 
         return out
 
-
-
-</pre>
-</details>
-</details>
-</details>
-<br><div class = 'filename'>visualiser.py</div><br><details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-import numpy as np
-
-import copy
-
-</pre>
-</details>
-<details><summary><span class ='def signature'>🧾 def show_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
-        then displays the geometry in a 3D projection. The feed is highligted in red.
-        Loads are highlighted in green.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>    model_wires = copy.deepcopy(model)
-    model_wires.wires = []
-    with open(model.nec_in, &#x27;r&#x27;) as f:
-        for line in f:
-            if line.startswith(&quot;GW&quot;):
-                parts = line.strip().split()
-                if len(parts) &gt;= 9:
-                    # NEC input is: GW tag seg x1 y1 z1 x2 y2 z2 radius
-                    x1, y1, z1 = map(float, parts[3:6])
-                    x2, y2, z2 = map(float, parts[6:9])
-                    tag = int(parts[1])
-                    radius = parts[9]
-                    model_wires.wires.append(((x1, y1, z1), (x2, y2, z2), tag, radius))
-
-
-    print(&quot;Drawing geometry. Please close the geometry window to continue.&quot;)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection=&#x27;3d&#x27;)
-    ax.view_init(view_el, view_az)
-    title = &quot;Geometry for &quot; + model.model_name
-
-    s,c = _trig(n_strands)
-
-    for start, end, tag, radius in model_wires.wires:
-        wire_color = color
-        for item in model.tags_info:
-            if (tag == item[&#x27;base_tag&#x27;]):
-                wire_color = item[&#x27;wf_col&#x27;]
-        if (tag == model.EX_tag):
-            wire_color = &#x27;red&#x27;
-        if (tag in [load[&#x27;iTag&#x27;] for load in model.LOADS]):
-            wire_color = &#x27;green&#x27;
-        _render_wire(ax, start, end, radius, s,c, color = wire_color, alpha=alpha)
-
-    plt.draw()  # ensure autoscale limits are calculated
-
-    # Get axis limits
-    xlim, ylim, zlim = ax.get_xlim(), ax.get_ylim(), ax.get_zlim()
-    mids = [(lim[0] + lim[1]) / 2 for lim in (xlim, ylim, zlim)]
-    spans = [lim[1] - lim[0] for lim in (xlim, ylim, zlim)]
-    max_range = max(spans)
-
-    # Set equal range around each midpoint
-    ax.set_xlim(mids[0] - max_range/2, mids[0] + max_range/2)
-    ax.set_ylim(mids[1] - max_range/2, mids[1] + max_range/2)
-    ax.set_zlim(mids[2] - max_range/2, mids[2] + max_range/2)
-
-    ax.set_xlabel(&#x27;X&#x27;)
-    ax.set_ylabel(&#x27;Y&#x27;)
-    ax.set_zlabel(&#x27;Z&#x27;)
-    ax.set_title(title)
-
-    if (model.vswr is not None):
-        fig.figure.text(0.02,0.05,f&quot;Vswr: {model.vswr:.2f} &quot;)
-    if (model.max_total_gain is not None):
-        fig.figure.text(0.02,0.1,f&quot;Max total gain: {model.max_total_gain:.2f} dBi&quot;)
-    
-    plt.tight_layout()
-
-    plt.show()
-    
-
-
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'> def _trig(n_strands):</span></summary>
-<pre class ='def content'>    if(n_strands &lt;2):
-        return([0],[0]) # dummy values not used
-    angles = np.linspace(0, 2*np.pi, n_strands, endpoint=False)
-    cosines = np.cos(angles)
-    sines = np.sin(angles)
-    return sines, cosines
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _fast_perpendicular(v, threshold=100):</span></summary>
-<pre class ='def content'>    vx, vy, vz = abs(v[0]), abs(v[1]), abs(v[2])
-    if threshold * vz &gt; vx and threshold * vz &gt; vy:
-        # v is nearly aligned with z-axis; project to XZ
-        u = np.array([-v[2], 0.0, v[0]])
-    else:
-        # project to XY
-        u = np.array([-v[1], v[0], 0.0])
-    return u 
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _render_wire(ax, start, end, radius, sines,cosines, color, alpha):</span></summary>
-<pre class ='def content'>    if(len(sines) &lt;2):
-        s = start
-        e = end
-        ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color, alpha = alpha)
-        return
-    
-    axis = np.array(end) - np.array(start)
-    fast_perp = _fast_perpendicular(axis)
-    ortho_perp = np.cross(axis, fast_perp)  # axis × u
-    u = (float(radius) * fast_perp) / np.linalg.norm(fast_perp)
-    v = (float(radius) * ortho_perp) / np.linalg.norm(ortho_perp)
-    # Generate strand offsets by rotating u around axis
-    for i, s in enumerate(sines):
-        offset = s * u + cosines[i]* v
-        s = np.array(start) + offset
-        e = np.array(end) + offset
-        ax.plot([s[0], e[0]], [s[1], e[1]], [s[2], e[2]], color=color, alpha = alpha)
-
-
-
-
-
-</pre>
-</details>
-<br><div class = 'filename'>optimisers.py</div><br><details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>
-import random, sys
-
-</pre>
-</details>
-<details><summary><span class ='class signature'>🧾 class RandomOptimiser:</span></summary>
-<pre class ='class content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'></pre>
-</details>
-<details><summary><span class ='def signature'> def __init__(self, build_fn, param_init, cost_fn, bounds={}, delta_init=0.2, stall_limit=50, max_iter=250, min_delta=0.001):</span></summary>
-<pre class ='def content'>        self.build_fn = build_fn
-        self.param_names = list(param_init.keys())
-        self.x_baseline = param_init.copy()
-        self.bounds = bounds
-        self.cost_fn = cost_fn
-        self.delta_x = delta_init
-        self.min_delta = min_delta
-        self.stall_limit = stall_limit
-        self.max_iter = max_iter
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _format_params(self, params):</span></summary>
-<pre class ='def content'>        s=&quot;{&quot;
-        for k, v in params.items():
-            s = s + f&quot;&#x27;{k}&#x27;: {v:.2f}, &quot;
-        return s[0:-2]+&quot;}&quot;
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _same_line_print(self,text):</span></summary>
-<pre class ='def content'>        sys.stdout.write(f&quot;\r{text}          &quot;)
-        sys.stdout.flush()
-
-</pre>
-</details>
-<details><summary><span class ='def signature'> def _random_variation(self, x):</span></summary>
-<pre class ='def content'>        x_new = x.copy()
-        for name in self.param_names:
-            factor = 1 + random.uniform(-self.delta_x, self.delta_x)
-            val = x[name] * factor
-            x_new[name] = val
-            if(name in self.bounds):
-                minv, maxv = self.bounds[name]
-                x_new[name] = max(min(x_new[name], maxv), minv)
-        return x_new
-
-</pre>
-</details>
-<details><summary><span class ='def signature'>🧾 def optimise(self, verbose=False, tty=True, show_geometry = True):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
-            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
-            cost, the test is adopted as the new baseline.
-
-            Note that of course this won&#x27;t produce good results for any parameters that start off close to or at
-            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
-            specifications to make this work, but for now you should arrange for the input parameters and their
-            likely useful range to be away from zero, by using an offset.
-
-            If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
-            initialisation to limit their max and min values.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        best_params = self.x_baseline.copy()
-        best_model = self.build_fn(**best_params)
-        best_model.set_angular_resolution(10,10)
-        best_model.write_nec()
-        best_model.run_nec()
-        result = self.cost_fn(best_model)
-        best_cost = result[&#x27;cost&#x27;]
-        best_info = result[&#x27;info&#x27;]
-        stall_count = 0
-        print(&quot;\nSTARTING optimiser. Press CTRL-C to stop&quot;)
-        initial_message = f&quot;[] INITIAL: {best_info} with {self._format_params(best_params)}&quot;
-        print(initial_message)
-
-        try:
-            for i in range(self.max_iter):
-                test_params = self._random_variation(best_params)
-                test_model = self.build_fn(**test_params)
-                test_model.set_angular_resolution(10,10)
-                test_model.write_nec()
-                test_model.run_nec()
-                result = self.cost_fn(test_model)
-                test_cost = result[&#x27;cost&#x27;]
-                test_info = result[&#x27;info&#x27;]
-
-                if test_cost &lt; best_cost:
-                    best_cost = test_cost
-                    best_params = test_params
-                    best_info = test_info
-                    stall_count = 0
-                    if(not tty):
-                        print(&quot;&quot;)
-                    self._same_line_print(f&quot;[{i}] IMPROVED: {best_info} with {self._format_params(best_params)}&quot;)
-                    print(&quot;&quot;)
-                else:
-                    stall_count += 1
-                    if(tty):
-                        self._same_line_print(f&quot;[{i}] {test_info}&quot;)
-                    else:
-                        sys.stdout.write(&quot;.&quot;)
-
-                if stall_count &gt;= self.stall_limit:
-                    self.delta_x /= 2
-                    if(self.delta_x &lt; self.min_delta):
-                        if(not tty):
-                            print(&quot;&quot;)
-                        self._same_line_print(f&quot;[{i}] Delta below minimum&quot;)
-                        print(&quot;&quot;)
-                        break
-                    stall_count = 0
-                    if(not tty):
-                        print(&quot;&quot;)
-                    self._same_line_print(f&quot;[{i}] STALLED: Reducing delta to {self.delta_x}&quot;)
-                    print(&quot;&quot;)
-
-        except KeyboardInterrupt:
-            print(&quot;\nINTERRUPTED by user input&quot;)
-            
-        best_model = self.build_fn(**best_params)
-        best_model.write_nec()
-        best_model.run_nec()
-        result = self.cost_fn(best_model)
-        final_info = result[&#x27;info&#x27;]
-        print(&quot;\nFINISHED optimising\n&quot;)
-        print(&quot;# Optimiser Results (copy and paste into your antenna file for reference). \nNote that you can copy the information between the {} to paste in as your new starting parameters.)&quot;)
-        print(&quot;# &quot;+ initial_message)
-        print(f&quot;# []   FINAL: {final_info} with {self._format_params(best_params)}&quot;)
-        
-        return best_model, best_params, final_info
-</pre>
-</details>
-</details>
-</details>
-<br><div class = 'filename'>components.py</div><br><details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>import numpy as np
-import math
-from necbol.modeller import GeometryObject,_units
-
-#=================================================================================
-# Cannonical components
-#=================================================================================
-
-</pre>
-</details>
-<details><summary><span class ='class signature'> class components:</span></summary>
-<pre class ='class content'></pre>
-<details><summary><span class ='def signature'>🧾 def __init__(self, starting_tag_nr = 0):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
-        and loads the _units module class _units()
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.object_counter = starting_tag_nr
-        self._units = _units()
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def _new_geometry_object(self):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        increment the object counter and return a GeometryObject with the counter&#x27;s new value
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        self.object_counter += 1
-        iTag = self.object_counter
-        obj = GeometryObject([])
-        obj.base_tag = iTag
-        return obj
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def copy_of(self, existing_obj):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Returns a clone of existing_obj with a new iTag
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        for w in existing_obj.wires:
-            obj._add_wire(obj.base_tag, w[&#x27;nS&#x27;], *w[&#x27;a&#x27;], *w[&#x27;b&#x27;], w[&#x27;wr&#x27;])
-        return obj
-        
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def wire_Z(self, **dimensions):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Create a straight wire aligned along the Z-axis, centered at the origin.
-
-        The wire extends from -length/2 to +length/2 on the Z-axis, with the specified diameter.
-
-        dimensions:
-            length_{units_string} (float): Length of the wire. 
-            wire_diameter_{units_string} (float): Diameter of the wire.
-            In each case, the unit suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
-        Returns:
-            obj (GeometryObject): The constructed geometry object with the defined wire.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
-        half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
-        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
-        obj._add_wire(obj.base_tag, 0, 0, 0, -half_length_m, 0, 0, half_length_m, wire_radius_m)
-        return obj
-    
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def rect_loop_XZ(self, **dimensions):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Create a rectangular wire loop in the XZ plane, centered at the origin, with the specified wire diameter.
-        The &#x27;side&#x27; wires extend from Z=-length/2 to Z=+length/2 at X = +/- width/2.
-        The &#x27;top/bottom&#x27; wires extend from X=-width/2 to X=+width/2 at Z = +/- length/2.
-        dimensions:
-            length_{units_string} (float): &#x27;Length&#x27; (extension along Z) of the rectangle. 
-            width_{units_string} (float): &#x27;Width&#x27; (extension along X) of the rectangle. 
-            wire_diameter_{units_string} (float): Diameter of the wires.
-            In each case, the unit suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
-        Returns:
-            obj (GeometryObject): The constructed geometry object with the defined wires.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
-        half_length_m = dimensions_m.get(&#x27;length_m&#x27;)/2
-        half_width_m = dimensions_m.get(&#x27;width_m&#x27;)/2
-        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2        
-        obj._add_wire(obj.base_tag, 0, -half_width_m , 0, -half_length_m, -half_width_m , 0, half_length_m, wire_radius_m)
-        obj._add_wire(obj.base_tag, 0,  half_width_m , 0, -half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
-        obj._add_wire(obj.base_tag, 0, -half_width_m , 0, -half_length_m,  half_width_m , 0,-half_length_m, wire_radius_m)
-        obj._add_wire(obj.base_tag, 0, -half_width_m , 0,  half_length_m,  half_width_m , 0, half_length_m, wire_radius_m)
-        return obj
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def connector(self, from_object, from_wire_index, from_alpha_wire, to_object, to_wire_index, to_alpha_wire,  wire_diameter_mm = 1.0):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Create a single wire from a specified point on the from_object to a specified point on the to_object.
-        The point on an object is specified as {ftom|to}_wire_index AND {ftom|to}_alpha_wire, which specify respectively:
-              the i&#x27;th wire in the n wires in the object, and
-              the distance along that wire divided by that wire&#x27;s length
-        Arguments:
-            from_object (GeometryObject), from_wire_index (int, 0 .. n_wires_in_from_object - 1), from_alpha_wire (float, 0 .. 1)
-            to_object (GeometryObject), to_wire_index (int, 0 .. n_wires_in_to_object - 1), to_alpha_wire (float, 0 .. 1)
-        Returns:
-            obj (GeometryObject): The constructed geometry object with the defined wire.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        from_point = obj._point_on_object(from_object, from_wire_index, from_alpha_wire)
-        to_point = obj._point_on_object(to_object, to_wire_index, to_alpha_wire)
-        obj._add_wire(obj.base_tag, 0, *from_point, *to_point, wire_diameter_mm/2000) 
-        return obj
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def helix(self, wires_per_turn, sense, taper_factor = 1.0, **dimensions):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Create a single helix with axis = Z axis
-        Arguments_
-            sense (&quot;LH&quot;|&quot;RH&quot;) - the handedness of the helix          
-            wires_per_turn (int) - the number of wires to use to represent the helix, per turn
-            dimensions:
-                radius_{units} (float) - helix radius 
-                length_{units} (float) - helix length along Z 
-                pitch_{units} (float)  - helix length along Z per whole turn
-                wire_diameter_{units} (float) - diameter of wire making the helix
-                In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
-        Returns:
-            obj (GeometryObject): The constructed geometry object representing the helix.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
-        radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
-        length_m = dimensions_m.get(&#x27;length_m&#x27;)
-        pitch_m = dimensions_m.get(&#x27;pitch_m&#x27;)
-        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2
-
-        turns = length_m / pitch_m
-        n_wires = int(turns * wires_per_turn)
-        delta_phi = (2 * math.pi) / wires_per_turn  # angle per segment
-        delta_z_m = pitch_m / wires_per_turn 
-        phi_sign = 1 if sense.upper() == &quot;RH&quot; else -1
-
-        for i in range(n_wires):
-            phi1 = phi_sign * delta_phi * i
-            phi2 = phi_sign * delta_phi * (i + 1)
-            z1 = delta_z_m * i
-            z2 = delta_z_m * (i + 1)
-            alpha = 0.5*(z1+z2)/length_m
-            r = radius_m * (alpha + taper_factor * (1-alpha))
-            x1 = radius_m * math.cos(phi1)
-            y1 = radius_m * math.sin(phi1)
-            x2 = radius_m * math.cos(phi2)
-            y2 = radius_m * math.sin(phi2)
-            obj._add_wire(obj.base_tag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
-
-        return obj
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def flexi_helix(self, sense, wires_per_turn, n_cos,r_cos_params,p_cos_params, **dimensions):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Create a helix along the Z axis where radius and pitch vary as scaled sums of cosines:
-
-            r(Z) = r0 * Σ [RA_i * cos(i * π * Z / l + RP_i)] for i=0..n-1
-            p(Z) = p0 * Σ [PA_i * cos(i * π * Z / l + PP_i)] for i=0..n-1
-
-        The geometry is generated by stepping through helical phase (φ), and computing local radius and pitch from cosine series 
-        as functions of normalized φ (mapped to Z via cumulative pitch integration).
-
-        Parameters:
-            sense (str): &quot;RH&quot; or &quot;LH&quot; handedness
-            wires_per_turn (int): Resolution (segments per full turn)
-            n_cos (int): Number of cosine terms
-            r_cos_params (list of tuples): [(RA0, RP0), ...] radius amplitudes and phases
-            p_cos_params (list of tuples): [(PA0, PP0), ...] pitch amplitudes and phases
-            dimensions:
-                l_{units} (float): Approximate helix length along Z
-                r0_{units} (float): Base radius scale factor
-                p0_{units} (float): Base pitch scale factor (length per full turn)
-                wire_diameter_{units} (float): Wire thickness
-
-        Returns:
-            GeometryObject: The constructed helix geometry object.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'></pre>
-</details>
-<details><summary><span class ='def signature'> def _cosine_series(s, terms):</span></summary>
-<pre class ='def content'>            return sum(A * math.cos(i * math.pi * s + P) for i, (A, P) in enumerate(terms))
-
-        # === Parameter unpacking and setup ===
-        obj = self._new_geometry_object()
-        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
-
-        l_m = dimensions_m.get(&#x27;length_m&#x27;)
-        r0_m = dimensions_m.get(&#x27;r0_m&#x27;)
-        p0_m = dimensions_m.get(&#x27;p0_m&#x27;)
-        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;) / 2
-
-        phi_sign = 1 if sense.upper() == &quot;RH&quot; else -1
-
-        # Estimate number of turns from average pitch and total Z span
-        est_turns = l_m / p0_m
-        total_phi = est_turns * 2 * math.pi
-        n_segments = int(wires_per_turn * est_turns)
-
-        # Precompute all phi values
-        phi_list = [i * total_phi / n_segments for i in range(n_segments + 1)]
-
-        # === Generate 3D points ===
-        z = -l_m / 2  # center the helix vertically
-        points = []
-
-        for i, phi in enumerate(phi_list):
-            s = phi / total_phi  # Normalize φ to [0, +1]
-
-            radius = r0_m * _cosine_series(s, r_cos_params)
-            pitch = p0_m * _cosine_series(s, p_cos_params)
-            delta_phi = total_phi / n_segments
-
-            if i &gt; 0:
-                z += pitch * delta_phi / (2 * math.pi)
-            x = radius * math.cos(phi_sign * phi)
-            y = radius * math.sin(phi_sign * phi)
-            points.append((x, y, z))
-
-        # === Create wires ===
-        for i in range(n_segments):
-            x1, y1, z1 = points[i]
-            x2, y2, z2 = points[i + 1]
-            obj._add_wire(obj.base_tag, 0, x1, y1, z1, x2, y2, z2, wire_radius_m)
-
-        return obj
-
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def circular_arc(self, n_wires, arc_phi_deg, **dimensions):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Create a single circular arc in the XY plane centred on the origin
-        Arguments:
-            n_wires (int) - the number of wires to use to represent the arc         
-            arc_phi_deg (float) - the angle subtended at the origin by the arc in degrees. Note that a continuous circular loop can be constructed by specifying arc_phi_deg = 360.
-            dimensions:
-                radius_{units} (float) - helix radius 
-                wire_diameter_{units} (float) - diameter of wire making the helix
-                In each case above, the units suffix (e.g., _mm, _m) must be present in the units class dictionary &#x27;_UNIT_FACTORS&#x27; (see units.py)
-        Returns:
-            obj (GeometryObject): The constructed geometry object representing the helix.
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
-        radius_m = dimensions_m.get(&#x27;diameter_m&#x27;)/2
-        wire_radius_m = dimensions_m.get(&#x27;wire_diameter_m&#x27;)/2    
-
-        delta_phi_deg = arc_phi_deg / n_wires        
-        for i in range(n_wires):
-            ca, sa = obj._cos_sin(delta_phi_deg * i)
-            x1 = radius_m * ca
-            y1 = radius_m * sa
-            ca, sa = obj._cos_sin(delta_phi_deg * (i+1))
-            x2 = radius_m * ca
-            y2 = radius_m * sa
-            obj._add_wire(obj.base_tag, 0, x1, y1, 0, x2, y2, 0, wire_radius_m)
-
-        return obj
-
-
-
-</pre>
-</details>
-</details>
-<details><summary><span class ='def signature'>🧾 def thin_sheet(self, model, epsillon_r = 1.0, conductivity = 1e12, force_odd = True, close_start = True, close_end = True, close_bottom = True, close_top = True, enforce_exact_pitch = True, **dimensions):</span></summary>
-<pre class ='def content'></pre>
-<details><summary><span class ='docstring signature'> docstring</span></summary>
-<pre class ='docstring content'>        Creates a grid of wires interconnected at segment level to economically model a flat sheet
-        which is normal to the x axis and extends from z=-height/2 to z= height/2, and y = -length/2 to length/2
-        
-        Models *either* conductive or dielectric sheet, not both:
-            Set epsillon_r to 1.0 for conducting sheet
-            Set epsillon_r &gt; 1.0 for dielectric sheet 
-
-        Arguments:
-            model - the object model being built
-            epsillon_r - relative dielectric constant
-            force_odd = true ensures wires cross at y=z=0
-            The four &#x27;close_&#x27; parameters determine whether or not the edges are &#x27;sealed&#x27; with a final wire (if True) or
-            not (if False) so that the grid can be joined to other grids without wires overlapping:
-                close_end = True completes the grid with a final end z wire at y = length/2 
-                close_start = True starts the grid with a z wire at y = -length/2 
-                close_top = True completes the grid with a y wire at z = height/2 
-                close_bottom = True starts the grid with a y wire at z = -height/2 
-            enforce_exact_pitch: if True, length and height are adjusted to fit an integer number
-            of grid cells of the specified pitch. If False, length and height remain as specified and
-            the grid pitch in Y and Z is adjusted to fit the number of grid cells calculated from the
-            grid pitch and force_odd value. Behaviour prior to V2.0.3 was enforce_exact_pitch.
-
-        Required dimensions are:
-            length_
-            height_
-            grid_pitch_
-            dielectric_thickness_ (for dielectric sheets only)
-        Optional dimensions are:
-            conducting_wire_diameter_ (for conducting sheets only, default is 1mm)
-</pre>
-</details>
-<details><summary><span class ='body signature'> body</span></summary>
-<pre class ='body content'>        obj = self._new_geometry_object()
-        dimensions_m = self._units._from_suffixed_dimensions(dimensions)
-        length_m = dimensions_m.get(&#x27;length_m&#x27;)
-        height_m = dimensions_m.get(&#x27;height_m&#x27;)
-        grid_pitch_m = dimensions_m.get(&#x27;grid_pitch_m&#x27;)
-
-        if (epsillon_r &gt; 1.0):
-            dielectric_thickness_m = dimensions_m.get(&#x27;dielectric_thickness_m&#x27;)
-            wire_radius_m = 0.0005
-        else:
-            if(&#x27;conducting_wire_diameter_m&#x27; in dimensions_m):
-                wire_radius_m = dimensions_m.get(&#x27;conducting_wire_diameter_m&#x27;)/2
-            else:
-                wire_radius_m = 0.0005
-            
-        dG = grid_pitch_m
-        nY = int(length_m / dG) + 1
-        nZ = int(height_m / dG) + 1
-        if (force_odd):
-            nY += (nY+1) % 2
-            nZ += (nZ+1) % 2
-        if (enforce_exact_pitch):
-            L = (nY-1)*dG
-            H = (nZ-1)*dG
-            dY = dG
-            dZ = dG
-            dS = dG
-        else:
-            dY = L/(nY-1)
-            dZ = H/(nz-1)
-            dS = 0.5*(dY+dZ)
-
-
-        # Create sheet
-        i0 = 0 if close_start else 1
-        i1 = nY if close_end else nY-1
-        j0 = 0 if close_bottom else 1
-        j1 = nZ if close_top else nZ-1
-        for i in range(i0, i1):     # make z wires
-            x1, y1, z1, x2, y2, z2 = [0, -L/2+i*dY, -H/2, 0, -L/2+i*dY, H/2]
-            nSegs = nZ-1
-            obj._add_wire(obj.base_tag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
-
-        for j in range(j0, j1):     # make y wires
-            x1, y1, z1, x2, y2, z2 = [0, -L/2, -H/2+j*dZ, 0, L/2, -H/2+j*dZ]
-            nSegs = nY-1
-            obj._add_wire(obj.base_tag, nSegs, x1, y1, z1, x2, y2, z2, wire_radius_m)
-
-        # add distributed capacitive load to the obj.base_tag of this object if dielectric
-        if(epsillon_r == 1.0):
-            print(f&quot;\nAdded thin conducting sheet with wire diameter {wire_radius_m * 2} metres and conductivity = {conductivity:8.4e} mhos/metre&quot;)
-            model.LOADS.append({&#x27;iTag&#x27;: obj.base_tag, &#x27;load_type&#x27;: &#x27;conductivity&#x27;, &#x27;RoLuCp&#x27;: (conductivity, 0, 0), &#x27;alpha&#x27;: None})
-        else:
-            E0 = 8.854188 * 1e-12
-            C_pF_per_metre = 1e12 * E0 * (epsillon_r-1) * dielectric_thickness_m
-            # NEC LD card specification https://www.nec2.org/part_3/cards/ld.html
-            model.LOADS.append({&#x27;iTag&#x27;: obj.base_tag, &#x27;load_type&#x27;: &#x27;series_per_metre&#x27;, &#x27;RoLuCp&#x27;: (0, 0, C_pF_per_metre), &#x27;alpha&#x27;: None})
-            print(f&quot;\nAdded thin dielectric sheet comrising wires with diameter {wire_radius_m * 2} metres \n and capacitance loading {C_pF_per_metre:.6f} pF / metre&quot;)
-            print(&quot;NOTE: The thin dielectric sheet model has been tested functionally but not validated quantitavely&quot;)
-
-                    
-        return obj
 
 
 </pre>

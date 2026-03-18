@@ -1,148 +1,6 @@
 <!DOCTYPE html><html lang='en'>
 <head>
 <title>user_functions.html</title><link rel='stylesheet' href='./user_functions.css' /><body>
-<br><div class = 'filename'>__init__.py</div><br><br><div class = 'filename'>analyser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspvswr(model, Z0 = 50):</span></div>
-<pre class ='docstring content'>        Return the antenna VSWR at the feed point assuming a 50 ohm system
-        Or another value if specified
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspget_gains_at_gain_point(model):</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_max = 0, gain_scale_range_dB = 30):</span></div>
-<pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
-        &#x27;azimuth_deg&#x27;: float,
-        &#x27;elevation_deg&#x27;: float,
-        &#x27;vert_gain_dBi&#x27;: float,
-        &#x27;horiz_gain_dBi&#x27;: float,
-        &#x27;total_gain_dBi&#x27;: float,
-        &#x27;axial_ratio_dB&#x27;: float,
-        &#x27;tilt_deg&#x27;: float,
-        &#x27;sense&#x27;: string,
-        &#x27;E_theta_mag&#x27;: float,
-        &#x27;E_theta_phase_deg&#x27;: float,
-        &#x27;E_phi_mag&#x27;: float,
-        &#x27;E_phi_phase_deg&#x27;: float
-</pre>
-<br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class NECModel:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(name):</span></div>
-<pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
-            output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
-            so that the analysis continues (with updated input parameters) and outputs more than one test case
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(sigma):</span></div>
-<pre class ='docstring content'>            Set wire conductivity to be assumed for all wires that don&#x27;t have an explicitly-set load.
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz):</span></div>
-<pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(azimuth_deg, elevation_deg):</span></div>
-<pre class ='docstring content'>            Set the azimuth and elevation of a single gain point that
-            must appear in the output radiation pattern
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_angular_resolution(az_step_deg, el_step_deg):</span></div>
-<pre class ='docstring content'>            Set resolution required in az and el in degrees
-            If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **origin_height):</span></div>
-<pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
-            If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
-            If you don&#x27;t call this function, free space will be assumed.
-            Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
-            the specified distance above ground.
-            Parameters:
-                eps_r (float): relative permittivity (relative dielectric constant) of the ground
-                sigma (float): conductivity of the ground in mhos/meter
-                origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_RLC_load(geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>            inserts a single segment containing an RLC load into an existing geometry object
-            Position within the object is specied as
-            EITHER:
-              load_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              load_wire_index AND load_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-
-            NEC LD card specification: https://www.nec2.org/part_3/cards/ld.html
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_feed( geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></div>
-<pre class ='docstring content'>            Inserts a single segment containing the excitation point into an existing geometry object.
-            Position within the object is specied as
-            EITHER:
-              feed_alpha_object (range 0 to 1) as a parameter specifying the length of
-                                wire traversed to reach the item by following each wire in the object,
-                                divided by the length of all wires in the object
-                                (This is intended to be used for objects like circular loops where there
-                                are many short wires each of the same length)
-            OR:
-              feed_wire_index AND feed_alpha_wire
-              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
-              wire divided by that wire&#x27;s length
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd(geomObj, wireframe_color = 'darkgoldenrod'):</span></div>
-<pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
-            to the component after this point are ignored.
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspwrite_nec():</span></div>
-<pre class ='docstring content'>            Write the entire model to the NEC input file ready for analysis. At this point, the function
-            &quot;show_wires_from_file&quot; may be used to see the specified geometry in a 3D view.
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprun_nec():</span></div>
-<pre class ='docstring content'>        Pass the model file to NEC for analysis and wait for the output.
-</pre>
-<hr><div><span class ='class signature'>class GeometryObject:</span></div>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(**params):</span></div>
-<pre class ='docstring content'>            Translate an object by dx, dy, dz
-            Arguments are dx_{units}, dy_{units}, dz_{units}
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY():</span></div>
-<pre class ='docstring content'>            Rotate the object through 90 degrees around X
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX():</span></div>
-<pre class ='docstring content'>            Rotate the object through 90 degrees around Y
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(angle_deg):</span></div>
-<pre class ='docstring content'>            Rotate the object through angle_deg degrees around X
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(angle_deg):</span></div>
-<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Y
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(angle_deg):</span></div>
-<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Z
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(other, tol=1e-3, verbose = False):</span></div>
-<pre class ='docstring content'>            Check both ends of the wire to see if they lie on any wires in the specified object,
-            and if so, split the wires of the specified object so that NEC considers them to be
-            a valid T junction. Usage is:
-
-            wire.connect_ends(object, [tol in m], [verbose])
-
-            if verbose is True, details of the wire connection(s) are printed
-</pre>
-<br><div class = 'filename'>visualiser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):</span></div>
-<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
-        then displays the geometry in a 3D projection. The feed is highligted in red.
-        Loads are highlighted in green.
-</pre>
-<br><div class = 'filename'>optimisers.py</div><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
-<pre class ='docstring content'>        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
-</pre>
-<hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(verbose=False, tty=True, show_geometry = True):</span></div>
-<pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
-            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
-            cost, the test is adopted as the new baseline.
-
-            Note that of course this won&#x27;t produce good results for any parameters that start off close to or at
-            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
-            specifications to make this work, but for now you should arrange for the input parameters and their
-            likely useful range to be away from zero, by using an offset.
-
-            If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
-            initialisation to limit their max and min values.
-</pre>
 <br><div class = 'filename'>components.py</div><br><hr><div><span class ='class signature'>class components:</span></div>
 <pre class ='docstring content'>        Sets object_counter to starting_tag_nr (tags number identifies an object)
         and loads the _units module class _units()
@@ -265,6 +123,148 @@
             dielectric_thickness_ (for dielectric sheets only)
         Optional dimensions are:
             conducting_wire_diameter_ (for conducting sheets only, default is 1mm)
+</pre>
+<br><div class = 'filename'>analyser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspvswr(model, Z0 = 50):</span></div>
+<pre class ='docstring content'>        Return the antenna VSWR at the feed point assuming a 50 ohm system
+        Or another value if specified
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspget_gains_at_gain_point(model):</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplot_pattern_gains(model, azimuth_deg = None, elevation_deg = None, components = ['vert_gain_dBi', 'horiz_gain_dBi'], gain_scale_max = 0, gain_scale_range_dB = 30):</span></div>
+<pre class ='docstring content'>        Read the radiation pattern into a Python dictionary:
+        &#x27;azimuth_deg&#x27;: float,
+        &#x27;elevation_deg&#x27;: float,
+        &#x27;vert_gain_dBi&#x27;: float,
+        &#x27;horiz_gain_dBi&#x27;: float,
+        &#x27;total_gain_dBi&#x27;: float,
+        &#x27;axial_ratio_dB&#x27;: float,
+        &#x27;tilt_deg&#x27;: float,
+        &#x27;sense&#x27;: string,
+        &#x27;E_theta_mag&#x27;: float,
+        &#x27;E_theta_phase_deg&#x27;: float,
+        &#x27;E_phi_mag&#x27;: float,
+        &#x27;E_phi_phase_deg&#x27;: float
+</pre>
+<br><div class = 'filename'>visualiser.py</div><br><hr><div><span class ='def signature'>&nbsp&nbsp&nbspshow_wires_from_file(model, n_strands = 8, color = 'darkgoldenrod', alpha = 0.3, view_az = 30, view_el = 30):</span></div>
+<pre class ='docstring content'>        Opens the specified nec input file (*.nec) and reads the geometry,
+        then displays the geometry in a 3D projection. The feed is highligted in red.
+        Loads are highlighted in green.
+</pre>
+<br><div class = 'filename'>optimisers.py</div><br><hr><div><span class ='class signature'>class RandomOptimiser:</span></div>
+<pre class ='docstring content'>        Initialise the optimisation parameters. Details to be written - please see examples for help with parameters.
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspoptimise(verbose=False, tty=True, show_geometry = True):</span></div>
+<pre class ='docstring content'>            This random optimiser works by simultaneously adjusting all input parameters by a random multiplier (1 + x)
+            and comparing the user-specified cost function with the best achieved so far. If the test gives a better
+            cost, the test is adopted as the new baseline.
+
+            Note that of course this won&#x27;t produce good results for any parameters that start off close to or at
+            zero and/or have an allowable range with zero close to the middle. Future versions of this optimiser may allow
+            specifications to make this work, but for now you should arrange for the input parameters and their
+            likely useful range to be away from zero, by using an offset.
+
+            If any parameters seem likely to drift into non-useful ranges, use the &#x27;bounds&#x27; specification in the
+            initialisation to limit their max and min values.
+</pre>
+<br><div class = 'filename'>__init__.py</div><br><br><div class = 'filename'>modeller.py</div><br><hr><div><span class ='class signature'>class NECModel:</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_name(name):</span></div>
+<pre class ='docstring content'>            Set the name of the model. This is used in NEC input file generation and is reflected in the NEC
+            output file name. It is permissible to use this function to re-set the name after a NEC run has completed,
+            so that the analysis continues (with updated input parameters) and outputs more than one test case
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_wire_conductivity(sigma):</span></div>
+<pre class ='docstring content'>            Set wire conductivity to be assumed for all wires that don&#x27;t have an explicitly-set load.
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_frequency(MHz):</span></div>
+<pre class ='docstring content'>            Request NEC to perform all analysis at the specified frequency. 
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_gain_point(azimuth_deg, elevation_deg):</span></div>
+<pre class ='docstring content'>            Set the azimuth and elevation of a single gain point that
+            must appear in the output radiation pattern
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_angular_resolution(az_step_deg, el_step_deg):</span></div>
+<pre class ='docstring content'>            Set resolution required in az and el in degrees
+            If a ground is specified, NEC will be asked for a hemisphere, otherwise a sphere
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspset_ground(eps_r, sigma, **origin_height):</span></div>
+<pre class ='docstring content'>            Sets the ground relative permitivity and conductivity. Currently limited to simple choices.
+            If eps_r = 1, nec is told to use no ground (free space model), and you may omit the origin height parameter
+            If you don&#x27;t call this function, free space will be assumed.
+            Othewise you should set the origin height so that the antenna reference point X,Y,Z = (0,0,0) is set to be
+            the specified distance above ground.
+            Parameters:
+                eps_r (float): relative permittivity (relative dielectric constant) of the ground
+                sigma (float): conductivity of the ground in mhos/meter
+                origin_height_{units_string} (float): Height of antenna reference point X,Y,Z = (0,0,0)
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_RLC_load(geomObj, R_Ohms, L_uH, C_pf, load_type = 'series', load_alpha_object=-1, load_wire_index=-1, load_alpha_wire=-1):</span></div>
+<pre class ='docstring content'>            inserts a single segment containing an RLC load into an existing geometry object
+            Position within the object is specied as
+            EITHER:
+              load_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              load_wire_index AND load_alpha_wire
+              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire&#x27;s length
+
+            NEC LD card specification: https://www.nec2.org/part_3/cards/ld.html
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspplace_feed( geomObj, feed_alpha_object=-1, feed_wire_index=-1, feed_alpha_wire=-1):</span></div>
+<pre class ='docstring content'>            Inserts a single segment containing the excitation point into an existing geometry object.
+            Position within the object is specied as
+            EITHER:
+              feed_alpha_object (range 0 to 1) as a parameter specifying the length of
+                                wire traversed to reach the item by following each wire in the object,
+                                divided by the length of all wires in the object
+                                (This is intended to be used for objects like circular loops where there
+                                are many short wires each of the same length)
+            OR:
+              feed_wire_index AND feed_alpha_wire
+              which specify the i&#x27;th wire (0 to n-1) in the n wires in the object, and the distance along that
+              wire divided by that wire&#x27;s length
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspadd(geomObj, wireframe_color = 'darkgoldenrod'):</span></div>
+<pre class ='docstring content'>            Add a completed component to the specified model: model_name.add(component_name). Any changes made
+            to the component after this point are ignored.
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspwrite_nec():</span></div>
+<pre class ='docstring content'>            Write the entire model to the NEC input file ready for analysis. At this point, the function
+            &quot;show_wires_from_file&quot; may be used to see the specified geometry in a 3D view.
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprun_nec():</span></div>
+<pre class ='docstring content'>        Pass the model file to NEC for analysis and wait for the output.
+</pre>
+<hr><div><span class ='class signature'>class GeometryObject:</span></div>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsptranslate(**params):</span></div>
+<pre class ='docstring content'>            Translate an object by dx, dy, dz
+            Arguments are dx_{units}, dy_{units}, dz_{units}
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoY():</span></div>
+<pre class ='docstring content'>            Rotate the object through 90 degrees around X
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_ZtoX():</span></div>
+<pre class ='docstring content'>            Rotate the object through 90 degrees around Y
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_X(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around X
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Y(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Y
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbsprotate_around_Z(angle_deg):</span></div>
+<pre class ='docstring content'>            Rotate the object through angle_deg degrees around Z
+</pre>
+<hr><div><span class ='def signature'>&nbsp&nbsp&nbspconnect_ends(other, tol=1e-3, verbose = False):</span></div>
+<pre class ='docstring content'>            Check both ends of the wire to see if they lie on any wires in the specified object,
+            and if so, split the wires of the specified object so that NEC considers them to be
+            a valid T junction. Usage is:
+
+            wire.connect_ends(object, [tol in m], [verbose])
+
+            if verbose is True, details of the wire connection(s) are printed
 </pre>
 
 <br><br><span style = 'font-size:0.8em;color:#666;border-top:1px solid #ddd; font-style:italic'>Made with Docu-lite 1.5.1 by Alan Robinson: github.com/G1OJS/docu-lite/</span></body>
